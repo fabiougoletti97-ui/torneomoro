@@ -490,7 +490,11 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <!-- ADMIN BAR -->
 <div class="admin-bar" style="margin-top:62px;">
   <span class="admin-label" style="font-family:'Oswald';font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">🔐 Modalità Admin attiva</span>
-  <button class="admin-bar-btn" onclick="exitAdmin()">Esci dall'admin</button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span id="storage-indicator" style="font-size:0.68rem;color:var(--accent);font-family:'Oswald';letter-spacing:1px;opacity:0;transition:opacity 0.4s;">💾 Salvato</span>
+    <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="Cancella tutti i dati e ripristina">🗑 Reset dati</button>
+    <button class="admin-bar-btn" onclick="exitAdmin()">Esci dall'admin</button>
+  </div>
 </div>
 
 <!-- NAV -->
@@ -999,7 +1003,48 @@ function genMatches() {
   roundRobin(mTeams,'M');
   roundRobin(fTeams,'F');
 }
-genMatches();
+// ─── STORAGE ───────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'torneo_moro_v1';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      teams: db.teams,
+      matches: db.matches,
+      calGenerated: calGenerated
+    }));
+    // Flash saved indicator
+    const ind = document.getElementById('storage-indicator');
+    if(ind){ ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2000); }
+  } catch(e) { console.warn('Storage save failed:', e); }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (saved.teams && saved.teams.length) {
+      db.teams = saved.teams;
+      db.matches = saved.matches || [];
+      calGenerated = saved.calGenerated || false;
+      return true;
+    }
+  } catch(e) { console.warn('Storage load failed:', e); }
+  return false;
+}
+
+function resetStorage() {
+  if (!confirm('Sei sicuro di voler RESETTARE tutti i dati del torneo? Questa operazione è irreversibile.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// Init: load saved data or generate fresh
+const hadSavedData = loadFromStorage();
+if (!hadSavedData) {
+  genMatches();
+}
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let isAdmin = false;
@@ -1120,7 +1165,7 @@ function addTeam(){
   });
   document.getElementById('nt-fascia').value='1';
   closeModal('addTeamModal');
-  renderTeams();updateStats();showToast('✅ Squadra aggiunta!');
+  renderTeams();updateStats();saveToStorage();showToast('✅ Squadra aggiunta!');
 }
 
 function addPlayer(){
@@ -1132,7 +1177,7 @@ function addPlayer(){
   const team=getTeam(tid);
   if(team)team.players.push({num,name,role});
   closeModal('addPlayerModal');
-  renderTeams();updateStats();showToast('👤 Calciatore aggiunto!');
+  renderTeams();updateStats();saveToStorage();showToast('👤 Calciatore aggiunto!');
 }
 
 // ─── CALENDARIO ────────────────────────────────────────────────────────────
@@ -1232,7 +1277,7 @@ function saveScore(mid){
   m.scoreHome=parseInt(sh);m.scoreAway=parseInt(sa);
   const tag=document.getElementById('saved-'+mid);
   if(tag){tag.style.opacity='1';setTimeout(()=>tag.style.opacity='0',2000);}
-  renderStandings();renderResults();updateStats();renderStats();
+  renderStandings();renderResults();updateStats();renderStats();saveToStorage();
   showToast('⚽ Risultato salvato!');
 }
 
@@ -1343,7 +1388,7 @@ function saveMatchDetail() {
   m.yellow = [...collectEvents('yellow','home'), ...collectEvents('yellow','away')];
   m.red = [...collectEvents('red','home'), ...collectEvents('red','away')];
   closeModal('matchDetailModal');
-  renderCalendario(); renderStandings(); renderResults(); updateStats(); renderStats();
+  renderCalendario(); renderStandings(); renderResults(); updateStats(); renderStats(); saveToStorage();
   showToast('💾 Partita salvata!');
 }
 
@@ -2150,6 +2195,7 @@ function confirmGenerateCalendario() {
   const btn = document.getElementById('genCalBtn');
   if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
   closeModal('genCalModal');
+  saveToStorage();
   renderAll();
   showToast('✅ Calendario pubblicato! ' + db.matches.length + ' partite generate.');
 }
@@ -2162,18 +2208,18 @@ function renameTeam(teamId, newName) {
   if(!trimmed) return;
   team.name = trimmed;
   // refresh standings, results, stats but NOT teams (would lose focus)
-  renderStandings(); renderResults(); renderStats(); updateStats();
+  renderStandings(); renderResults(); renderStats(); updateStats(); saveToStorage();
   showToast('✏️ Squadra rinominata: ' + trimmed);
 }
 
 function updateMatchDate(mid, val) {
   const m = db.matches.find(x=>x.id===mid);
-  if(m) m.date = val.trim();
+  if(m) { m.date = val.trim(); saveToStorage(); }
 }
 
 function updateMatchTime(mid, val) {
   const m = db.matches.find(x=>x.id===mid);
-  if(m) m.time = val;
+  if(m) { m.time = val; saveToStorage(); }
 }
 
 
@@ -2253,6 +2299,12 @@ window.addEventListener('scroll',()=>{
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
 renderAll();
+
+// If calendar was already generated, update the button state
+if(calGenerated) {
+  const btn = document.getElementById('genCalBtn');
+  if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
+}
 </script>
 </body>
 </html>
