@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Torneo Moro — Calcio a 7</title>
+<title>Torneo Moro Chiozza — IV° Edizione · Calcio a 7</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -275,6 +275,25 @@ body.admin-mode .add-player-btn{display:block;}
 .login-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.5rem;}
 .login-error{font-size:0.78rem;color:var(--red);margin-top:8px;display:none;}
 
+/* INLINE EDIT */
+.inline-edit-name{
+  font-family:'Oswald';font-size:1rem;font-weight:600;
+  background:transparent;border:none;border-bottom:1px dashed rgba(245,197,24,0.4);
+  color:var(--white);outline:none;width:100%;padding:2px 4px;
+  transition:border-color 0.2s;cursor:text;
+}
+.inline-edit-name:focus{border-bottom-color:var(--gold);background:rgba(245,197,24,0.05);border-radius:3px 3px 0 0;}
+.inline-edit-name:hover{border-bottom-color:rgba(245,197,24,0.6);}
+.edit-hint{font-size:0.65rem;color:rgba(245,197,24,0.4);letter-spacing:1px;display:none;}
+body.admin-mode .edit-hint{display:inline;}
+.date-input{
+  width:100px;padding:3px 6px;background:var(--dark);
+  border:1px solid rgba(255,255,255,0.1);border-radius:3px;
+  color:var(--white);font-family:'DM Sans';font-size:0.72rem;
+  outline:none;transition:all 0.2s;
+}
+.date-input:focus{border-color:var(--gold);}
+
 /* GENERA CALENDARIO */
 .gen-cal-btn{display:none;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(245,197,24,0.12),rgba(62,207,94,0.08));
   border:1px solid rgba(245,197,24,0.35);border-radius:8px;padding:1rem 1.5rem;
@@ -396,11 +415,73 @@ body.admin-mode .gen-cal-btn{display:flex;}
   transform:translateY(80px);opacity:0;transition:all 0.3s;box-shadow:0 6px 20px rgba(0,0,0,0.4);}
 .toast.show{transform:translateY(0);opacity:1;}
 
+/* HAMBURGER & MOBILE MENU */
+.hamburger{
+  display:none; flex-direction:column; justify-content:center; align-items:center;
+  gap:5px; width:40px; height:40px; cursor:pointer; border:none;
+  background:transparent; padding:4px; border-radius:4px; transition:all 0.2s;
+  flex-shrink:0;
+}
+.hamburger:hover{ background:rgba(245,197,24,0.08); }
+.hamburger.open .hb-bar:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+.hamburger.open .hb-bar:nth-child(2){ opacity:0; transform:scaleX(0); }
+.hamburger.open .hb-bar:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+.hb-bar{
+  width:22px; height:2px; background:var(--gold); border-radius:2px;
+  transition:all 0.25s ease; transform-origin:center;
+}
+.mobile-menu{
+  position:fixed; top:62px; left:0; right:0; z-index:190;
+  background:rgba(10,14,8,0.98); backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(245,197,24,0.15);
+  transform:translateY(-110%); opacity:0;
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+  padding:0;
+}
+.mobile-menu.open{
+  transform:translateY(0); opacity:1;
+}
+.mobile-menu-inner{
+  padding:0.5rem 0 1rem;
+}
+.mobile-nav-link{
+  display:flex; align-items:center; gap:12px;
+  font-family:'Oswald'; font-size:1rem; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); padding:0.85rem 1.5rem; text-decoration:none;
+  border-left:3px solid transparent; transition:all 0.15s;
+}
+.mobile-nav-link:hover, .mobile-nav-link.active{
+  color:var(--gold); border-left-color:var(--gold);
+  background:rgba(245,197,24,0.05);
+}
+.mobile-nav-link .mn-icon{ font-size:1rem; min-width:20px; text-align:center; }
+.mobile-menu-divider{
+  height:1px; background:rgba(255,255,255,0.06); margin:0.5rem 1.5rem;
+}
+.mobile-admin-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0.85rem 1.5rem; margin-top:0.25rem;
+  border-top:1px solid rgba(245,197,24,0.1);
+}
+.mobile-admin-label{ font-family:'Oswald'; font-size:0.75rem; letter-spacing:1px; color:var(--muted); text-transform:uppercase; }
+.mobile-admin-btn{
+  font-family:'Oswald'; font-size:0.75rem; letter-spacing:1px; text-transform:uppercase;
+  padding:7px 14px; border:1px solid rgba(255,255,255,0.15); border-radius:4px;
+  color:var(--muted); cursor:pointer; background:transparent; transition:all 0.2s;
+}
+.mobile-admin-btn.active-admin{ color:var(--gold); border-color:var(--gold); }
+
 @media(max-width:768px){
   nav{padding:0 1rem;}
   .nav-links{display:none;}
+  .hamburger{display:flex;}
+  .nav-admin-btn{display:none;}
   section{padding:3rem 1rem;}
   .hero-stats{gap:1.5rem;}
+}
+@media(min-width:769px){
+  .hamburger{display:none;}
+  .mobile-menu{display:none !important;}
 }
 </style>
 </head>
@@ -416,7 +497,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <nav>
   <div class="nav-logo">
     <img id="nav-logo-img" src="" alt="Torneo Moro">
-    <span class="nav-logo-text">Torneo Moro</span>
+    <span class="nav-logo-text">Torneo Moro Chiozza</span>
   </div>
   <div class="nav-links">
     <a class="nav-link active" href="#home">Home</a>
@@ -430,7 +511,33 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="nav-link" href="#musica">Musica</a>
   </div>
   <button class="nav-admin-btn" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
+  <!-- Hamburger (mobile only) -->
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span class="hb-bar"></span>
+    <span class="hb-bar"></span>
+    <span class="hb-bar"></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-inner">
+    <a class="mobile-nav-link active" href="#home" onclick="closeMobileMenu()"><span class="mn-icon">🏠</span>Home</a>
+    <a class="mobile-nav-link" href="#squadre" onclick="closeMobileMenu()"><span class="mn-icon">🛡️</span>Squadre</a>
+    <a class="mobile-nav-link" href="#calendario" onclick="closeMobileMenu()"><span class="mn-icon">📅</span>Calendario</a>
+    <a class="mobile-nav-link" href="#classifica" onclick="closeMobileMenu()"><span class="mn-icon">🏅</span>Classifica</a>
+    <a class="mobile-nav-link" href="#risultati" onclick="closeMobileMenu()"><span class="mn-icon">⚽</span>Risultati</a>
+    <a class="mobile-nav-link" href="#stats-section" onclick="closeMobileMenu()"><span class="mn-icon">📊</span>Statistiche</a>
+    <div class="mobile-menu-divider"></div>
+    <a class="mobile-nav-link" href="#eventi" onclick="closeMobileMenu()"><span class="mn-icon">🎉</span>Eventi</a>
+    <a class="mobile-nav-link" href="#menu" onclick="closeMobileMenu()"><span class="mn-icon">🍔</span>Menu</a>
+    <a class="mobile-nav-link" href="#musica" onclick="closeMobileMenu()"><span class="mn-icon">🎵</span>Musica</a>
+    <div class="mobile-admin-row">
+      <span class="mobile-admin-label">Area Gestione</span>
+      <button class="mobile-admin-btn" id="mobileAdminBtn" onclick="toggleAdmin()">🔐 Admin</button>
+    </div>
+  </div>
+</div>
 
 <!-- HERO -->
 <section id="home" style="padding:0;">
@@ -440,11 +547,14 @@ body.admin-mode .gen-cal-btn{display:flex;}
   <div class="hero-ring" style="width:950px;height:950px;border-color:rgba(255,255,255,0.02);"></div>
   <div class="hero-content">
     <img class="hero-logo" id="hero-logo-img" src="" alt="Torneo Moro">
-    <div class="hero-badge">⚽ Campionato Provinciale Calcio a 7 · 2025</div>
-    <h1 class="hero-title">TORNEO MORO</h1>
+    <div class="hero-badge">⚽ Campionato di Calcio a 7 · 2026</div>
+    <h1 class="hero-title">TORNEO MORO<br><span style="-webkit-text-fill-color:var(--gold);color:var(--gold);font-size:0.6em;letter-spacing:8px;">CHIOZZA</span></h1>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.2rem;letter-spacing:0.5px;line-height:1.5;">
+      📍 Centro Sportivo Sporting Scandiano · Via dell'Eco 10, Scandiano (RE)
+    </p>
     <div class="hero-tournaments">
-      <div class="tournament-pill pill-m" onclick="scrollTo('#squadre')">♂ Torneo Maschile · 16 Squadre</div>
-      <div class="tournament-pill pill-f" onclick="scrollTo('#squadre')">♀ Torneo Femminile · 8 Squadre</div>
+      <div class="tournament-pill pill-m" onclick="scrollTo('#squadre')">♂ Maschile · 16 Squadre</div>
+      <div class="tournament-pill pill-f" onclick="scrollTo('#squadre')">♀ Femminile · 8 Squadre</div>
     </div>
     <div class="hero-cta">
       <a class="btn-primary" href="#calendario">Vedi Calendario</a>
@@ -627,8 +737,8 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <footer>
   <img id="footer-logo" src="" alt="Torneo Moro">
   <div style="font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);letter-spacing:3px;margin-bottom:4px;">Torneo Moro</div>
-  <div class="footer-sub">Campionato Provinciale Calcio a 7 · 2025 · Sport · Divertimento · Musica</div>
-  <div style="margin-top:0.8rem;font-size:0.72rem;color:var(--muted);">Made with ❤️ per la nostra comunità</div>
+  <div class="footer-sub">Centro Sportivo Sporting Scandiano · Via dell'Eco 10, Scandiano (RE)</div>
+  <div style="margin-top:0.8rem;font-size:0.72rem;color:var(--muted);">IV° Edizione · Made with ❤️ per la nostra comunità</div>
 </footer>
 
 <!-- MODALS -->
@@ -911,7 +1021,7 @@ function checkLogin() {
     document.getElementById('login-pw').value='';
     document.getElementById('login-error').style.display='none';
     renderAll();
-    showToast('🔐 Modalità admin attiva');
+    syncMobileAdmin(); showToast('🔐 Modalità admin attiva');
   } else {
     document.getElementById('login-error').style.display='block';
     document.getElementById('login-pw').value='';
@@ -924,7 +1034,7 @@ function exitAdmin() {
   document.getElementById('adminBtn').classList.remove('active-admin');
   document.getElementById('adminBtn').textContent = '🔐 Admin';
   renderAll();
-  showToast('🔒 Modalità admin disattivata');
+  syncMobileAdmin(); showToast('🔒 Modalità admin disattivata');
 }
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
@@ -956,7 +1066,15 @@ function renderTeams() {
         <span style="color:${team.color};font-size:3.2rem;text-shadow:0 0 16px ${team.color}55">${team.emoji}</span>
       </div>
       <div class="team-card-body">
-        <div class="team-card-name">${team.name}${badge}</div>
+        <div class="team-card-name">
+          ${isAdmin
+            ? `<input class="inline-edit-name" type="text" value="${team.name}"
+                 onchange="renameTeam(${team.id}, this.value)"
+                 title="Clicca per rinominare la squadra"
+               /><span class="edit-hint">✏️ modifica</span>`
+            : team.name
+          }${badge}
+        </div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">${fasciaBadge}</div>
         <div class="team-card-meta" style="margin-top:4px;">${team.players.length} calciatori iscritti</div>
         <div class="team-card-players">
@@ -1037,9 +1155,9 @@ function renderCalendario(){
         const evBadge = evCount>0 ? `<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">${evCount} eventi</span>` : '';
         row.innerHTML=`
           <div><div class="match-team match-team-home">${home?home.emoji+' '+home.name:'TBD'}</div>
-          <div class="match-info" style="text-align:right;display:flex;align-items:center;gap:6px;justify-content:flex-end;">
-            <span>${m.date}</span>
-            <input class="time-input" type="time" id="time-${m.id}" value="${m.time||'16:00'}" onchange="updateMatchTime('${m.id}',this.value)">
+          <div class="match-info" style="text-align:right;display:flex;align-items:center;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
+            <input class="date-input" type="text" id="date-${m.id}" value="${m.date||''}" placeholder="es. 5 Lug" onchange="updateMatchDate('${m.id}',this.value)" title="Data partita">
+            <input class="time-input" type="time" id="time-${m.id}" value="${m.time||'16:00'}" onchange="updateMatchTime('${m.id}',this.value)" title="Orario partita">
           </div></div>
           <div class="match-score-box" style="flex-direction:column;gap:6px;">
             <div style="display:flex;align-items:center;gap:4px;">
@@ -2036,10 +2154,83 @@ function confirmGenerateCalendario() {
   showToast('✅ Calendario pubblicato! ' + db.matches.length + ' partite generate.');
 }
 
+
+function renameTeam(teamId, newName) {
+  const team = db.teams.find(t=>t.id===teamId);
+  if(!team) return;
+  const trimmed = newName.trim();
+  if(!trimmed) return;
+  team.name = trimmed;
+  // refresh standings, results, stats but NOT teams (would lose focus)
+  renderStandings(); renderResults(); renderStats(); updateStats();
+  showToast('✏️ Squadra rinominata: ' + trimmed);
+}
+
+function updateMatchDate(mid, val) {
+  const m = db.matches.find(x=>x.id===mid);
+  if(m) m.date = val.trim();
+}
+
 function updateMatchTime(mid, val) {
   const m = db.matches.find(x=>x.id===mid);
   if(m) m.time = val;
 }
+
+
+// ─── MOBILE MENU ──────────────────────────────────────────────────────────
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburgerBtn');
+  const isOpen = menu.classList.contains('open');
+  if(isOpen) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    menu.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+}
+
+// Close mobile menu on outside click
+document.addEventListener('click', e => {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburgerBtn');
+  if(menu && menu.classList.contains('open') &&
+     !menu.contains(e.target) && !btn.contains(e.target)) {
+    closeMobileMenu();
+  }
+});
+
+// Sync mobile admin button state with main admin button
+function syncMobileAdmin() {
+  const mob = document.getElementById('mobileAdminBtn');
+  if(!mob) return;
+  if(isAdmin) {
+    mob.textContent = '🔓 Admin ON';
+    mob.classList.add('active-admin');
+  } else {
+    mob.textContent = '🔐 Admin';
+    mob.classList.remove('active-admin');
+  }
+}
+
+// Update mobile nav active link on scroll
+window.addEventListener('scroll', () => {
+  const secs = ['home','squadre','calendario','classifica','risultati','stats-section','eventi','menu','musica'];
+  let active = 'home';
+  secs.forEach(s => {
+    const el = document.getElementById(s);
+    if(el && window.scrollY >= el.offsetTop - 80) active = s;
+  });
+  document.querySelectorAll('.mobile-nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#'+active);
+  });
+});
 
 function renderAll(){renderTeams();renderCalendario();renderStandings();renderResults();updateStats();renderStats();}
 
