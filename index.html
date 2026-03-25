@@ -24,7 +24,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,14,8,0.95
   backdrop-filter:blur(14px);border-bottom:1px solid rgba(245,197,24,0.12);
   display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;}
 .nav-logo{display:flex;align-items:center;gap:10px;}
-.nav-logo img{height:38px;mix-blend-mode:screen;filter:brightness(1.2);}
+.nav-logo img{height:38px;mix-blend-mode:screen;filter:brightness(1.1);}
 .nav-logo-text{font-family:'Bebas Neue';font-size:1.4rem;color:var(--gold);letter-spacing:2px;}
 .nav-links{display:flex;gap:0;}
 .nav-link{font-family:'Oswald';font-size:0.75rem;letter-spacing:1.5px;text-transform:uppercase;
@@ -47,7 +47,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,14,8,0.95
 .hero-ring{position:absolute;border-radius:50%;border:1px solid rgba(245,197,24,0.04);
   top:50%;left:50%;transform:translate(-50%,-50%);}
 .hero-content{position:relative;z-index:1;text-align:center;padding:2rem;}
-.hero-logo{height:140px;margin-bottom:1.5rem;mix-blend-mode:screen;filter:brightness(1.2);}
+.hero-logo{height:160px;margin-bottom:1.5rem;mix-blend-mode:screen;filter:brightness(1.1);}
 .hero-badge{font-family:'Oswald';font-size:0.72rem;letter-spacing:3px;text-transform:uppercase;
   color:var(--gold);border:1px solid rgba(245,197,24,0.3);padding:6px 18px;border-radius:20px;
   margin-bottom:1.5rem;display:inline-block;}
@@ -165,19 +165,6 @@ body.admin-mode .admin-only-block{display:block;}
 .form-d{width:13px;height:13px;background:var(--gold);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--dark);}
 .form-l{width:13px;height:13px;background:var(--red);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--white);}
 
-/* RISULTATI */
-#risultati{background:var(--dark);}
-.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
-.result-card{background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:1.1rem;transition:all 0.2s;}
-.result-card:hover{border-color:rgba(255,255,255,0.1);}
-.result-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;}
-.result-giornata{font-family:'Oswald';font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
-.result-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;}
-.result-team{font-family:'Oswald';font-size:0.9rem;font-weight:600;}
-.result-team.home{text-align:right;}
-.result-score{font-family:'Bebas Neue';font-size:2rem;text-align:center;color:var(--white);display:flex;align-items:center;gap:5px;}
-.result-score-sep{color:var(--muted);font-size:1rem;}
-
 /* EVENTI */
 #eventi{background:var(--dark2);}
 .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;}
@@ -272,21 +259,7 @@ body.admin-mode .admin-only-block{display:block;}
 .mc.bevande .mc-price{color:var(--accent);}
 .mc-desc{font-size:0.75rem;color:var(--muted);line-height:1.5;}
 /* Special promo banner */
-.menu-promo{
-  margin-top:2rem;
-  background:linear-gradient(135deg,rgba(245,197,24,0.1),rgba(62,207,94,0.07));
-  border:1px solid rgba(245,197,24,0.25);border-radius:12px;
-  padding:1.2rem 1.5rem;display:flex;align-items:center;gap:14px;
-}
-.promo-icon{font-size:2.2rem;flex-shrink:0;}
-.promo-text strong{display:block;font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold);letter-spacing:1px;}
-.promo-text span{font-size:0.78rem;color:var(--muted);}
-.promo-badge{
-  margin-left:auto;flex-shrink:0;
-  background:var(--gold);color:var(--dark);
-  font-family:'Bebas Neue';font-size:1.4rem;
-  padding:6px 14px;border-radius:8px;
-}
+
 
 /* MUSICA */
 #musica{background:var(--dark2);}
@@ -307,7 +280,7 @@ body.admin-mode .admin-only-block{display:block;}
 
 /* FOOTER */
 footer{background:var(--dark2);border-top:1px solid rgba(255,255,255,0.06);padding:2.5rem 2rem;text-align:center;}
-footer img{height:50px;mix-blend-mode:screen;filter:brightness(1.2);margin-bottom:0.8rem;}
+footer img{height:60px;mix-blend-mode:screen;filter:brightness(1.1);margin-bottom:0.8rem;}
 .footer-sub{font-size:0.78rem;color:var(--muted);}
 
 /* ADMIN PANEL */
@@ -349,7 +322,7 @@ body.admin-mode .add-player-btn{display:block;}
 .login-overlay.open{display:flex;}
 .login-box{background:var(--dark3);border:1px solid rgba(245,197,24,0.2);border-radius:12px;
   padding:2.5rem;width:100%;max-width:360px;text-align:center;}
-.login-logo{height:60px;mix-blend-mode:screen;filter:brightness(1.2);margin-bottom:1.5rem;}
+.login-logo{height:70px;mix-blend-mode:screen;filter:brightness(1.1);margin-bottom:1.5rem;}
 .login-title{font-family:'Bebas Neue';font-size:1.8rem;color:var(--gold);margin-bottom:0.4rem;}
 .login-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.5rem;}
 .login-error{font-size:0.78rem;color:var(--red);margin-top:8px;display:none;}
@@ -397,9 +370,7 @@ body.admin-mode .add-player-btn{display:block;}
   background:linear-gradient(135deg,var(--dark3),rgba(245,197,24,0.04));
   box-shadow:0 0 20px rgba(245,197,24,0.07);
 }
-.nba-match.finale3-match{
-  border-color:rgba(160,100,40,0.3);
-}
+
 /* Team row inside match */
 .nba-team{
   display:flex;align-items:center;gap:6px;
@@ -684,7 +655,6 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <!-- NAV -->
 <nav>
   <div class="nav-logo">
-    <img id="nav-logo-img" src="" alt="Torneo Moro">
     <span class="nav-logo-text">Torneo Moro Chiozza</span>
   </div>
   <div class="nav-links">
@@ -692,12 +662,10 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="nav-link" href="#squadre">Squadre</a>
     <a class="nav-link" href="#calendario">Calendario</a>
     <a class="nav-link" href="#classifica">Classifica</a>
-    <a class="nav-link" href="#risultati">Risultati</a>
     <a class="nav-link" href="#playoff">Playoff</a>
     <a class="nav-link" href="#stats-section">Statistiche</a>
     <a class="nav-link" href="#eventi">Eventi</a>
     <a class="nav-link" href="#menu">Menu</a>
-    <a class="nav-link" href="#musica">Musica</a>
   </div>
   <button class="nav-admin-btn" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
   <!-- Hamburger (mobile only) -->
@@ -715,13 +683,11 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="mobile-nav-link" href="#squadre" onclick="closeMobileMenu()"><span class="mn-icon">🛡️</span>Squadre</a>
     <a class="mobile-nav-link" href="#calendario" onclick="closeMobileMenu()"><span class="mn-icon">📅</span>Calendario</a>
     <a class="mobile-nav-link" href="#classifica" onclick="closeMobileMenu()"><span class="mn-icon">🏅</span>Classifica</a>
-    <a class="mobile-nav-link" href="#risultati" onclick="closeMobileMenu()"><span class="mn-icon">⚽</span>Risultati</a>
     <a class="mobile-nav-link" href="#playoff" onclick="closeMobileMenu()"><span class="mn-icon">🏆</span>Playoff</a>
     <a class="mobile-nav-link" href="#stats-section" onclick="closeMobileMenu()"><span class="mn-icon">📊</span>Statistiche</a>
     <div class="mobile-menu-divider"></div>
     <a class="mobile-nav-link" href="#eventi" onclick="closeMobileMenu()"><span class="mn-icon">🎉</span>Eventi</a>
     <a class="mobile-nav-link" href="#menu" onclick="closeMobileMenu()"><span class="mn-icon">🍔</span>Menu</a>
-    <a class="mobile-nav-link" href="#musica" onclick="closeMobileMenu()"><span class="mn-icon">🎵</span>Musica</a>
     <div class="mobile-admin-row">
       <span class="mobile-admin-label">Area Gestione</span>
       <button class="mobile-admin-btn" id="mobileAdminBtn" onclick="toggleAdmin()">🔐 Admin</button>
@@ -736,7 +702,6 @@ body.admin-mode .gen-cal-btn{display:flex;}
   <div class="hero-ring" style="width:650px;height:650px;"></div>
   <div class="hero-ring" style="width:950px;height:950px;border-color:rgba(255,255,255,0.02);"></div>
   <div class="hero-content">
-    <img class="hero-logo" id="hero-logo-img" src="" alt="Torneo Moro">
     <div class="hero-badge">⚽ Campionato di Calcio a 7 · 2026</div>
     <h1 class="hero-title">TORNEO MORO<br><span style="-webkit-text-fill-color:var(--gold);color:var(--gold);font-size:0.6em;letter-spacing:8px;">CHIOZZA</span></h1>
     <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.2rem;letter-spacing:0.5px;line-height:1.5;">
@@ -747,8 +712,9 @@ body.admin-mode .gen-cal-btn{display:flex;}
       <div class="tournament-pill pill-f" onclick="scrollTo('#squadre')">♀ Femminile · 8 Squadre</div>
     </div>
     <div class="hero-cta">
-      <a class="btn-primary" href="#calendario">Vedi Calendario</a>
-      <a class="btn-outline" href="#eventi">Gli Eventi</a>
+      <a class="btn-primary" href="#classifica">🏅 Classifica</a>
+      <a class="btn-outline" href="#calendario">📅 Calendario</a>
+      <a class="btn-outline" href="#menu">🍔 Menu</a>
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="hero-stat-num" id="stat-teams">0</div><div class="hero-stat-label">Squadre</div></div>
@@ -806,9 +772,9 @@ body.admin-mode .gen-cal-btn{display:flex;}
     </div>
     <div class="standings-wrap"><div id="standings-content"></div></div>
     <div style="display:flex;gap:1.5rem;margin-top:1rem;font-size:0.72rem;color:var(--muted);border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;">
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:4px;"></span>Qualificata</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Playoff</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:4px;"></span>Eliminazione</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:4px;"></span>Quarti/Playoff diretti (1°-4°)</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Ottavi di finale (5°-12°)</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:4px;"></span>Eliminato (13°-16°)</span>
     </div>
   </div>
 </section>
@@ -829,18 +795,29 @@ body.admin-mode .gen-cal-btn{display:flex;}
   </div>
 </section>
 
-<!-- RISULTATI -->
-<section id="risultati">
+
+
+
+
+
+
+<!-- STATISTICHE -->
+<section id="stats-section" style="background:var(--dark2);">
   <div class="container">
     <div class="section-header">
-      <div class="section-tag">⚽ Archivio</div>
-      <h2 class="section-title">Ultimi <em>Risultati</em></h2>
+      <div class="section-tag">📊 Statistiche</div>
+      <h2 class="section-title">Marcatori & <em>Disciplina</em></h2>
     </div>
     <div class="t-switcher">
-      <div class="t-tab active-m" id="res-tab-m" onclick="switchRes('M',this)">♂ Maschile</div>
-      <div class="t-tab" id="res-tab-f" onclick="switchRes('F',this)">♀ Femminile</div>
+      <div class="t-tab active-m" id="stat-tab-m" onclick="switchStatT('M',this)">♂ Maschile</div>
+      <div class="t-tab" id="stat-tab-f" onclick="switchStatT('F',this)">♀ Femminile</div>
     </div>
-    <div class="results-grid" id="results-grid"></div>
+    <div class="stats-tabs">
+      <div class="stats-tab active" id="st-scorers" onclick="switchStatView('scorers',this)">⚽ Marcatori</div>
+      <div class="stats-tab" id="st-yellow" onclick="switchStatView('yellow',this)">🟨 Ammoniti</div>
+      <div class="stats-tab" id="st-red" onclick="switchStatView('red',this)">🟥 Espulsi</div>
+    </div>
+    <div id="stats-content"></div>
   </div>
 </section>
 
@@ -992,78 +969,11 @@ body.admin-mode .gen-cal-btn{display:flex;}
 
     </div><!-- /menu-sections -->
 
-    <!-- Promo combo -->
-    <div class="menu-promo">
-      <span class="promo-icon">🎯</span>
-      <div class="promo-text">
-        <strong>COMBO VITTORIA</strong>
-        <span>Cheeseburger + Birra media + Patatine — l'abbinata perfetta dopo il gol!</span>
-      </div>
-      <span class="promo-badge">15€</span>
-    </div>
-
-  </div>
-</section>
-<!-- MUSICA -->
-<section id="musica">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-tag">🎵 Playlist Ufficiale</div>
-      <h2 class="section-title">La <em>Musica</em> del Torneo</h2>
-    </div>
-    <div class="spotify-widget">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:32px;height:32px;background:#1DB954;border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="black"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></div>
-        <span style="font-family:'Oswald';font-size:1.1rem;color:#1DB954;letter-spacing:1px;">Playlist Ufficiale — Torneo Moro 2025</span>
-      </div>
-      <div style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:1.5rem;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.06);">
-          <div style="width:56px;height:56px;background:linear-gradient(135deg,#1DB954,#158a3e);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">⚽</div>
-          <div><div style="font-family:'Oswald';font-size:1rem;font-weight:600;">Campo di Battaglia</div><div style="font-size:0.78rem;color:var(--muted);">Playlist Ufficiale · 22 brani · 1h 18min</div></div>
-        </div>
-        <div class="track-row"><div class="track-num track-playing">▶</div><div style="flex:1;"><div class="track-title track-playing">Thunderstruck</div><div class="track-artist">AC/DC</div></div><div class="track-duration">4:52</div></div>
-        <div class="track-row"><div class="track-num">2</div><div style="flex:1;"><div class="track-title">Eye of the Tiger</div><div class="track-artist">Survivor</div></div><div class="track-duration">4:04</div></div>
-        <div class="track-row"><div class="track-num">3</div><div style="flex:1;"><div class="track-title">We Will Rock You</div><div class="track-artist">Queen</div></div><div class="track-duration">2:02</div></div>
-        <div class="track-row"><div class="track-num">4</div><div style="flex:1;"><div class="track-title">Jump Around</div><div class="track-artist">House of Pain</div></div><div class="track-duration">3:40</div></div>
-        <div class="track-row"><div class="track-num">5</div><div style="flex:1;"><div class="track-title">Seven Nation Army</div><div class="track-artist">The White Stripes</div></div><div class="track-duration">3:51</div></div>
-        <div class="track-row"><div class="track-num">6</div><div style="flex:1;"><div class="track-title">Lose Yourself</div><div class="track-artist">Eminem</div></div><div class="track-duration">5:26</div></div>
-        <div class="track-row"><div class="track-num" style="color:var(--muted)">+16</div><div style="flex:1;"><div class="track-title" style="color:var(--muted);">... e molte altre hit</div></div><div class="track-duration"></div></div>
-      </div>
-      <div style="text-align:center;">
-        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">Ascolta la playlist ufficiale su Spotify — aggiornata ogni settimana!</p>
-        <a class="spotify-cta" href="https://open.spotify.com" target="_blank">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          Apri su Spotify
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- STATISTICHE -->
-<section id="stats-section">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-tag">📊 Statistiche</div>
-      <h2 class="section-title">Marcatori & <em>Disciplina</em></h2>
-    </div>
-    <div class="t-switcher">
-      <div class="t-tab active-m" id="stat-tab-m" onclick="switchStatT('M',this)">♂ Maschile</div>
-      <div class="t-tab" id="stat-tab-f" onclick="switchStatT('F',this)">♀ Femminile</div>
-    </div>
-    <div class="stats-tabs">
-      <div class="stats-tab active" id="st-scorers" onclick="switchStatView('scorers',this)">⚽ Marcatori</div>
-      <div class="stats-tab" id="st-yellow" onclick="switchStatView('yellow',this)">🟨 Ammoniti</div>
-      <div class="stats-tab" id="st-red" onclick="switchStatView('red',this)">🟥 Espulsi</div>
-    </div>
-    <div id="stats-content"></div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <img id="footer-logo" src="" alt="Torneo Moro">
   <div style="font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);letter-spacing:3px;margin-bottom:4px;">Torneo Moro</div>
   <div class="footer-sub">Centro Sportivo Sporting Scandiano · Via dell'Eco 10, Scandiano (RE)</div>
   <div style="margin-top:0.8rem;font-size:0.72rem;color:var(--muted);">IV° Edizione · Made with ❤️ per la nostra comunità</div>
@@ -1188,7 +1098,6 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <!-- LOGIN OVERLAY -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
-    <img class="login-logo" id="login-logo" src="" alt="Torneo Moro">
     <div class="login-title">Area Admin</div>
     <div class="login-sub">Inserisci la password per accedere alla gestione del torneo</div>
     <div class="form-group"><input class="form-input" id="login-pw" type="password" placeholder="Password" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkLogin()"/></div>
@@ -1273,16 +1182,8 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'moro2025';
-const LOGO_B64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAKHBV8DASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AIyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//9k=';
 
-// Set logo everywhere
-window.addEventListener('DOMContentLoaded', () => {
-  const src = 'data:image/jpeg;base64,' + LOGO_B64;
-  ['nav-logo-img','hero-logo-img','footer-logo','login-logo'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.src = src;
-  });
-});
+
 
 // ─── DATA ──────────────────────────────────────────────────────────────────
 let db = {
@@ -1405,7 +1306,7 @@ if (!hadSavedData) {
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let isAdmin = false;
-let curSq='M', curCal='M', curSt='M', curRes='M';
+let curSq='M', curCal='M', curSt='M';
 
 // ─── ADMIN ─────────────────────────────────────────────────────────────────
 function toggleAdmin() {
@@ -1634,7 +1535,7 @@ function saveScore(mid){
   m.scoreHome=parseInt(sh);m.scoreAway=parseInt(sa);
   const tag=document.getElementById('saved-'+mid);
   if(tag){tag.style.opacity='1';setTimeout(()=>tag.style.opacity='0',2000);}
-  renderStandings();renderResults();updateStats();renderStats();renderPlayoff();saveToStorage();
+  renderStandings();updateStats();renderStats();renderPlayoff();saveToStorage();
   showToast('⚽ Risultato salvato!');
 }
 
@@ -1745,7 +1646,7 @@ function saveMatchDetail() {
   m.yellow = [...collectEvents('yellow','home'), ...collectEvents('yellow','away')];
   m.red = [...collectEvents('red','home'), ...collectEvents('red','away')];
   closeModal('matchDetailModal');
-  renderCalendario(); renderStandings(); renderResults(); updateStats(); renderStats(); renderPlayoff(); saveToStorage();
+  renderCalendario(); renderStandings(); updateStats(); renderStats(); renderPlayoff(); saveToStorage();
   showToast('💾 Partita salvata!');
 }
 
@@ -1772,18 +1673,19 @@ function renderStandings(){
   // Zone definitions: top 1 = qualificata (gold), 2nd = playoff (green), bottom = eliminazione (red)
   // For maschile (16 teams): 1st qualificata, 2-4 playoff, rest eliminazione
   // For femminile (8 teams): 1st qualificata, 2-3 playoff, rest eliminazione
-  const zoneQual = 1;
-  const zonePlayoff = curSt==='M' ? 4 : 3;
-
+  // Maschile: 1-4 giallo, 5-12 verde, 13-16 rosso
+  // Femminile: 1-4 giallo, 5-8 verde (no red zone)
   function getZone(i){
-    if(i===0) return 'zona-qual';
-    if(i<zonePlayoff) return 'zona-playoff';
+    if(i<=3) return 'zona-playoff';
+    if(curSt==='M' && i<=11) return 'zona-qual';
+    if(curSt==='F') return 'zona-qual';
     return 'zona-elim';
   }
   function getPosStyle(i){
-    if(i===0) return 'color:var(--gold);font-weight:700;';
-    if(i<zonePlayoff) return 'color:var(--grass-l);font-weight:600;';
-    return 'color:var(--muted);';
+    if(i<=3) return 'color:var(--grass-l);font-weight:700;';
+    if(curSt==='M' && i<=11) return 'color:var(--gold);font-weight:600;';
+    if(curSt==='F') return 'color:var(--gold);font-weight:600;';
+    return 'color:var(--red);font-weight:600;';
   }
 
   const posIcons=['🥇','🥈','🥉'];
@@ -1795,7 +1697,7 @@ function renderStandings(){
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
       const zone=getZone(i);
       const posStyle=getPosStyle(i);
-      const posLabel = i<3 ? posIcons[i] : i+1;
+      const posLabel = i+1;
       const t=db.teams.find(t=>t.id===r.id);
       const fn=t?t.fascia||1:1;
       const fasciaCell=`<span class="team-fascia team-fascia-${fn}" style="font-size:0.6rem;padding:2px 6px;">${fasciaStars[fn]}</span>`;
@@ -1817,38 +1719,6 @@ function switchSt(t,el){
   renderStandings();
 }
 
-// ─── RISULTATI ─────────────────────────────────────────────────────────────
-function renderResults(){
-  const played=db.matches.filter(m=>m.torneo===curRes&&m.scoreHome!==null).sort((a,b)=>b.giornata-a.giornata);
-  const grid=document.getElementById('results-grid');
-  if(!played.length){grid.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessun risultato ancora. I risultati appariranno qui non appena le partite vengono giocate.</p>';return;}
-  grid.innerHTML='';
-  played.forEach(m=>{
-    const home=getTeam(m.home),away=getTeam(m.away);
-    const div=document.createElement('div');div.className='result-card';
-    const badge=m.torneo==='F'?'<span class="t-badge-f">♀</span>':'<span class="t-badge-m">♂</span>';
-    // Build event summary for result card
-    let evSummary = '';
-    (m.goals||[]).forEach(e=>{const t=getTeam(e.teamId);evSummary+=`<div class="ev-line"><span class="ev-icon">⚽</span><span class="ev-name">${e.player}</span>${e.goals>1?`<span style="color:var(--gold);font-family:Oswald;margin-left:3px;font-size:0.8rem;">x${e.goals}</span>`:''}<span class="ev-team" style="margin-left:4px;">${t?t.name:''}</span></div>`;});
-    (m.yellow||[]).forEach(e=>{const t=getTeam(e.teamId);evSummary+=`<div class="ev-line"><span class="ev-icon">🟨</span><span class="ev-name">${e.player}</span><span class="ev-team" style="margin-left:4px;">${t?t.name:''}</span></div>`;});
-    (m.red||[]).forEach(e=>{const t=getTeam(e.teamId);evSummary+=`<div class="ev-line"><span class="ev-icon">🟥</span><span class="ev-name">${e.player}</span><span class="ev-team" style="margin-left:4px;">${t?t.name:''}</span></div>`;});
-    div.innerHTML=`<div class="result-meta"><div class="result-giornata">${badge} Giornata ${m.giornata}</div><div style="font-size:0.73rem;color:var(--muted);">${m.date}</div></div>
-      <div class="result-teams">
-        <div class="result-team home">${home?home.emoji+' '+home.name:'TBD'}</div>
-        <div class="result-score">${m.scoreHome}<span class="result-score-sep">—</span>${m.scoreAway}</div>
-        <div class="result-team">${away?away.name+' '+away.emoji:'TBD'}</div>
-      </div>
-      ${evSummary?`<div class="match-events-pub" style="margin-top:0.6rem;">${evSummary}</div>`:''}`;
-    grid.appendChild(div);
-  });
-}
-
-function switchRes(t,el){
-  curRes=t;
-  document.getElementById('res-tab-m').className='t-tab'+(t==='M'?' active-m':'');
-  document.getElementById('res-tab-f').className='t-tab'+(t==='F'?' active-f':'');
-  renderResults();
-}
 
 // ─── STATS ─────────────────────────────────────────────────────────────────
 function updateStats(){
@@ -2624,7 +2494,7 @@ function syncMobileAdmin() {
 
 // Update mobile nav active link on scroll
 window.addEventListener('scroll', () => {
-  const secs = ['home','squadre','calendario','classifica','risultati','playoff','stats-section','eventi','menu','musica'];
+  const secs = ['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu'];
   let active = 'home';
   secs.forEach(s => {
     const el = document.getElementById(s);
@@ -2718,15 +2588,6 @@ function autoUpdatePlayoff(torneo) {
     });
   }
 
-  // ── 3°/4° POSTO
-  const e3 = ex('finale3', 0);
-  matches.push({
-    id: e3.id||newId('finale3',0), round:'finale3', slot:0,
-    homeId:null, awayId:null,
-    homeLabel:'Perd. Semi 1', awayLabel:'Perd. Semi 2',
-    scoreHome:e3.scoreHome, scoreAway:e3.scoreAway, date:e3.date, time:e3.time
-  });
-
   // ── FINALE
   const ef = ex('finale', 0);
   matches.push({
@@ -2784,12 +2645,7 @@ function resolvePlayoffLabels(torneo) {
 
   // Semi → 3°/4°
   const semi = byRound('semi');
-  const f3 = ms.find(m=>m.round==='finale3');
-  if (f3 && semi.length >= 2) {
-    const l1=loser(semi[0]), l2=loser(semi[1]);
-    f3.homeId=l1?l1.id:null; f3.homeLabel=l1?l1.label:'Perd. Semi 1';
-    f3.awayId=l2?l2.id:null; f3.awayLabel=l2?l2.label:'Perd. Semi 2';
-  }
+
 
   // Semi → Finale
   const fin = ms.find(m=>m.round==='finale');
@@ -2881,12 +2737,10 @@ function renderPlayoff() {
 
   // FINALE + 3°/4° (colonna finale)
   const fin  = ms.find(m => m.round==='finale');
-  const fin3 = ms.find(m => m.round==='finale3');
   html += `<div class="nba-round">
     <div class="nba-round-title">Finale</div>
     <div class="nba-slots">`;
   if (fin)  html += nbaMatchHtml(fin,  'finale-match');
-  if (fin3) html += nbaMatchHtml(fin3, 'finale3-match');
   html += `</div></div>`;
 
   html += '</div></div>'; // close bracket + container
@@ -2925,7 +2779,7 @@ function openPlayoffEdit(mid) {
   document.getElementById('po-edit-home-label').textContent = m.homeLabel || 'Casa';
   document.getElementById('po-edit-away-label').textContent = m.awayLabel || 'Ospite';
   const roundNames = { ottavi:'Ottavi di Finale', quarti:'Quarti di Finale',
-    semi:'Semifinale', finale3:'3° / 4° Posto', finale:'Finale' };
+    semi:'Semifinale', finale:'Finale' };
   document.getElementById('po-edit-title').textContent = '✏️ ' + (roundNames[m.round] || 'Playoff');
   openModal('playoffEditModal');
 }
@@ -2955,7 +2809,7 @@ function savePlayoffMatch() {
   showToast('✅ Partita playoff aggiornata!');
 }
 
-function renderAll(){renderTeams();renderCalendario();renderStandings();renderResults();updateStats();renderStats();renderPlayoff();}
+function renderAll(){renderTeams();renderCalendario();renderStandings();updateStats();renderStats();renderPlayoff();}
 
 // Init fascia selector state on page load
 window.addEventListener('DOMContentLoaded', ()=>{
@@ -2968,7 +2822,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});});
 });
 window.addEventListener('scroll',()=>{
-  const secs=['home','squadre','calendario','classifica','risultati','playoff','stats-section','eventi','menu','musica'];
+  const secs=['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu'];
   let active='home';
   secs.forEach(s=>{const el=document.getElementById(s);if(el&&window.scrollY>=el.offsetTop-80)active=s;});
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active));
