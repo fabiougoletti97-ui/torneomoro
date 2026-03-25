@@ -1469,6 +1469,7 @@ function loadFromStorage() {
       calGenerated = saved.calGenerated || false;
       db.playoff = saved.playoff || { M: null, F: null };
       db.sponsors = saved.sponsors || [];
+
       return true;
     }
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -1485,6 +1486,8 @@ function resetStorage() {
 const hadSavedData = loadFromStorage();
 if (!hadSavedData) {
   genMatches();
+  if (!db.sponsors) db.sponsors = [];
+  if (!db.playoff) db.playoff = { M: null, F: null };
 }
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
@@ -3067,7 +3070,6 @@ function savePlayoffMatch() {
 
 
 // ─── SPONSOR ENGINE ────────────────────────────────────────────────────────
-if (!db.sponsors) db.sponsors = [];
 
 function openAddSponsorModal() {
   document.getElementById('sp-name').value = '';
