@@ -195,19 +195,98 @@ body.admin-mode .admin-only-block{display:block;}
 /* MENU */
 #menu{background:var(--dark);}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.4rem;}
-.menu-cat{background:var(--dark3);border:1px solid rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
-.menu-cat-header{padding:1.1rem 1.2rem 0;display:flex;align-items:center;gap:10px;}
-.menu-cat-icon{font-size:1.8rem;}
-.menu-cat-title{font-family:'Bebas Neue';font-size:1.6rem;}
-.menu-items{padding:0.8rem 1.2rem 1.2rem;}
-.menu-item{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.menu-item:last-child{border-bottom:none;}
-.menu-item-name{font-size:0.88rem;font-weight:500;}
-.menu-item-desc{font-size:0.73rem;color:var(--muted);margin-top:2px;}
-.menu-item-price{font-family:'Oswald';font-size:1rem;font-weight:600;color:var(--gold);white-space:nowrap;margin-left:8px;}
-.menu-special{background:linear-gradient(135deg,rgba(245,197,24,0.08),rgba(62,207,94,0.06));
-  border:1px solid rgba(245,197,24,0.18);border-radius:8px;padding:1rem 1.2rem;margin-top:1.5rem;
-  display:flex;align-items:center;gap:12px;}
+/* ── STREET FOOD MENU ── */
+.menu-hero{
+  text-align:center;margin-bottom:2.5rem;
+}
+.menu-hero-title{
+  font-family:'Bebas Neue';font-size:clamp(2.2rem,7vw,3.8rem);
+  letter-spacing:4px;line-height:1;
+  background:linear-gradient(135deg,#f5c518,#fff 50%,#3ecf5e);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.menu-hero-sub{
+  font-family:'Oswald';font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-top:6px;
+}
+.menu-sections{display:flex;flex-direction:column;gap:2.5rem;}
+/* Section header */
+.ms-head{
+  display:flex;align-items:center;gap:14px;margin-bottom:1.2rem;
+  padding-bottom:10px;border-bottom:2px solid;
+}
+.ms-head.panini{border-color:var(--gold);}
+.ms-head.sfizi{border-color:var(--red);}
+.ms-head.bevande{border-color:var(--accent);}
+.ms-icon{
+  width:52px;height:52px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:1.7rem;flex-shrink:0;
+}
+.ms-icon.panini{background:rgba(245,197,24,0.12);border:1px solid rgba(245,197,24,0.25);}
+.ms-icon.sfizi{background:rgba(224,53,53,0.12);border:1px solid rgba(224,53,53,0.25);}
+.ms-icon.bevande{background:rgba(62,207,94,0.12);border:1px solid rgba(62,207,94,0.25);}
+.ms-head-text{}
+.ms-title{
+  font-family:'Bebas Neue';font-size:1.9rem;letter-spacing:2px;line-height:1;
+}
+.ms-title.panini{color:var(--gold);}
+.ms-title.sfizi{color:var(--red);}
+.ms-title.bevande{color:var(--accent);}
+.ms-subtitle{font-size:0.72rem;color:var(--muted);font-family:'Oswald';letter-spacing:1px;text-transform:uppercase;}
+/* Card grid */
+.menu-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:12px;
+}
+.mc{
+  background:var(--dark3);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:1.1rem 1.2rem;
+  display:flex;flex-direction:column;gap:6px;
+  transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;
+  cursor:default;position:relative;overflow:hidden;
+}
+.mc::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:12px 12px 0 0;
+}
+.mc.panini::before{background:linear-gradient(90deg,var(--gold),#ff9f00);}
+.mc.sfizi::before{background:linear-gradient(90deg,var(--red),#ff6b35);}
+.mc.bevande::before{background:linear-gradient(90deg,var(--accent),#1db954);}
+.mc:hover{
+  transform:translateY(-4px);
+  border-color:rgba(255,255,255,0.15);
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+.mc.panini:hover{box-shadow:0 8px 24px rgba(245,197,24,0.12);}
+.mc.sfizi:hover{box-shadow:0 8px 24px rgba(224,53,53,0.12);}
+.mc.bevande:hover{box-shadow:0 8px 24px rgba(62,207,94,0.12);}
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.mc-name{font-family:'Oswald';font-size:1rem;font-weight:600;line-height:1.2;flex:1;}
+.mc-price{
+  font-family:'Bebas Neue';font-size:1.6rem;line-height:1;white-space:nowrap;flex-shrink:0;
+}
+.mc.panini .mc-price{color:var(--gold);}
+.mc.sfizi .mc-price{color:var(--red);}
+.mc.bevande .mc-price{color:var(--accent);}
+.mc-desc{font-size:0.75rem;color:var(--muted);line-height:1.5;}
+/* Special promo banner */
+.menu-promo{
+  margin-top:2rem;
+  background:linear-gradient(135deg,rgba(245,197,24,0.1),rgba(62,207,94,0.07));
+  border:1px solid rgba(245,197,24,0.25);border-radius:12px;
+  padding:1.2rem 1.5rem;display:flex;align-items:center;gap:14px;
+}
+.promo-icon{font-size:2.2rem;flex-shrink:0;}
+.promo-text strong{display:block;font-family:'Bebas Neue';font-size:1.3rem;color:var(--gold);letter-spacing:1px;}
+.promo-text span{font-size:0.78rem;color:var(--muted);}
+.promo-badge{
+  margin-left:auto;flex-shrink:0;
+  background:var(--gold);color:var(--dark);
+  font-family:'Bebas Neue';font-size:1.4rem;
+  padding:6px 14px;border-radius:8px;
+}
 
 /* MUSICA */
 #musica{background:var(--dark2);}
@@ -786,23 +865,145 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <!-- MENU -->
 <section id="menu">
   <div class="container">
-    <div class="section-header">
-      <div class="section-tag">🍔 Ristoro</div>
-      <h2 class="section-title">Il Nostro <em>Menu</em></h2>
+
+    <!-- Hero title -->
+    <div class="menu-hero">
+      <div class="menu-hero-title">Food &amp; Drink</div>
+      <div class="menu-hero-sub">⚽ Torneo Moro Chiozza · Street Food · Ristoro Ufficiale</div>
     </div>
-    <div class="menu-grid">
-      <div class="menu-cat"><div class="menu-cat-header"><div class="menu-cat-icon">🥖</div><div class="menu-cat-title">Panini</div></div><div class="menu-items"><div class="menu-item"><div><div class="menu-item-name">Panino Classico</div><div class="menu-item-desc">Prosciutto cotto, formaggio, insalata</div></div><div class="menu-item-price">€3.50</div></div><div class="menu-item"><div><div class="menu-item-name">Panino Salame</div><div class="menu-item-desc">Salame nostrano, pomodoro, olive</div></div><div class="menu-item-price">€3.50</div></div><div class="menu-item"><div><div class="menu-item-name">Panino Veggie</div><div class="menu-item-desc">Verdure grigliate, hummus, rucola</div></div><div class="menu-item-price">€3.50</div></div><div class="menu-item"><div><div class="menu-item-name">Panino Speciale</div><div class="menu-item-desc">Porchetta, cicoria, peperoncino</div></div><div class="menu-item-price">€4.50</div></div></div></div>
-      <div class="menu-cat"><div class="menu-cat-header"><div class="menu-cat-icon">🍔</div><div class="menu-cat-title">Hamburger</div></div><div class="menu-items"><div class="menu-item"><div><div class="menu-item-name">Classic Burger</div><div class="menu-item-desc">100g manzo, lattuga, pomodoro, maionese</div></div><div class="menu-item-price">€6.00</div></div><div class="menu-item"><div><div class="menu-item-name">Cheese Burger</div><div class="menu-item-desc">Doppio formaggio fuso, bacon croccante</div></div><div class="menu-item-price">€7.00</div></div><div class="menu-item"><div><div class="menu-item-name">BBQ Burger</div><div class="menu-item-desc">Salsa BBQ, cipolla caramellata, pickles</div></div><div class="menu-item-price">€7.50</div></div><div class="menu-item"><div><div class="menu-item-name">Torneo Moro Burger 🏆</div><div class="menu-item-desc">150g wagyu, brie, truffle mayo, onions</div></div><div class="menu-item-price">€10.00</div></div></div></div>
-      <div class="menu-cat"><div class="menu-cat-header"><div class="menu-cat-icon">🍺</div><div class="menu-cat-title">Birra</div></div><div class="menu-items"><div class="menu-item"><div><div class="menu-item-name">Birra Artigianale Chiara</div><div class="menu-item-desc">0.4L — Locale, fresca, leggera</div></div><div class="menu-item-price">€3.50</div></div><div class="menu-item"><div><div class="menu-item-name">Birra Artigianale Rossa</div><div class="menu-item-desc">0.4L — Ambrata, aromatica</div></div><div class="menu-item-price">€4.00</div></div><div class="menu-item"><div><div class="menu-item-name">IPA del Campo</div><div class="menu-item-desc">0.4L — Luppolata, artigianale</div></div><div class="menu-item-price">€4.50</div></div><div class="menu-item"><div><div class="menu-item-name">Torre di Birra 3L 🍻</div><div class="menu-item-desc">Torre ghiacciata per i gruppi</div></div><div class="menu-item-price">€18.00</div></div></div></div>
-      <div class="menu-cat"><div class="menu-cat-header"><div class="menu-cat-icon">🥤</div><div class="menu-cat-title">Bibite</div></div><div class="menu-items"><div class="menu-item"><div><div class="menu-item-name">Acqua Nat. / Frizzante</div><div class="menu-item-desc">0.5L</div></div><div class="menu-item-price">€1.00</div></div><div class="menu-item"><div><div class="menu-item-name">Coca-Cola / Fanta / Sprite</div><div class="menu-item-desc">0.33L lattina ghiacciata</div></div><div class="menu-item-price">€2.00</div></div><div class="menu-item"><div><div class="menu-item-name">Succhi di Frutta</div><div class="menu-item-desc">Pesca, albicocca, arancia</div></div><div class="menu-item-price">€2.00</div></div><div class="menu-item"><div><div class="menu-item-name">Energy Drink</div><div class="menu-item-desc">Red Bull, Monster</div></div><div class="menu-item-price">€2.50</div></div></div></div>
+
+    <div class="menu-sections">
+
+      <!-- ── PANINI ── -->
+      <div>
+        <div class="ms-head panini">
+          <div class="ms-icon panini">🍔</div>
+          <div class="ms-head-text">
+            <div class="ms-title panini">Menu Panini</div>
+            <div class="ms-subtitle">Pane artigianale · Ingredienti freschi</div>
+          </div>
+        </div>
+        <div class="menu-cards">
+          <div class="mc panini">
+            <div class="mc-top">
+              <span class="mc-name">Cheeseburger</span>
+              <span class="mc-price">7€</span>
+            </div>
+            <div class="mc-desc">Pane · Hamburger · Formaggio · Salsa burger</div>
+          </div>
+          <div class="mc panini">
+            <div class="mc-top">
+              <span class="mc-name">Cheeseburger Bacon</span>
+              <span class="mc-price">8€</span>
+            </div>
+            <div class="mc-desc">Pane · Hamburger · Formaggio · Bacon · Salsa burger</div>
+          </div>
+          <div class="mc panini">
+            <div class="mc-top">
+              <span class="mc-name">Panino con Salsiccia</span>
+              <span class="mc-price">5€</span>
+            </div>
+            <div class="mc-desc">Salsiccia · Cipolla · Peperoni · Ketchup · Maionese</div>
+          </div>
+          <div class="mc panini">
+            <div class="mc-top">
+              <span class="mc-name">Hamburger + Patatine</span>
+              <span class="mc-price">10€</span>
+            </div>
+            <div class="mc-desc">Hamburger completo con porzione di patatine fritte</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SFIZI ── -->
+      <div>
+        <div class="ms-head sfizi">
+          <div class="ms-icon sfizi">🍟</div>
+          <div class="ms-head-text">
+            <div class="ms-title sfizi">Menu Sfizi</div>
+            <div class="ms-subtitle">Fritto fresco · Fatto al momento</div>
+          </div>
+        </div>
+        <div class="menu-cards">
+          <div class="mc sfizi">
+            <div class="mc-top">
+              <span class="mc-name">Patatine Fritte</span>
+              <span class="mc-price">3€</span>
+            </div>
+            <div class="mc-desc">Croccanti e dorate · Sale marino · Da leccarsi i baffi</div>
+          </div>
+          <div class="mc sfizi">
+            <div class="mc-top">
+              <span class="mc-name">Polletti Fritti</span>
+              <span class="mc-price">6€</span>
+            </div>
+            <div class="mc-desc">Bocconcini di pollo · Panatura croccante · Salsa a scelta</div>
+          </div>
+          <div class="mc sfizi">
+            <div class="mc-top">
+              <span class="mc-name">Pizza Romana Margherita</span>
+              <span class="mc-price">4€</span>
+            </div>
+            <div class="mc-desc">Trancio pizza romana · Pomodoro · Fior di latte · Basilico</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BEVANDE ── -->
+      <div>
+        <div class="ms-head bevande">
+          <div class="ms-icon bevande">🍺</div>
+          <div class="ms-head-text">
+            <div class="ms-title bevande">Menu Bevande</div>
+            <div class="ms-subtitle">Fresche e ghiacciate · Sempre disponibili</div>
+          </div>
+        </div>
+        <div class="menu-cards">
+          <div class="mc bevande">
+            <div class="mc-top">
+              <span class="mc-name">Birra Media</span>
+              <span class="mc-price">5€</span>
+            </div>
+            <div class="mc-desc">0.4L · Birra fresca alla spina</div>
+          </div>
+          <div class="mc bevande">
+            <div class="mc-top">
+              <span class="mc-name">Birra Piccola</span>
+              <span class="mc-price">3€</span>
+            </div>
+            <div class="mc-desc">0.2L · Birra fresca alla spina</div>
+          </div>
+          <div class="mc bevande">
+            <div class="mc-top">
+              <span class="mc-name">Lattina</span>
+              <span class="mc-price">2.50€</span>
+            </div>
+            <div class="mc-desc">Coca-Cola · Fanta · Sprite · Ghiacciata</div>
+          </div>
+          <div class="mc bevande">
+            <div class="mc-top">
+              <span class="mc-name">Acqua</span>
+              <span class="mc-price">1€</span>
+            </div>
+            <div class="mc-desc">0.5L · Naturale o frizzante</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /menu-sections -->
+
+    <!-- Promo combo -->
+    <div class="menu-promo">
+      <span class="promo-icon">🎯</span>
+      <div class="promo-text">
+        <strong>COMBO VITTORIA</strong>
+        <span>Cheeseburger + Birra media + Patatine — l'abbinata perfetta dopo il gol!</span>
+      </div>
+      <span class="promo-badge">15€</span>
     </div>
-    <div class="menu-special">
-      <span style="font-size:1.8rem;">🎯</span>
-      <div><strong style="display:block;font-family:'Oswald';font-size:0.95rem;color:var(--gold);">Combo Vittoria: Burger + Birra + Patatine</strong><span style="font-size:0.78rem;color:var(--muted);">Il pacchetto per festeggiare il gol — solo €9.00</span></div>
-    </div>
+
   </div>
 </section>
-
 <!-- MUSICA -->
 <section id="musica">
   <div class="container">
