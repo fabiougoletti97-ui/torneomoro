@@ -276,68 +276,98 @@ body.admin-mode .add-player-btn{display:block;}
 .login-error{font-size:0.78rem;color:var(--red);margin-top:8px;display:none;}
 
 /* ── PLAYOFF BRACKET ── */
-/* ── PLAYOFF TABLE STYLE ── */
-.playoff-block{margin-bottom:2rem;}
-.playoff-block-title{
-  font-family:'Oswald';font-size:0.72rem;letter-spacing:3px;text-transform:uppercase;
-  color:var(--muted);margin-bottom:0.8rem;display:flex;align-items:center;gap:10px;
+/* ── PLAYOFF BRACKET NBA STYLE ── */
+.bracket-container{overflow-x:auto;padding-bottom:1.5rem;}
+.bracket-container::-webkit-scrollbar{height:5px;}
+.bracket-container::-webkit-scrollbar-thumb{background:var(--grass);border-radius:3px;}
+
+.nba-bracket{
+  display:flex;align-items:stretch;gap:0;
+  min-width:860px;
 }
-.playoff-block-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
-.playoff-block-title .round-icon{font-size:1rem;}
-.playoff-table{width:100%;border-collapse:collapse;}
-.playoff-table th{
+.nba-round{
+  flex:1;display:flex;flex-direction:column;
+  border-right:1px solid rgba(255,255,255,0.05);
+  padding:0 6px;
+}
+.nba-round:last-child{border-right:none;}
+.nba-round-title{
   font-family:'Oswald';font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;
-  color:var(--muted);padding:7px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);
+  color:var(--muted);text-align:center;padding:0 0 10px;
+  border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0;
 }
-.playoff-table th.center{text-align:center;}
-.playoff-table td{padding:0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.playoff-table tr:hover td{background:rgba(255,255,255,0.02);}
-/* Match row inside table */
-.po-match-row{
-  display:grid;grid-template-columns:1fr auto 1fr auto;
-  align-items:center;gap:0;padding:10px 12px;
+.nba-slots{
+  display:flex;flex-direction:column;
+  justify-content:space-around;
+  flex:1;
+  padding:10px 0;
+  gap:8px;
 }
-.po-team-home{font-family:'Oswald';font-size:0.88rem;font-weight:600;text-align:right;}
-.po-team-away{font-family:'Oswald';font-size:0.88rem;font-weight:600;}
-.po-team-home.winner,.po-team-away.winner{color:var(--gold);}
-.po-team-home.loser,.po-team-away.loser{opacity:0.4;}
-.po-team-home.tbd,.po-team-away.tbd{color:var(--muted);font-style:italic;font-weight:400;}
-.po-score-box{
-  display:flex;align-items:center;gap:0;padding:0 14px;
-  font-family:'Bebas Neue';font-size:1.5rem;
-  min-width:80px;justify-content:center;
+/* The connector line between rounds */
+.nba-match{
+  background:var(--dark3);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:7px;
+  overflow:hidden;
+  transition:border-color 0.2s;
+  position:relative;
 }
-.po-score-box span{color:var(--muted);font-size:1rem;padding:0 5px;}
-.po-score-h{color:var(--white);}
-.po-score-a{color:var(--white);}
-.po-score-h.win{color:var(--gold);}
-.po-score-a.win{color:var(--gold);}
-.po-actions{padding:0 12px;}
-.po-edit-btn{
-  padding:4px 10px;background:rgba(245,197,24,0.07);
-  border:1px solid rgba(245,197,24,0.22);border-radius:3px;
-  color:var(--gold);font-family:'Oswald';font-size:0.65rem;letter-spacing:1px;
-  cursor:pointer;transition:all 0.2s;display:none;white-space:nowrap;
+.nba-match:hover{border-color:rgba(255,255,255,0.16);}
+.nba-match.finale-match{
+  border-color:rgba(245,197,24,0.4);
+  background:linear-gradient(135deg,var(--dark3),rgba(245,197,24,0.04));
+  box-shadow:0 0 20px rgba(245,197,24,0.07);
 }
-body.admin-mode .po-edit-btn{display:inline-block;}
-.po-edit-btn:hover{background:rgba(245,197,24,0.15);}
-.po-meta{
-  font-size:0.68rem;color:var(--muted);font-family:'Oswald';
-  padding:3px 12px 6px;letter-spacing:0.5px;
+.nba-match.finale3-match{
+  border-color:rgba(160,100,40,0.3);
 }
-/* seed badge */
-.po-seed{
-  font-family:'Oswald';font-size:0.65rem;color:var(--muted);
-  background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:3px;
-  margin:0 5px;display:inline-block;
+/* Team row inside match */
+.nba-team{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 10px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  transition:background 0.15s;
+  min-height:36px;
 }
-/* round row zone color */
-.playoff-table tr.round-ottavi td{border-left:3px solid rgba(59,139,212,0.4);}
-.playoff-table tr.round-quarti td{border-left:3px solid rgba(245,197,24,0.3);}
-.playoff-table tr.round-semi td{border-left:3px solid rgba(62,207,94,0.4);}
-.playoff-table tr.round-finale3 td{border-left:3px solid rgba(160,100,40,0.4);}
-.playoff-table tr.round-finale td{border-left:3px solid rgba(245,197,24,0.7);background:rgba(245,197,24,0.04);}
-/* Winner display */
+.nba-match.finale-match .nba-team{padding:9px 12px;min-height:42px;}
+.nba-team:last-of-type{border-bottom:none;}
+.nba-team.winner{background:rgba(245,197,24,0.09);}
+.nba-team.loser{opacity:0.38;}
+.nba-team.tbd .nba-name{color:var(--muted);font-style:italic;font-weight:400;font-size:0.76rem;}
+.nba-seed{
+  font-family:'Bebas Neue';font-size:0.95rem;
+  color:var(--muted);min-width:16px;text-align:center;flex-shrink:0;
+}
+.nba-team.winner .nba-seed{color:var(--gold);}
+.nba-name{
+  flex:1;font-family:'Oswald';font-size:0.8rem;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.2;
+}
+.nba-match.finale-match .nba-name{font-size:0.9rem;}
+.nba-team.winner .nba-name{color:var(--gold);}
+.nba-score{
+  font-family:'Bebas Neue';font-size:1.2rem;
+  min-width:20px;text-align:center;flex-shrink:0;
+}
+.nba-match.finale-match .nba-score{font-size:1.4rem;}
+.nba-team.winner .nba-score{color:var(--gold);}
+/* Match footer */
+.nba-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 8px 5px;
+  background:rgba(0,0,0,0.18);
+  font-size:0.63rem;color:var(--muted);font-family:'Oswald';letter-spacing:0.5px;
+}
+.nba-edit-btn{
+  display:none;font-size:0.62rem;color:var(--gold);cursor:pointer;
+  padding:2px 7px;border:1px solid rgba(245,197,24,0.22);
+  border-radius:3px;background:transparent;font-family:'Oswald';
+  letter-spacing:0.5px;transition:all 0.2s;white-space:nowrap;
+}
+body.admin-mode .nba-edit-btn{display:inline-block;}
+.nba-edit-btn:hover{background:rgba(245,197,24,0.12);}
+/* Champion banner */
 .winner-display{
   text-align:center;padding:2rem 1rem;
   background:linear-gradient(135deg,rgba(245,197,24,0.08),rgba(62,207,94,0.05));
@@ -346,6 +376,8 @@ body.admin-mode .po-edit-btn{display:inline-block;}
 .winner-display .wd-trophy{font-size:3rem;margin-bottom:0.5rem;}
 .winner-display .wd-label{font-family:'Oswald';font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
 .winner-display .wd-name{font-family:'Bebas Neue';font-size:2.4rem;color:var(--gold);line-height:1.1;}
+/* 3rd place / final column separator */
+.nba-col-group{display:flex;flex-direction:column;flex:1;gap:6px;}
 #playoffEditModal .modal{max-width:440px;}
 
 /* INLINE EDIT */
@@ -2403,177 +2435,171 @@ window.addEventListener('scroll', () => {
 });
 
 
-// ─── PLAYOFF ENGINE (auto, table style) ──────────────────────────────────
+// ─── PLAYOFF ENGINE (NBA bracket) ─────────────────────────────────────────
 let curPlayoff = 'M';
 
 function initPlayoff() {
   if (!db.playoff) db.playoff = { M: null, F: null };
 }
 
-// Called every time standings change — rebuilds structure from scratch
-// but PRESERVES existing dates/times/scores in playoff matches
+// Rebuild bracket structure from standings, preserving saved scores/dates
 function autoUpdatePlayoff(torneo) {
   initPlayoff();
   const rows = computeStandings(torneo);
   if (!rows.length) return;
 
-  const existing = db.playoff[torneo] ? db.playoff[torneo].matches : [];
-  const findExisting = (round, slot) => existing.find(m => m.round===round && m.slot===slot) || {};
+  const prev = db.playoff[torneo] ? db.playoff[torneo].matches : [];
+  const ex = (round, slot) => {
+    const m = prev.find(x => x.round===round && x.slot===slot) || {};
+    return { scoreHome: m.scoreHome!==undefined?m.scoreHome:null,
+             scoreAway: m.scoreAway!==undefined?m.scoreAway:null,
+             date: m.date||'', time: m.time||'',
+             id: m.id || null };
+  };
+  const newId = (round, slot) => 'po_'+torneo+'_'+round+'_'+slot;
 
   const matches = [];
-  let i = 0;
-  const mid = () => 'po_' + torneo + '_' + (i++);
 
   if (torneo === 'M') {
-    // Ottavi: pos 4-11 (index 4..11) → slots 0-3
-    // slot0: #5 vs #12, slot1: #6 vs #11, slot2: #7 vs #10, slot3: #8 vs #9
-    [[4,11],[5,10],[6,9],[7,8]].forEach(([a,b], slot) => {
-      const ex = findExisting('ottavi', slot);
+    // ── OTTAVI: 8v9 | 7v10 | 6v11 | 5v12 (indices 7,8 | 6,9 | 5,10 | 4,11)
+    // Pairings: slot0=8v9 (feeds Q for #1), slot1=7v10 (feeds Q for #2),
+    //           slot2=6v11 (feeds Q for #3), slot3=5v12 (feeds Q for #4)
+    [[7,8],[6,9],[5,10],[4,11]].forEach(([a,b], slot) => {
+      const e = ex('ottavi', slot);
       matches.push({
-        id: ex.id || mid(), round:'ottavi', slot,
+        id: e.id||newId('ottavi',slot), round:'ottavi', slot,
         homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
-        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name+' '+(rows[a].emoji||'') : 'TBD',
-        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name+' '+(rows[b].emoji||'') : 'TBD',
+        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
+        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome: ex.scoreHome!==undefined ? ex.scoreHome : null,
-        scoreAway: ex.scoreAway!==undefined ? ex.scoreAway : null,
-        date: ex.date||'', time: ex.time||''
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
       });
     });
-    // Quarti: top4 (#1-#4) vs ottavi winners
-    // Q0:#1 vs Win(ott0), Q1:#2 vs Win(ott1), Q2:#3 vs Win(ott2), Q3:#4 vs Win(ott3)
+
+    // ── QUARTI: #1 vs Vin(ott0) | #2 vs Vin(ott1) | #3 vs Vin(ott2) | #4 vs Vin(ott3)
     [0,1,2,3].forEach(slot => {
       const topRow = rows[slot];
-      const ex = findExisting('quarti', slot);
+      const e = ex('quarti', slot);
       matches.push({
-        id: ex.id || mid(), round:'quarti', slot,
-        homeId: topRow?.id||null, awayId: null, // awayId resolved below
-        homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name+' '+(topRow.emoji||'') : 'TBD',
+        id: e.id||newId('quarti',slot), round:'quarti', slot,
+        homeId: topRow?.id||null, awayId: null,
+        homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name : 'TBD',
         awayLabel: 'Vin. Ottavi '+(slot+1),
-        homeSeed: slot+1, awaySeed: null,
-        ottaviRef: slot,
-        scoreHome: ex.scoreHome!==undefined ? ex.scoreHome : null,
-        scoreAway: ex.scoreAway!==undefined ? ex.scoreAway : null,
-        date: ex.date||'', time: ex.time||''
+        homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
       });
     });
-  } else {
-    // Femminile: 4 squadre → semifinali dirette
-    // #1 vs #4, #2 vs #3
-    [[0,3],[1,2]].forEach(([a,b], slot) => {
-      const ex = findExisting('quarti', slot);
+
+    // ── SEMIFINALI: Vin Q0 vs Vin Q3 | Vin Q1 vs Vin Q2  (NBA cross bracket)
+    [[0,3],[1,2]].forEach(([qa,qb], slot) => {
+      const e = ex('semi', slot);
       matches.push({
-        id: ex.id || mid(), round:'quarti', slot,
+        id: e.id||newId('semi',slot), round:'semi', slot,
+        homeId:null, awayId:null,
+        homeLabel:'Vin. Q'+(qa+1), awayLabel:'Vin. Q'+(qb+1),
+        semiRef:[qa,qb],
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
+      });
+    });
+
+  } else {
+    // ── FEMMINILE: solo SEMIFINALI dirette — #1 vs #4 | #2 vs #3
+    [[0,3],[1,2]].forEach(([a,b], slot) => {
+      const e = ex('semi', slot);
+      matches.push({
+        id: e.id||newId('semi',slot), round:'semi', slot,
         homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
-        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name+' '+(rows[a].emoji||'') : 'TBD',
-        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name+' '+(rows[b].emoji||'') : 'TBD',
+        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
+        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome: ex.scoreHome!==undefined ? ex.scoreHome : null,
-        scoreAway: ex.scoreAway!==undefined ? ex.scoreAway : null,
-        date: ex.date||'', time: ex.time||''
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
       });
     });
   }
 
-  // Semifinali
-  [0,1].forEach(slot => {
-    const ex = findExisting('semi', slot);
-    matches.push({
-      id: ex.id || mid(), round:'semi', slot,
-      homeId:null, awayId:null,
-      homeLabel:'Vin. Quarti '+(slot*2+1), awayLabel:'Vin. Quarti '+(slot*2+2),
-      scoreHome: ex.scoreHome!==undefined ? ex.scoreHome : null,
-      scoreAway: ex.scoreAway!==undefined ? ex.scoreAway : null,
-      date: ex.date||'', time: ex.time||''
-    });
-  });
-
-  // 3°/4° posto
-  const ex3 = findExisting('finale3', 0);
+  // ── 3°/4° POSTO
+  const e3 = ex('finale3', 0);
   matches.push({
-    id: ex3.id || mid(), round:'finale3', slot:0,
+    id: e3.id||newId('finale3',0), round:'finale3', slot:0,
     homeId:null, awayId:null,
     homeLabel:'Perd. Semi 1', awayLabel:'Perd. Semi 2',
-    scoreHome: ex3.scoreHome!==undefined ? ex3.scoreHome : null,
-    scoreAway: ex3.scoreAway!==undefined ? ex3.scoreAway : null,
-    date: ex3.date||'', time: ex3.time||''
+    scoreHome:e3.scoreHome, scoreAway:e3.scoreAway, date:e3.date, time:e3.time
   });
 
-  // Finale
-  const exF = findExisting('finale', 0);
+  // ── FINALE
+  const ef = ex('finale', 0);
   matches.push({
-    id: exF.id || mid(), round:'finale', slot:0,
+    id: ef.id||newId('finale',0), round:'finale', slot:0,
     homeId:null, awayId:null,
     homeLabel:'Vin. Semi 1', awayLabel:'Vin. Semi 2',
-    scoreHome: exF.scoreHome!==undefined ? exF.scoreHome : null,
-    scoreAway: exF.scoreAway!==undefined ? exF.scoreAway : null,
-    date: exF.date||'', time: exF.time||''
+    scoreHome:ef.scoreHome, scoreAway:ef.scoreAway, date:ef.date, time:ef.time
   });
 
   db.playoff[torneo] = { matches };
   resolvePlayoffLabels(torneo);
 }
 
-// Propagate winners/losers through the bracket
+// Propagate results through the bracket
 function resolvePlayoffLabels(torneo) {
   if (!db.playoff || !db.playoff[torneo]) return;
   const ms = db.playoff[torneo].matches;
   const byRound = r => ms.filter(m => m.round===r);
 
-  const getWinner = m => {
-    if (m.scoreHome===null || m.scoreAway===null) return null;
-    if (m.scoreHome > m.scoreAway) return { id:m.homeId, label:m.homeLabel };
-    if (m.scoreAway > m.scoreHome) return { id:m.awayId, label:m.awayLabel };
+  const winner = m => {
+    if (m.scoreHome===null||m.scoreAway===null) return null;
+    if (m.scoreHome > m.scoreAway) return { id:m.homeId, label:m.homeLabel, seed:m.homeSeed };
+    if (m.scoreAway > m.scoreHome) return { id:m.awayId, label:m.awayLabel, seed:m.awaySeed };
     return null;
   };
-  const getLoser = m => {
-    if (m.scoreHome===null || m.scoreAway===null) return null;
+  const loser = m => {
+    if (m.scoreHome===null||m.scoreAway===null) return null;
     if (m.scoreHome > m.scoreAway) return { id:m.awayId, label:m.awayLabel };
     if (m.scoreAway > m.scoreHome) return { id:m.homeId, label:m.homeLabel };
     return null;
   };
 
   if (torneo === 'M') {
-    // Propagate ottavi → quarti (away side)
+    // Ottavi → Quarti (away side)
     const ottavi = byRound('ottavi');
-    const quarti = byRound('quarti');
-    quarti.forEach((q, i) => {
+    byRound('quarti').forEach((q, i) => {
       const ott = ottavi[q.ottaviRef !== undefined ? q.ottaviRef : i];
       if (ott) {
-        const w = getWinner(ott);
+        const w = winner(ott);
         q.awayId    = w ? w.id    : null;
         q.awayLabel = w ? w.label : 'Vin. Ottavi '+(i+1);
+        q.awaySeed  = w ? w.seed  : null;
       }
+    });
+
+    // Quarti → Semi (NBA cross: semi0 = Q0 vs Q3, semi1 = Q1 vs Q2)
+    const quarti = byRound('quarti');
+    byRound('semi').forEach((s, i) => {
+      const refs = s.semiRef || [i*2, i*2+1];
+      const qa = quarti[refs[0]], qb = quarti[refs[1]];
+      if (qa) { const w=winner(qa); s.homeId=w?w.id:null; s.homeLabel=w?w.label:'Vin. Q'+(refs[0]+1); s.homeSeed=w?w.seed:null; }
+      if (qb) { const w=winner(qb); s.awayId=w?w.id:null; s.awayLabel=w?w.label:'Vin. Q'+(refs[1]+1); s.awaySeed=w?w.seed:null; }
     });
   }
 
-  // Quarti → Semi
-  const quarti = byRound('quarti');
-  const semi   = byRound('semi');
-  semi.forEach((s, i) => {
-    const q1 = quarti[i*2], q2 = quarti[i*2+1];
-    if (q1) { const w=getWinner(q1); s.homeId=w?w.id:null; s.homeLabel=w?w.label:'Vin. Quarti '+(i*2+1); }
-    if (q2) { const w=getWinner(q2); s.awayId=w?w.id:null; s.awayLabel=w?w.label:'Vin. Quarti '+(i*2+2); }
-  });
-
-  // Semi losers → 3°/4°
-  const f3 = ms.find(m => m.round==='finale3');
+  // Semi → 3°/4°
+  const semi = byRound('semi');
+  const f3 = ms.find(m=>m.round==='finale3');
   if (f3 && semi.length >= 2) {
-    const l1=getLoser(semi[0]), l2=getLoser(semi[1]);
+    const l1=loser(semi[0]), l2=loser(semi[1]);
     f3.homeId=l1?l1.id:null; f3.homeLabel=l1?l1.label:'Perd. Semi 1';
     f3.awayId=l2?l2.id:null; f3.awayLabel=l2?l2.label:'Perd. Semi 2';
   }
 
-  // Semi winners → Finale
-  const fin = ms.find(m => m.round==='finale');
+  // Semi → Finale
+  const fin = ms.find(m=>m.round==='finale');
   if (fin && semi.length >= 2) {
-    const w1=getWinner(semi[0]), w2=getWinner(semi[1]);
+    const w1=winner(semi[0]), w2=winner(semi[1]);
     fin.homeId=w1?w1.id:null; fin.homeLabel=w1?w1.label:'Vin. Semi 1';
     fin.awayId=w2?w2.id:null; fin.awayLabel=w2?w2.label:'Vin. Semi 2';
   }
 }
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
+// ── RENDER NBA BRACKET ─────────────────────────────────────────────────────
 function switchPlayoff(t, el) {
   curPlayoff = t;
   document.getElementById('po-tab-m').className = 't-tab'+(t==='M'?' active-m':'');
@@ -2581,97 +2607,100 @@ function switchPlayoff(t, el) {
   renderPlayoff();
 }
 
+function nbaMatchHtml(m, extraCls) {
+  const hw = m.scoreHome!==null && m.scoreAway!==null && m.scoreHome > m.scoreAway;
+  const aw = m.scoreHome!==null && m.scoreAway!==null && m.scoreAway > m.scoreHome;
+  const isTbdH = !m.homeId && (m.homeLabel.startsWith('Vin')||m.homeLabel.startsWith('Perd'));
+  const isTbdA = !m.awayId && (m.awayLabel.startsWith('Vin')||m.awayLabel.startsWith('Perd'));
+  const hCls = hw?'winner':aw?'loser':isTbdH?'tbd':'';
+  const aCls = aw?'winner':hw?'loser':isTbdA?'tbd':'';
+  const sH = m.scoreHome!==null ? m.scoreHome : '';
+  const sA = m.scoreAway!==null ? m.scoreAway : '';
+  const dateStr = [m.date, m.time].filter(Boolean).join(' · ') || '';
+  return `<div class="nba-match ${extraCls||''}">
+    <div class="nba-team ${hCls}">
+      <span class="nba-seed">${m.homeSeed||''}</span>
+      <span class="nba-name">${m.homeLabel}</span>
+      <span class="nba-score">${sH}</span>
+    </div>
+    <div class="nba-team ${aCls}">
+      <span class="nba-seed">${m.awaySeed||''}</span>
+      <span class="nba-name">${m.awayLabel}</span>
+      <span class="nba-score">${sA}</span>
+    </div>
+    <div class="nba-foot">
+      <span>${dateStr}</span>
+      <button class="nba-edit-btn" onclick="openPlayoffEdit('${m.id}')">✏️ Modifica</button>
+    </div>
+  </div>`;
+}
+
 function renderPlayoff() {
   initPlayoff();
   autoUpdatePlayoff(curPlayoff);
   const cont = document.getElementById('playoff-content');
   if (!cont) return;
-
   const pd = db.playoff[curPlayoff];
   if (!pd) { cont.innerHTML=''; return; }
 
   const ms = pd.matches;
   const byRound = r => ms.filter(m => m.round===r);
+  let html = '<div class="bracket-container"><div class="nba-bracket">';
 
-  const roundDefs = curPlayoff === 'M'
-    ? [
-        { key:'ottavi',  label:'Ottavi di Finale',  icon:'⚔️',  matches: byRound('ottavi')  },
-        { key:'quarti',  label:'Quarti di Finale',  icon:'🏅',  matches: byRound('quarti')  },
-        { key:'semi',    label:'Semifinali',         icon:'🔥',  matches: byRound('semi')    },
-        { key:'finale3', label:'3° / 4° Posto',      icon:'🥉',  matches: byRound('finale3') },
-        { key:'finale',  label:'Finale',             icon:'🏆',  matches: byRound('finale')  },
-      ]
-    : [
-        { key:'quarti',  label:'Semifinali',         icon:'🔥',  matches: byRound('quarti')  },
-        { key:'semi',    label:'Finali',             icon:'🏅',  matches: byRound('semi')    },
-        { key:'finale3', label:'3° / 4° Posto',      icon:'🥉',  matches: byRound('finale3') },
-        { key:'finale',  label:'Finale',             icon:'🏆',  matches: byRound('finale')  },
-      ];
+  if (curPlayoff === 'M') {
+    // OTTAVI (4 match, stacked)
+    html += `<div class="nba-round">
+      <div class="nba-round-title">Ottavi di Finale</div>
+      <div class="nba-slots">`;
+    byRound('ottavi').forEach(m => { html += nbaMatchHtml(m, ''); });
+    html += `</div></div>`;
 
-  let out = '';
+    // QUARTI (4 match)
+    html += `<div class="nba-round">
+      <div class="nba-round-title">Quarti di Finale</div>
+      <div class="nba-slots">`;
+    byRound('quarti').forEach(m => { html += nbaMatchHtml(m, ''); });
+    html += `</div></div>`;
 
-  roundDefs.forEach(rd => {
-    if (!rd.matches.length) return;
-    out += `<div class="playoff-block">
-      <div class="playoff-block-title"><span class="round-icon">${rd.icon}</span>${rd.label}</div>
-      <div class="standings-wrap">
-      <table class="playoff-table">
-        <thead><tr>
-          <th style="width:36%">Casa</th>
-          <th class="center" style="width:18%">Risultato</th>
-          <th style="width:36%">Ospite</th>
-          <th class="center" style="width:10%"></th>
-        </tr></thead>
-        <tbody>`;
+    // SEMIFINALI (2 match)
+    html += `<div class="nba-round">
+      <div class="nba-round-title">Semifinali</div>
+      <div class="nba-slots">`;
+    byRound('semi').forEach(m => { html += nbaMatchHtml(m, ''); });
+    html += `</div></div>`;
 
-    rd.matches.forEach(m => {
-      const homeWin = m.scoreHome!==null && m.scoreAway!==null && m.scoreHome > m.scoreAway;
-      const awayWin = m.scoreHome!==null && m.scoreAway!==null && m.scoreAway > m.scoreHome;
-      const homeCls = homeWin?'winner':awayWin?'loser':(m.homeLabel.startsWith('Vin')||m.homeLabel.startsWith('Perd'))?'tbd':'';
-      const awayCls = awayWin?'winner':homeWin?'loser':(m.awayLabel.startsWith('Vin')||m.awayLabel.startsWith('Perd'))?'tbd':'';
-      const scoreH  = m.scoreHome!==null ? m.scoreHome : '–';
-      const scoreA  = m.scoreAway!==null ? m.scoreAway : '–';
-      const dateStr = [m.date, m.time].filter(Boolean).join(' · ') || '–';
-      const seedH   = m.homeSeed ? `<span class="po-seed">${m.homeSeed}</span>` : '';
-      const seedA   = m.awaySeed ? `<span class="po-seed">${m.awaySeed}</span>` : '';
-      const isFinal = rd.key === 'finale';
+  } else {
+    // FEMMINILE: inizia dalle SEMIFINALI
+    html += `<div class="nba-round">
+      <div class="nba-round-title">Semifinali</div>
+      <div class="nba-slots">`;
+    byRound('semi').forEach(m => { html += nbaMatchHtml(m, ''); });
+    html += `</div></div>`;
+  }
 
-      out += `<tr class="round-${rd.key}">
-        <td>
-          <div class="po-match-row" style="grid-template-columns:1fr auto auto 1fr auto;gap:0;padding:10px 12px;">
-            <span class="po-team-home ${homeCls}">${m.homeLabel}</span>
-            ${seedH}
-            <span class="po-score-box">
-              <span class="po-score-h ${homeWin?'win':''}">${scoreH}</span>
-              <span> – </span>
-              <span class="po-score-a ${awayWin?'win':''}">${scoreA}</span>
-            </span>
-            ${seedA}
-            <span class="po-team-away ${awayCls}">${m.awayLabel}</span>
-          </div>
-          <div class="po-meta">${dateStr}</div>
-        </td>
-        <td style="width:10%;padding:0 12px;text-align:right;">
-          <button class="po-edit-btn" onclick="openPlayoffEdit('${m.id}')">✏️ Modifica</button>
-        </td>
-      </tr>`;
-    });
+  // FINALE + 3°/4° (colonna finale)
+  const fin  = ms.find(m => m.round==='finale');
+  const fin3 = ms.find(m => m.round==='finale3');
+  html += `<div class="nba-round">
+    <div class="nba-round-title">Finale</div>
+    <div class="nba-slots">`;
+  if (fin)  html += nbaMatchHtml(fin,  'finale-match');
+  if (fin3) html += nbaMatchHtml(fin3, 'finale3-match');
+  html += `</div></div>`;
 
-    out += `</tbody></table></div></div>`;
-  });
+  html += '</div></div>'; // close bracket + container
 
   // Champion banner
-  const finale = ms.find(m => m.round==='finale');
-  if (finale && finale.scoreHome!==null && finale.scoreAway!==null && finale.scoreHome!==finale.scoreAway) {
-    const winLabel = finale.scoreHome>finale.scoreAway ? finale.homeLabel : finale.awayLabel;
-    out += `<div class="winner-display">
+  if (fin && fin.scoreHome!==null && fin.scoreAway!==null && fin.scoreHome!==fin.scoreAway) {
+    const winLabel = fin.scoreHome>fin.scoreAway ? fin.homeLabel : fin.awayLabel;
+    html += `<div class="winner-display">
       <div class="wd-trophy">🏆</div>
       <div class="wd-label">Campione ${curPlayoff==='M'?'Maschile':'Femminile'} — Torneo Moro Chiozza 2026</div>
       <div class="wd-name">${winLabel}</div>
     </div>`;
   }
 
-  cont.innerHTML = out;
+  cont.innerHTML = html;
 }
 
 
