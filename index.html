@@ -175,6 +175,19 @@ body.admin-mode .admin-only-block{display:block;}
 .event-date-tag{font-family:'Oswald';font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
 .event-title{font-family:'Oswald';font-size:1.1rem;font-weight:600;margin-bottom:5px;}
 .event-desc{font-size:0.8rem;color:var(--muted);line-height:1.6;}
+.featured-event{
+  border-color:rgba(245,197,24,0.3) !important;
+  box-shadow:0 0 20px rgba(245,197,24,0.07);
+  grid-column: span 1;
+}
+@media(min-width:900px){
+  .featured-event{grid-column:span 2;}
+  .featured-event .event-card-img{height:160px;}
+}
+.featured-event:hover{
+  border-color:rgba(245,197,24,0.55) !important;
+  box-shadow:0 12px 36px rgba(245,197,24,0.14) !important;
+}
 .event-badge{display:inline-block;margin-top:9px;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-family:'Oswald';letter-spacing:1px;text-transform:uppercase;}
 .badge-free{background:rgba(62,207,94,0.1);color:var(--accent);}
 .badge-paid{background:rgba(245,197,24,0.1);color:var(--gold);}
@@ -375,6 +388,7 @@ body.admin-mode .admin-bar{display:flex;}
   border:1px dashed rgba(245,197,24,0.25);border-radius:7px;padding:1rem;color:var(--gold);
   font-family:'Oswald';font-size:0.85rem;cursor:pointer;transition:all 0.2s;justify-content:center;letter-spacing:1px;margin-top:1rem;}
 body.admin-mode .add-team-btn{display:flex;}
+body.admin-mode .rm-player-btn{display:inline-block !important;}
 .add-player-btn{display:none;width:100%;margin-top:6px;padding:5px;background:rgba(62,207,94,0.06);
   border:1px dashed rgba(62,207,94,0.2);border-radius:3px;color:var(--accent);
   font-size:0.75rem;cursor:pointer;font-family:'DM Sans';transition:all 0.2s;}
@@ -947,16 +961,90 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <section id="eventi" style="background:var(--dark2);">
   <div class="container">
     <div class="section-header">
-      <div class="section-tag">🎉 Happening</div>
+      <div class="section-tag">🎉 Calendario eventi</div>
       <h2 class="section-title">Gli <em>Eventi</em></h2>
     </div>
     <div class="events-grid">
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#1a3a1a,#2d6b2d);">🏆</div><div class="event-card-body"><div class="event-date-tag">⚽ 5 Luglio 2025 · 15:00</div><div class="event-title">Cerimonia di Apertura</div><div class="event-desc">Presentazione di tutte le squadre, sorteggio e calcio d'inizio ufficiale del Torneo Moro 2025.</div><span class="event-badge badge-free">Ingresso Gratuito</span></div></div>
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#2a1a0a,#7b4010);">🎸</div><div class="event-card-body"><div class="event-date-tag">🎵 12 Luglio 2025 · 20:00</div><div class="event-title">Serata DJ + Live Music</div><div class="event-desc">Dopo le partite il campo si trasforma in un dance floor. DJ set fino alle 2:00 con live performance.</div><span class="event-badge badge-paid">€5 Ingresso</span></div></div>
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#1a1a2e,#3a1a4a);">🌙</div><div class="event-card-body"><div class="event-date-tag">✨ 19 Luglio 2025 · 19:00</div><div class="event-title">Torneo Notturno Special</div><div class="event-desc">Partite in notturna sotto le luci LED con musica live e la migliore atmosfera della provincia.</div><span class="event-badge badge-free">Ingresso Gratuito</span></div></div>
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#1a2a10,#3a6010);">🍔</div><div class="event-card-body"><div class="event-date-tag">🍻 Ogni Sabato · 17:00</div><div class="event-title">Street Food & Beer Garden</div><div class="event-desc">Tutti i sabati: panini gourmet, hamburger artigianali, birre locali e bibite fresche per tutti.</div><span class="event-badge badge-free">Open alle famiglie</span></div></div>
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#2e1a0a,#8b5a20);">🥇</div><div class="event-card-body"><div class="event-date-tag">🏅 2 Agosto 2025 · 16:00</div><div class="event-title">Finale & Premiazione</div><div class="event-desc">La grande finale del Torneo Moro. Coppa, medaglie e trofeo al miglior calciatore dell'anno.</div><span class="event-badge badge-paid">Evento Speciale</span></div></div>
-      <div class="event-card"><div class="event-card-img" style="background:linear-gradient(135deg,#1a102e,#3a1050);">👑</div><div class="event-card-body"><div class="event-date-tag">♀ 26 Luglio 2025 · 15:00</div><div class="event-title">Finale Femminile</div><div class="event-desc">La finale del torneo femminile: talento, grinta e spettacolo puro. Non mancare!</div><span class="event-badge badge-free">Ingresso Gratuito</span></div></div>
+
+      <!-- 1 -->
+      <div class="event-card" style="--ec-accent:#f5c518;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#1a1600,#3d3000);">
+          <span style="font-size:3.5rem;">🏆</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag">📅 18 Maggio 2026</div>
+          <div class="event-title">Sorteggio & Presentazione Torneo</div>
+          <div class="event-desc">Inizia l'avventura! Cerimonia di apertura con buffet gratuito. Un'occasione perfetta per conoscere le squadre, scoprire il calendario e fare il pieno di energia prima del calcio d'inizio.</div>
+          <span class="event-badge badge-free">🥂 Buffet Gratuito</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="event-card" style="--ec-accent:#3ecf5e;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#001a0d,#003d1f);">
+          <span style="font-size:3.5rem;">⭐</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag">⚽ 11 Giugno 2026</div>
+          <div class="event-title">All Star Game</div>
+          <div class="event-desc">Un evento imperdibile: le stelle del torneo si sfidano in una partita spettacolare! Adrenalina, spettacolo e momenti memorabili in campo da non perdere assolutamente.</div>
+          <span class="event-badge badge-free">🌟 Evento Speciale</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="event-card" style="--ec-accent:#3b8bd4;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#001020,#002040);">
+          <span style="font-size:3.5rem;">🏓</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag">🎮 Durante il Torneo</div>
+          <div class="event-title">Torneo Ping Pong Misto</div>
+          <div class="event-desc">Non solo calcio! Sfida amici e avversari in un torneo di ping pong misto aperto a tutti i partecipanti. Porta la tua competitività anche fuori dal campo!</div>
+          <span class="event-badge badge-free">🏅 Aperto a Tutti</span>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="event-card" style="--ec-accent:#e07835;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#1a0a00,#3d1f00);">
+          <span style="font-size:3.5rem;">🍔</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag">🍺 Tutti i Giorni</div>
+          <div class="event-title">Street Food & Beer Garden</div>
+          <div class="event-desc">Durante tutto il torneo goditi le delizie dello street food e rinfrescati nel nostro beer garden. Cibo gustoso, bevande fresche e tanto relax tra una partita e l'altra!</div>
+          <span class="event-badge badge-free">🌿 Open Every Day</span>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="event-card" style="--ec-accent:#e03535;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#1a0000,#3d0000);">
+          <span style="font-size:3.5rem;">🔥</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag">⚡ Giugno 2026</div>
+          <div class="event-title">Semifinali</div>
+          <div class="event-desc">Le partite più emozionanti del torneo! Le squadre si sfidano per un posto in finale con agonismo e spettacolo puro. Non perderti l'adrenalina dei momenti decisivi.</div>
+          <span class="event-badge badge-paid">🎯 Da Non Perdere</span>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="event-card featured-event" style="--ec-accent:#f5c518;">
+        <div class="event-card-img" style="background:linear-gradient(135deg,#1a1200,#4a3500);position:relative;overflow:hidden;">
+          <span style="font-size:3.5rem;position:relative;z-index:1;">🥇</span>
+          <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,rgba(245,197,24,0.15),transparent 70%);"></div>
+        </div>
+        <div class="event-card-body">
+          <div class="event-date-tag" style="color:var(--gold);">🏆 25 Giugno 2026 — Gran Finale</div>
+          <div class="event-title" style="font-size:1.2rem;">Finalissima Maschile & Femminile + After Party</div>
+          <div class="event-desc">Il gran finale! Le migliori squadre si affrontano per conquistare il titolo. Premiazioni, musica e un imperdibile after party per festeggiare insieme tutti i partecipanti!</div>
+          <span class="event-badge badge-paid" style="background:rgba(245,197,24,0.15);color:var(--gold);border:1px solid rgba(245,197,24,0.3);">🎊 Evento dell'Anno</span>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -1582,7 +1670,12 @@ function renderTeams() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">${fasciaBadge}</div>
         <div class="team-card-meta" style="margin-top:4px;">${team.players.length} calciatori iscritti</div>
         <div class="team-card-players">
-          ${team.players.map(p=>`<div class="player-row"><span class="player-num">${p.num}</span><span>${p.name}</span><span class="player-role">${p.role}</span></div>`).join('')}
+          ${team.players.map((p,pi)=>`<div class="player-row">
+            <span class="player-num">${p.num}</span>
+            <span style="flex:1">${p.name}</span>
+            <span class="player-role">${p.role}</span>
+            ${isAdmin ? `<button onclick="removePlayer(${team.id},${pi})" style="display:none;background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:3px;color:var(--red);font-size:0.65rem;padding:1px 6px;cursor:pointer;margin-left:4px;" class="rm-player-btn">✕</button>` : ''}
+          </div>`).join('')}
           <button class="add-player-btn" onclick="openAddPlayerModal(${team.id})">+ Aggiungi Calciatore</button>
         </div>
       </div>`;
@@ -2688,6 +2781,20 @@ function uploadTeamLogo(teamId, input) {
   reader.readAsDataURL(file);
 }
 
+
+function removePlayer(teamId, playerIndex) {
+  const team = db.teams.find(t => t.id === teamId);
+  if (!team) return;
+  const player = team.players[playerIndex];
+  if (!player) return;
+  if (!confirm('Rimuovere ' + player.name + ' dalla squadra?')) return;
+  team.players.splice(playerIndex, 1);
+  saveToStorage();
+  renderTeams();
+  updateStats();
+  showToast('🗑️ Calciatore rimosso');
+}
+
 function removeTeamLogo(teamId) {
   const team = db.teams.find(t => t.id === teamId);
   if (!team) return;
@@ -2704,7 +2811,7 @@ function renameTeam(teamId, newName) {
   if(!trimmed) return;
   team.name = trimmed;
   // refresh standings, results, stats but NOT teams (would lose focus)
-  renderStandings(); renderResults(); renderStats(); updateStats(); saveToStorage();
+  renderStandings(); renderStats(); updateStats(); saveToStorage();
   showToast('✏️ Squadra rinominata: ' + trimmed);
 }
 
