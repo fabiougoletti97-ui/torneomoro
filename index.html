@@ -430,6 +430,44 @@ body.admin-mode .nba-edit-btn{display:inline-block;}
 .nba-col-group{display:flex;flex-direction:column;flex:1;gap:6px;}
 #playoffEditModal .modal{max-width:440px;}
 
+/* TEAM LOGO */
+.team-logo-wrap{
+  position:relative;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+.team-logo-img{
+  width:72px;height:72px;object-fit:contain;
+  border-radius:6px;
+}
+.team-logo-placeholder{
+  width:72px;height:72px;border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px dashed rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  color:${team.color};font-size:3.2rem;
+}
+.team-logo-upload-btn{
+  display:none;
+  position:absolute;bottom:6px;right:6px;
+  background:rgba(10,14,8,0.85);border:1px solid rgba(245,197,24,0.35);
+  color:var(--gold);font-family:'Oswald';font-size:0.62rem;letter-spacing:1px;
+  padding:4px 8px;border-radius:4px;cursor:pointer;transition:all 0.2s;
+  white-space:nowrap;
+}
+body.admin-mode .team-logo-upload-btn{display:block;}
+.team-logo-upload-btn:hover{background:rgba(245,197,24,0.15);}
+.team-logo-input{display:none;}
+.team-logo-remove{
+  display:none;
+  position:absolute;top:6px;right:6px;
+  background:rgba(224,53,53,0.8);border:none;border-radius:50%;
+  color:#fff;font-size:0.7rem;width:20px;height:20px;
+  cursor:pointer;line-height:20px;text-align:center;
+  transition:all 0.2s;
+}
+body.admin-mode .team-logo-img ~ .team-logo-remove,
+body.admin-mode .has-logo .team-logo-remove{display:block;}
+
 /* INLINE EDIT */
 .inline-edit-name{
   font-family:'Oswald';font-size:1rem;font-weight:600;
@@ -1364,9 +1402,21 @@ function renderTeams() {
     const fasciaLabel = ['','1ª Fascia','2ª Fascia','3ª Fascia'][fasciaNum];
     const fasciaIcon = ['','⭐⭐⭐','⭐⭐','⭐'][fasciaNum];
     const fasciaBadge = `<span class="team-fascia team-fascia-${fasciaNum}">${fasciaIcon} ${fasciaLabel}</span>`;
+    const hasLogo = !!team.logo;
+    const headerContent = hasLogo
+      ? `<div class="team-logo-wrap ${hasLogo?'has-logo':''}">
+           <img class="team-logo-img" src="${team.logo}" alt="${team.name}">
+           <button class="team-logo-remove" onclick="removeTeamLogo(${team.id})" title="Rimuovi logo">✕</button>
+         </div>`
+      : `<div class="team-logo-wrap"></div>`;
+
     div.innerHTML = `
-      <div class="team-card-header" style="background:linear-gradient(135deg,${bg},${team.color}20)">\
-        <span style="color:${team.color};font-size:3.2rem;text-shadow:0 0 16px ${team.color}55">${team.emoji}</span>
+      <div class="team-card-header" style="background:${hasLogo?'var(--dark2)':'linear-gradient(135deg,'+bg+','+team.color+'20)'}; position:relative;">
+        ${headerContent}
+        <label class="team-logo-upload-btn" title="Carica logo squadra">
+          📷 ${hasLogo ? 'Cambia logo' : 'Carica logo'}
+          <input class="team-logo-input" type="file" accept="image/*" onchange="uploadTeamLogo(${team.id}, this)">
+        </label>
       </div>
       <div class="team-card-body">
         <div class="team-card-name">
@@ -1457,7 +1507,7 @@ function renderCalendario(){
         const evCount = (m.goals||[]).length+(m.yellow||[]).length+(m.red||[]).length;
         const evBadge = evCount>0 ? `<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">${evCount} eventi</span>` : '';
         row.innerHTML=`
-          <div><div class="match-team match-team-home">${home?home.emoji+' '+home.name:'TBD'}</div>
+          <div><div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
           <div class="match-info" style="text-align:right;display:flex;align-items:center;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
             <input class="date-input" type="text" id="date-${m.id}" value="${m.date||''}" placeholder="es. 5 Lug" onchange="updateMatchDate('${m.id}',this.value)" title="Data partita">
             <input class="time-input" type="time" id="time-${m.id}" value="${m.time||'16:00'}" onchange="updateMatchTime('${m.id}',this.value)" title="Orario partita">
@@ -1473,7 +1523,7 @@ function renderCalendario(){
             <button class="match-detail-btn" onclick="openMatchDetail('${m.id}')">📋 Dettaglio${evBadge}</button>
             ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
           </div>
-          <div><div class="match-team">${away?away.name+' '+away.emoji:'TBD'}</div>
+          <div><div class="match-team">${away?teamDisplay(away):'TBD'}</div>
           <div class="match-info">${m.date} · ${m.time}</div></div>`;
       } else {
         const scoreStr = m.scoreHome!==null ? `${m.scoreHome}<span style="color:var(--muted);font-size:1.2rem;padding:0 4px;">—</span>${m.scoreAway}` : `<span style="color:var(--muted);font-size:1rem;">vs</span>`;
@@ -1497,13 +1547,13 @@ function renderCalendario(){
         const hasEvents = homeEvents||awayEvents;
         row.innerHTML=`
           <div>
-            <div class="match-team match-team-home">${home?home.emoji+' '+home.name:'TBD'}</div>
+            <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
             <div class="match-info" style="text-align:right">${m.date} · ${m.time}</div>
             ${homeEvents?`<div class="match-events-pub" style="text-align:right;">${homeEvents}</div>`:''}
           </div>
           <div class="score-display">${scoreStr}</div>
           <div>
-            <div class="match-team">${away?away.name+' '+away.emoji:'TBD'}</div>
+            <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
             <div class="match-info">${m.date} · ${m.time}</div>
             ${awayEvents?`<div class="match-events-pub">${awayEvents}</div>`:''}
           </div>`;
@@ -1551,16 +1601,16 @@ function openMatchDetail(mid) {
   mdCurrentMatch = m;
   const home = getTeam(m.home), away = getTeam(m.away);
   document.getElementById('md-title').textContent = (home?home.name:'?') + ' vs ' + (away?away.name:'?');
-  document.getElementById('md-home-name').textContent = home ? home.emoji+' '+home.name : '?';
-  document.getElementById('md-away-name').textContent = away ? away.name+' '+away.emoji : '?';
+  document.getElementById('md-home-name').innerHTML = home ? teamDisplay(home, 20) : '?';
+  document.getElementById('md-away-name').innerHTML = away ? teamDisplay(away, 20) : '?';
   document.getElementById('md-sh').value = m.scoreHome!==null ? m.scoreHome : '';
   document.getElementById('md-sa').value = m.scoreAway!==null ? m.scoreAway : '';
-  document.getElementById('md-goals-home-label').textContent = home ? home.emoji+' '+home.name : 'Casa';
-  document.getElementById('md-goals-away-label').textContent = away ? away.name+' '+(away.emoji||'') : 'Ospite';
-  document.getElementById('md-yellow-home-label').textContent = home ? home.emoji+' '+home.name : 'Casa';
-  document.getElementById('md-yellow-away-label').textContent = away ? away.name+' '+(away.emoji||'') : 'Ospite';
-  document.getElementById('md-red-home-label').textContent = home ? home.emoji+' '+home.name : 'Casa';
-  document.getElementById('md-red-away-label').textContent = away ? away.name+' '+(away.emoji||'') : 'Ospite';
+  document.getElementById('md-goals-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
+  document.getElementById('md-goals-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
+  document.getElementById('md-yellow-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
+  document.getElementById('md-yellow-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
+  document.getElementById('md-red-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
+  document.getElementById('md-red-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
   // Render existing events
   renderEventList('goals','home', m.goals.filter(e=>e.teamId===m.home), home);
   renderEventList('goals','away', m.goals.filter(e=>e.teamId===m.away), away);
@@ -1703,7 +1753,7 @@ function renderStandings(){
       const fasciaCell=`<span class="team-fascia team-fascia-${fn}" style="font-size:0.6rem;padding:2px 6px;">${fasciaStars[fn]}</span>`;
       return `<tr class="${zone}">
         <td><span style="font-family:Oswald;font-size:1rem;${posStyle}">${posLabel}</span></td>
-        <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;">${r.emoji} ${r.name}</span></td>
+        <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),22)}${r.name}</span></td>
         <td>${fasciaCell}</td>
         <td>${r.G}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
         <td>${r.GF}</td><td>${r.GA}</td><td>${r.GF-r.GA>0?'+':''}${r.GF-r.GA}</td>
@@ -1774,7 +1824,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-size:1rem;">${posIcons[i]||i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?t.emoji+' '+t.name:'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
           <td><span class="scorer-goals">${p.goals}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -1788,7 +1838,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?t.emoji+' '+t.name:'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
           <td><span class="scorer-yellow">${p.yellow}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -1802,7 +1852,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?t.emoji+' '+t.name:'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
           <td><span class="scorer-red">${p.red}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -1819,7 +1869,7 @@ function openIGPreview(mid) {
   igCurrentMatch = m;
   openModal('igPreviewModal');
   // small delay to let modal render before drawing
-  requestAnimationFrame(()=>requestAnimationFrame(()=>drawIGCard(m)));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawIGCard(m).catch(()=>{})));
 }
 
 function downloadIG() {
@@ -1833,7 +1883,16 @@ function downloadIG() {
   showToast('📸 Immagine scaricata!');
 }
 
-function drawIGCard(m) {
+function drawImageOnCanvas(ctx, src, x, y, w, h) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => { ctx.drawImage(img, x, y, w, h); resolve(); };
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
+async function drawIGCard(m) {
   const canvas = document.getElementById('igCanvas');
   const ctx = canvas.getContext('2d');
   const W = 1080, H = 1080;
@@ -1843,8 +1902,8 @@ function drawIGCard(m) {
   const away = getTeam(m.away);
   const homeName = home ? home.name : 'Casa';
   const awayName = away ? away.name : 'Ospite';
-  const homeEmoji = home ? home.emoji : '⚽';
-  const awayEmoji = away ? away.emoji : '⚽';
+  const homeEmoji = home ? (home.logo ? '' : '') : '';
+  const awayEmoji = away ? (away.logo ? '' : '') : '';
   const homeColor = home ? home.color : '#f5c518';
   const awayColor = away ? away.color : '#3b8bd4';
 
@@ -1930,10 +1989,13 @@ function drawIGCard(m) {
   ctx.restore();
 
   // ── TEAM EMOJIS ─────────────────────────────────────────────
-  ctx.font = '160px serif';
-  ctx.textAlign = 'center';
-  drawEmoji(ctx, homeEmoji, W*0.25, 320, 150);
-  drawEmoji(ctx, awayEmoji, W*0.75, 320, 150);
+  // Draw team logos or leave blank
+  if (home && home.logo) {
+    await drawImageOnCanvas(ctx, home.logo, W*0.25 - 75, 230, 150, 150);
+  }
+  if (away && away.logo) {
+    await drawImageOnCanvas(ctx, away.logo, W*0.75 - 75, 230, 150, 150);
+  }
 
   // ── TEAM NAMES ──────────────────────────────────────────────
   // Home name
@@ -2395,9 +2457,9 @@ function previewCalendario() {
         const cls = fasciaColors[m.fasciaTag]||'';
         html += `<div class="gen-match-preview ${cls}">
           <span style="font-family:Oswald;font-size:0.7rem;color:var(--muted);min-width:44px;">${m.time}</span>
-          <span class="gmp-team home">${home?home.emoji+' '+home.name:'?'}</span>
+          <span class="gmp-team home">${home?teamDisplay(home):'?'}</span>
           <span class="gmp-vs">VS</span>
-          <span class="gmp-team">${away?away.name+' '+away.emoji:'?'}</span>
+          <span class="gmp-team">${away?teamDisplay(away):'?'}</span>
           <span style="font-size:0.65rem;color:var(--muted);min-width:50px;text-align:right;">${fasciaLabel[m.fasciaTag]||''}</span>
         </div>`;
       });
@@ -2427,6 +2489,55 @@ function confirmGenerateCalendario() {
   showToast('✅ Calendario pubblicato! ' + db.matches.length + ' partite generate.');
 }
 
+
+
+
+// ─── TEAM LOGO HELPER ──────────────────────────────────────────────────────
+function teamLogo(team, size) {
+  if (!team) return '';
+  const s = size || 24;
+  if (team.logo) {
+    return `<img src="${team.logo}" alt="${team.name}" style="width:${s}px;height:${s}px;object-fit:contain;border-radius:3px;vertical-align:middle;margin-right:5px;">`;
+  }
+  return ''; // no logo, no emoji
+}
+
+function teamDisplay(team, size) {
+  // Returns logo (if any) + name
+  if (!team) return 'TBD';
+  return teamLogo(team, size) + team.name;
+}
+
+// ─── TEAM LOGO UPLOAD ──────────────────────────────────────────────────────
+function uploadTeamLogo(teamId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  // Validate size (max 500KB)
+  if (file.size > 512000) {
+    showToast('⚠️ Immagine troppo grande! Max 500KB.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const team = db.teams.find(t => t.id === teamId);
+    if (!team) return;
+    team.logo = e.target.result; // base64 data URL
+    saveToStorage();
+    renderTeams();
+    showToast('🖼️ Logo caricato!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeTeamLogo(teamId) {
+  const team = db.teams.find(t => t.id === teamId);
+  if (!team) return;
+  delete team.logo;
+  saveToStorage();
+  renderTeams();
+  showToast('🗑️ Logo rimosso');
+}
 
 function renameTeam(teamId, newName) {
   const team = db.teams.find(t=>t.id===teamId);
