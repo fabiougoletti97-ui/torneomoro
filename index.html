@@ -275,6 +275,71 @@ body.admin-mode .add-player-btn{display:block;}
 .login-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.5rem;}
 .login-error{font-size:0.78rem;color:var(--red);margin-top:8px;display:none;}
 
+/* ── PLAYOFF BRACKET ── */
+.bracket-wrap{overflow-x:auto;padding-bottom:1rem;}
+.bracket-wrap::-webkit-scrollbar{height:5px;}
+.bracket-wrap::-webkit-scrollbar-thumb{background:var(--grass);border-radius:3px;}
+.bracket{display:flex;gap:0;align-items:stretch;min-width:900px;}
+.bracket-round{display:flex;flex-direction:column;flex:1;position:relative;}
+.bracket-round-title{font-family:'Oswald';font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);text-align:center;padding:0 0 12px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0;}
+/* Connectors between rounds */
+.bracket-round::after{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:rgba(255,255,255,0.06);
+}
+.bracket-round:last-child::after{display:none;}
+/* Match slot */
+.bracket-slots{display:flex;flex-direction:column;justify-content:space-around;flex:1;padding:16px 8px;}
+.bracket-match{
+  background:var(--dark3);border:1px solid rgba(255,255,255,0.07);border-radius:7px;
+  overflow:hidden;transition:all 0.2s;margin:6px 0;
+}
+.bracket-match:hover{border-color:rgba(255,255,255,0.14);}
+.bracket-match.highlighted{border-color:rgba(245,197,24,0.35);box-shadow:0 0 12px rgba(245,197,24,0.08);}
+.bm-team{
+  display:flex;align-items:center;gap:7px;padding:7px 10px;
+  border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.8rem;
+  transition:background 0.15s;
+}
+.bm-team:last-of-type{border-bottom:none;}
+.bm-team.winner{background:rgba(245,197,24,0.08);color:var(--gold);}
+.bm-team.loser{opacity:0.45;}
+.bm-seed{font-family:'Oswald';font-size:0.68rem;color:var(--muted);min-width:16px;text-align:center;}
+.bm-name{flex:1;font-family:'Oswald';font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bm-score{font-family:'Bebas Neue';font-size:1.1rem;min-width:18px;text-align:center;}
+.bm-score.win{color:var(--gold);}
+.bm-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 10px;background:rgba(0,0,0,0.2);
+  font-size:0.65rem;color:var(--muted);font-family:'Oswald';letter-spacing:0.5px;
+}
+.bm-edit-btn{
+  font-size:0.62rem;color:var(--gold);cursor:pointer;padding:2px 6px;
+  border:1px solid rgba(245,197,24,0.2);border-radius:3px;background:transparent;
+  font-family:'Oswald';letter-spacing:0.5px;transition:all 0.2s;display:none;
+}
+body.admin-mode .bm-edit-btn{display:inline-block;}
+.bm-edit-btn:hover{background:rgba(245,197,24,0.12);}
+/* TBD team */
+.bm-team.tbd .bm-name{color:var(--muted);font-weight:400;font-style:italic;}
+/* Final match */
+.bracket-match.final-match{border-color:rgba(245,197,24,0.3);background:linear-gradient(135deg,var(--dark3),rgba(245,197,24,0.04));}
+.bracket-match.final-match .bm-team{padding:9px 12px;}
+.bracket-match.final-match .bm-name{font-size:0.9rem;}
+.bracket-match.final-match .bm-score{font-size:1.3rem;}
+/* Winner trophy */
+.winner-display{
+  text-align:center;padding:2rem 1rem;
+  background:linear-gradient(135deg,rgba(245,197,24,0.08),rgba(62,207,94,0.05));
+  border:1px solid rgba(245,197,24,0.2);border-radius:10px;margin-top:1.5rem;
+}
+.winner-display .wd-trophy{font-size:3rem;margin-bottom:0.5rem;}
+.winner-display .wd-label{font-family:'Oswald';font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.winner-display .wd-name{font-family:'Bebas Neue';font-size:2.4rem;color:var(--gold);line-height:1.1;}
+/* Playoff edit modal */
+#playoffEditModal .modal{max-width:440px;}
+
 /* INLINE EDIT */
 .inline-edit-name{
   font-family:'Oswald';font-size:1rem;font-weight:600;
@@ -509,6 +574,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="nav-link" href="#calendario">Calendario</a>
     <a class="nav-link" href="#classifica">Classifica</a>
     <a class="nav-link" href="#risultati">Risultati</a>
+    <a class="nav-link" href="#playoff">Playoff</a>
     <a class="nav-link" href="#stats-section">Statistiche</a>
     <a class="nav-link" href="#eventi">Eventi</a>
     <a class="nav-link" href="#menu">Menu</a>
@@ -531,6 +597,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="mobile-nav-link" href="#calendario" onclick="closeMobileMenu()"><span class="mn-icon">📅</span>Calendario</a>
     <a class="mobile-nav-link" href="#classifica" onclick="closeMobileMenu()"><span class="mn-icon">🏅</span>Classifica</a>
     <a class="mobile-nav-link" href="#risultati" onclick="closeMobileMenu()"><span class="mn-icon">⚽</span>Risultati</a>
+    <a class="mobile-nav-link" href="#playoff" onclick="closeMobileMenu()"><span class="mn-icon">🏆</span>Playoff</a>
     <a class="mobile-nav-link" href="#stats-section" onclick="closeMobileMenu()"><span class="mn-icon">📊</span>Statistiche</a>
     <div class="mobile-menu-divider"></div>
     <a class="mobile-nav-link" href="#eventi" onclick="closeMobileMenu()"><span class="mn-icon">🎉</span>Eventi</a>
@@ -624,6 +691,22 @@ body.admin-mode .gen-cal-btn{display:flex;}
       <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Playoff</span>
       <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:4px;"></span>Eliminazione</span>
     </div>
+  </div>
+</section>
+
+
+<!-- PLAYOFF -->
+<section id="playoff" style="background:var(--dark);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🏆 Fase Finale</div>
+      <h2 class="section-title">Tabellone <em>Playoff</em></h2>
+    </div>
+    <div class="t-switcher">
+      <div class="t-tab active-m" id="po-tab-m" onclick="switchPlayoff('M',this)">♂ Maschile</div>
+      <div class="t-tab" id="po-tab-f" onclick="switchPlayoff('F',this)">♀ Femminile</div>
+    </div>
+    <div id="playoff-content"></div>
   </div>
 </section>
 
@@ -788,6 +871,37 @@ body.admin-mode .gen-cal-btn{display:flex;}
     </div>
     <div class="form-group"><label class="form-label">Ruolo</label><select class="form-select" id="ap-role"><option>Portiere</option><option>Difensore</option><option>Centrocampista</option><option>Attaccante</option></select></div>
     <button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="addPlayer()">Aggiungi</button>
+  </div>
+</div>
+
+
+<!-- PLAYOFF MATCH EDIT MODAL -->
+<div class="modal-overlay" id="playoffEditModal">
+  <div class="modal" style="max-width:440px;">
+    <button class="modal-close" onclick="closeModal('playoffEditModal')">&#x2715;</button>
+    <div class="modal-title" id="po-edit-title">Modifica Partita Playoff</div>
+    <input type="hidden" id="po-edit-id"/>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;
+      padding:1rem;background:var(--dark);border-radius:6px;margin-bottom:1.2rem;">
+      <div style="font-family:Oswald;font-size:0.9rem;font-weight:600;flex:1;text-align:right;" id="po-edit-home-label">Casa</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input class="score-input" type="number" id="po-sh" min="0" max="99" placeholder="-" style="width:44px;height:44px;font-size:1.6rem;">
+        <span style="font-family:'Bebas Neue';font-size:1.6rem;color:var(--muted);">:</span>
+        <input class="score-input" type="number" id="po-sa" min="0" max="99" placeholder="-" style="width:44px;height:44px;font-size:1.6rem;">
+      </div>
+      <div style="font-family:Oswald;font-size:0.9rem;font-weight:600;flex:1;" id="po-edit-away-label">Ospite</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" type="text" id="po-date" placeholder="es. 2 Ago 2026"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Orario</label>
+        <input class="form-input" type="time" id="po-time" value="16:00"/>
+      </div>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="savePlayoffMatch()">💾 Salva</button>
   </div>
 </div>
 
@@ -1011,7 +1125,8 @@ function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       teams: db.teams,
       matches: db.matches,
-      calGenerated: calGenerated
+      calGenerated: calGenerated,
+      playoff: db.playoff||{}
     }));
     // Flash saved indicator
     const ind = document.getElementById('storage-indicator');
@@ -1028,6 +1143,7 @@ function loadFromStorage() {
       db.teams = saved.teams;
       db.matches = saved.matches || [];
       calGenerated = saved.calGenerated || false;
+      db.playoff = saved.playoff || { M: null, F: null };
       return true;
     }
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -2267,7 +2383,7 @@ function syncMobileAdmin() {
 
 // Update mobile nav active link on scroll
 window.addEventListener('scroll', () => {
-  const secs = ['home','squadre','calendario','classifica','risultati','stats-section','eventi','menu','musica'];
+  const secs = ['home','squadre','calendario','classifica','risultati','playoff','stats-section','eventi','menu','musica'];
   let active = 'home';
   secs.forEach(s => {
     const el = document.getElementById(s);
@@ -2278,7 +2394,328 @@ window.addEventListener('scroll', () => {
   });
 });
 
-function renderAll(){renderTeams();renderCalendario();renderStandings();renderResults();updateStats();renderStats();}
+
+// ─── PLAYOFF ENGINE ────────────────────────────────────────────────────────
+let curPlayoff = 'M';
+
+// playoff data structure stored in db
+// db.playoff = { M: { matches: [...] }, F: { matches: [...] } }
+// Each match: { id, round, slot, homeId, awayId, homeLabel, awayLabel,
+//               scoreHome, scoreAway, date, time }
+// round: 'ottavi'|'quarti'|'semi'|'finale'|'finale3'
+// slot: index within round
+
+function initPlayoff() {
+  if (!db.playoff) db.playoff = { M: null, F: null };
+}
+
+// ── BUILD BRACKET from standings ───────────────────────────────────────────
+function buildPlayoffBracket(torneo) {
+  initPlayoff();
+  const rows = computeStandings(torneo);
+  const n = rows.length;
+  if (n < 4) { showToast('Servono almeno 4 squadre in classifica!'); return; }
+
+  const matches = [];
+  let mid = 'po_' + torneo + '_' + Date.now() + '_';
+  let i = 0;
+
+  if (torneo === 'M') {
+    // Ottavi: 5v12, 6v11, 7v10, 8v9
+    const ottaviPairs = [
+      [4,11],[5,10],[6,9],[7,8]  // 0-indexed
+    ];
+    ottaviPairs.forEach(([a,b], slot) => {
+      matches.push({
+        id: mid + i++, round:'ottavi', slot,
+        homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
+        homeLabel: rows[a] ? `#${a+1} ${rows[a].name}` : 'TBD',
+        awayLabel:  rows[b] ? `#${b+1} ${rows[b].name}` : 'TBD',
+        homeSeed: a+1, awaySeed: b+1,
+        scoreHome:null, scoreAway:null, date:'', time:'16:00'
+      });
+    });
+    // Quarti: top4 vs ottavi winners
+    // Q1: #1 vs W(8v9), Q2: #2 vs W(7v10), Q3: #3 vs W(6v11), Q4: #4 vs W(5v12)
+    const quartiSeeds = [[0,0],[1,1],[2,2],[3,3]]; // [topSeed index, ottavi slot]
+    quartiSeeds.forEach(([topIdx, ottaviSlot], slot) => {
+      matches.push({
+        id: mid + i++, round:'quarti', slot,
+        homeId: rows[topIdx]?.id||null, awayId: null,
+        homeLabel: rows[topIdx] ? `#${topIdx+1} ${rows[topIdx].name}` : 'TBD',
+        awayLabel: `Vin. Ottavi ${ottaviSlot+1}`,
+        homeSeed: topIdx+1, awaySeed: null,
+        ottaviRef: ottaviSlot,
+        scoreHome:null, scoreAway:null, date:'', time:'16:00'
+      });
+    });
+  } else {
+    // Femminile: solo 4 squadre → dirette ai quarti (semifinali)
+    // #1 vs #4, #2 vs #3
+    [[0,3],[1,2]].forEach(([a,b], slot) => {
+      matches.push({
+        id: mid + i++, round:'quarti', slot,
+        homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
+        homeLabel: rows[a] ? `#${a+1} ${rows[a].name}` : 'TBD',
+        awayLabel:  rows[b] ? `#${b+1} ${rows[b].name}` : 'TBD',
+        homeSeed: a+1, awaySeed: b+1,
+        scoreHome:null, scoreAway:null, date:'', time:'16:00'
+      });
+    });
+  }
+
+  // Semifinali (2 match)
+  [0,1].forEach(slot => {
+    matches.push({
+      id: mid + i++, round:'semi', slot,
+      homeId:null, awayId:null,
+      homeLabel:'Vin. Quarti '+(slot*2+1), awayLabel:'Vin. Quarti '+(slot*2+2),
+      scoreHome:null, scoreAway:null, date:'', time:'16:00'
+    });
+  });
+
+  // Finale 3°/4° posto
+  matches.push({
+    id: mid + i++, round:'finale3', slot:0,
+    homeId:null, awayId:null,
+    homeLabel:'Perd. Semi 1', awayLabel:'Perd. Semi 2',
+    scoreHome:null, scoreAway:null, date:'', time:'15:00'
+  });
+
+  // Finale
+  matches.push({
+    id: mid + i++, round:'finale', slot:0,
+    homeId:null, awayId:null,
+    homeLabel:'Vin. Semi 1', awayLabel:'Vin. Semi 2',
+    scoreHome:null, scoreAway:null, date:'', time:'17:00'
+  });
+
+  db.playoff[torneo] = { matches };
+  resolvePlayoffLabels(torneo);
+  saveToStorage();
+  renderPlayoff();
+  showToast('🏆 Tabellone ' + (torneo==='M'?'Maschile':'Femminile') + ' generato!');
+}
+
+// ── RESOLVE LABELS from previous round results ──────────────────────────────
+function resolvePlayoffLabels(torneo) {
+  if (!db.playoff[torneo]) return;
+  const ms = db.playoff[torneo].matches;
+  const byRound = r => ms.filter(m=>m.round===r);
+  const winner = m => {
+    if (m.scoreHome===null||m.scoreAway===null) return null;
+    if (m.scoreHome > m.scoreAway) return { id:m.homeId, label: matchTeamLabel(m,'home') };
+    if (m.scoreAway > m.scoreHome) return { id:m.awayId, label: matchTeamLabel(m,'away') };
+    return null; // draw — TBD
+  };
+  const loser = m => {
+    if (m.scoreHome===null||m.scoreAway===null) return null;
+    if (m.scoreHome > m.scoreAway) return { id:m.awayId, label: matchTeamLabel(m,'away') };
+    if (m.scoreAway > m.scoreHome) return { id:m.homeId, label: matchTeamLabel(m,'home') };
+    return null;
+  };
+
+  if (torneo === 'M') {
+    // Update quarti awayId from ottavi winners
+    const ottavi = byRound('ottavi');
+    const quarti = byRound('quarti');
+    quarti.forEach((q,i) => {
+      const ott = ottavi[q.ottaviRef !== undefined ? q.ottaviRef : i];
+      if (ott) {
+        const w = winner(ott);
+        q.awayId = w ? w.id : null;
+        q.awayLabel = w ? w.label : 'Vin. Ottavi '+(i+1);
+      }
+    });
+  }
+
+  // Update semi from quarti winners
+  const quarti = byRound('quarti');
+  const semi = byRound('semi');
+  semi.forEach((s,i) => {
+    const q1 = quarti[i*2], q2 = quarti[i*2+1];
+    if (q1) { const w=winner(q1); s.homeId=w?w.id:null; s.homeLabel=w?w.label:`Vin. Quarti ${i*2+1}`; }
+    if (q2) { const w=winner(q2); s.awayId=w?w.id:null; s.awayLabel=w?w.label:`Vin. Quarti ${i*2+2}`; }
+  });
+
+  // Update finale3 from semi losers
+  const finale3 = ms.find(m=>m.round==='finale3');
+  if (finale3 && semi.length>=2) {
+    const l1=loser(semi[0]), l2=loser(semi[1]);
+    finale3.homeId=l1?l1.id:null; finale3.homeLabel=l1?l1.label:'Perd. Semi 1';
+    finale3.awayId=l2?l2.id:null; finale3.awayLabel=l2?l2.label:'Perd. Semi 2';
+  }
+
+  // Update finale from semi winners
+  const finale = ms.find(m=>m.round==='finale');
+  if (finale && semi.length>=2) {
+    const w1=winner(semi[0]), w2=winner(semi[1]);
+    finale.homeId=w1?w1.id:null; finale.homeLabel=w1?w1.label:'Vin. Semi 1';
+    finale.awayId=w2?w2.id:null; finale.awayLabel=w2?w2.label:'Vin. Semi 2';
+  }
+}
+
+function matchTeamLabel(m, side) {
+  const id = side==='home'?m.homeId:m.awayId;
+  const t = id ? getTeam(id) : null;
+  if (t) return t.emoji+' '+t.name;
+  return side==='home' ? m.homeLabel : m.awayLabel;
+}
+
+// ── RENDER BRACKET ─────────────────────────────────────────────────────────
+function switchPlayoff(t, el) {
+  curPlayoff = t;
+  document.getElementById('po-tab-m').className = 't-tab'+(t==='M'?' active-m':'');
+  document.getElementById('po-tab-f').className = 't-tab'+(t==='F'?' active-f':'');
+  renderPlayoff();
+}
+
+function renderPlayoff() {
+  initPlayoff();
+  const cont = document.getElementById('playoff-content');
+  if (!cont) return;
+  const pd = db.playoff[curPlayoff];
+
+  // Build button
+  const hasStandings = computeStandings(curPlayoff).length >= 4;
+  const btnLabel = pd ? '🔄 Rigenera Tabellone' : '🎯 Genera Tabellone';
+  const btnColor = pd ? 'var(--muted)' : 'var(--gold)';
+  const btnHtml = isAdmin
+    ? `<button onclick="buildPlayoffBracket('${curPlayoff}')" style="font-family:Oswald;font-size:0.78rem;
+        letter-spacing:1px;padding:7px 16px;border:1px solid ${btnColor};border-radius:4px;
+        color:${btnColor};background:transparent;cursor:pointer;margin-bottom:1.5rem;">${btnLabel}</button>`
+    : '';
+
+  if (!pd) {
+    cont.innerHTML = btnHtml + `<div style="text-align:center;padding:3rem;color:var(--muted);font-size:0.88rem;">
+      ${isAdmin ? 'Clicca "Genera Tabellone" per creare le sfide dalla classifica attuale.' : 'Il tabellone verrà pubblicato al termine della fase a gironi.'}
+    </div>`;
+    return;
+  }
+
+  resolvePlayoffLabels(curPlayoff);
+  const ms = pd.matches;
+  const byRound = r => ms.filter(m=>m.round===r);
+  const roundDefs = curPlayoff==='M'
+    ? [
+        {key:'ottavi',  label:'Ottavi di Finale',  matches:byRound('ottavi')},
+        {key:'quarti',  label:'Quarti di Finale',  matches:byRound('quarti')},
+        {key:'semi',    label:'Semifinali',         matches:byRound('semi')},
+        {key:'finale3', label:'3° / 4° Posto',      matches:byRound('finale3')},
+        {key:'finale',  label:'Finale',             matches:byRound('finale')},
+      ]
+    : [
+        {key:'quarti',  label:'Semifinali',         matches:byRound('quarti')},
+        {key:'semi',    label:'Finali',              matches:byRound('semi')},
+        {key:'finale3', label:'3° / 4° Posto',      matches:byRound('finale3')},
+        {key:'finale',  label:'Finale',              matches:byRound('finale')},
+      ];
+
+  let html = btnHtml + '<div class="bracket-wrap"><div class="bracket">';
+
+  roundDefs.forEach(rd => {
+    html += `<div class="bracket-round">
+      <div class="bracket-round-title">${rd.label}</div>
+      <div class="bracket-slots">`;
+    rd.matches.forEach(m => {
+      html += renderBracketMatch(m, rd.key==='finale');
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div></div>';
+
+  // Winner display
+  const finale = ms.find(m=>m.round==='finale');
+  if (finale && finale.scoreHome!==null && finale.scoreAway!==null) {
+    const winnerId = finale.scoreHome>finale.scoreAway ? finale.homeId : finale.awayId;
+    const winnerLabel = finale.scoreHome>finale.scoreAway ? matchTeamLabel(finale,'home') : matchTeamLabel(finale,'away');
+    if (winnerLabel) {
+      html += `<div class="winner-display">
+        <div class="wd-trophy">🏆</div>
+        <div class="wd-label">Campione ${curPlayoff==='M'?'Maschile':'Femminile'} — Torneo Moro Chiozza 2026</div>
+        <div class="wd-name">${winnerLabel}</div>
+      </div>`;
+    }
+  }
+
+  cont.innerHTML = html;
+}
+
+function renderBracketMatch(m, isFinal) {
+  const homeLabel = matchTeamLabel(m,'home');
+  const awayLabel  = matchTeamLabel(m,'away');
+  const homeScore  = m.scoreHome !== null ? m.scoreHome : '';
+  const awayScore  = m.scoreAway !== null ? m.scoreAway : '';
+  const homeWin = m.scoreHome!==null && m.scoreAway!==null && m.scoreHome>m.scoreAway;
+  const awayWin = m.scoreHome!==null && m.scoreAway!==null && m.scoreAway>m.scoreHome;
+  const isTBD = !m.homeId && !m.awayId && !m.homeLabel.includes('#');
+
+  const homeCls = homeWin?'winner':awayWin?'loser':isTBD?'tbd':'';
+  const awayCls  = awayWin?'winner':homeWin?'loser':isTBD?'tbd':'';
+  const matchCls = isFinal ? 'bracket-match final-match' : 'bracket-match';
+
+  const dateStr = m.date||m.time ? `${m.date}${m.date&&m.time?' · ':''}${m.time||''}` : '—';
+
+  return `<div class="${matchCls}" id="bm-${m.id}">
+    <div class="bm-team ${homeCls}">
+      <span class="bm-seed">${m.homeSeed||''}</span>
+      <span class="bm-name">${homeLabel}</span>
+      <span class="bm-score ${homeWin?'win':''}">${homeScore}</span>
+    </div>
+    <div class="bm-team ${awayCls}">
+      <span class="bm-seed">${m.awaySeed||''}</span>
+      <span class="bm-name">${awayLabel}</span>
+      <span class="bm-score ${awayWin?'win':''}">${awayScore}</span>
+    </div>
+    <div class="bm-meta">
+      <span>${dateStr}</span>
+      <button class="bm-edit-btn" onclick="openPlayoffEdit('${m.id}')">✏️ Modifica</button>
+    </div>
+  </div>`;
+}
+
+// ── EDIT PLAYOFF MATCH ─────────────────────────────────────────────────────
+function openPlayoffEdit(mid) {
+  initPlayoff();
+  let m = null;
+  for (const t of ['M','F']) {
+    if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m) break; }
+  }
+  if (!m) return;
+  document.getElementById('po-edit-id').value = mid;
+  document.getElementById('po-sh').value = m.scoreHome!==null ? m.scoreHome : '';
+  document.getElementById('po-sa').value = m.scoreAway!==null ? m.scoreAway : '';
+  document.getElementById('po-date').value = m.date||'';
+  document.getElementById('po-time').value = m.time||'16:00';
+  document.getElementById('po-edit-home-label').textContent = matchTeamLabel(m,'home');
+  document.getElementById('po-edit-away-label').textContent = matchTeamLabel(m,'away');
+  const roundLabels = {ottavi:'Ottavi',quarti:'Quarti',semi:'Semifinale',finale3:'3°/4° Posto',finale:'Finale'};
+  document.getElementById('po-edit-title').textContent = '✏️ ' + (roundLabels[m.round]||'Playoff');
+  openModal('playoffEditModal');
+}
+
+function savePlayoffMatch() {
+  const mid = document.getElementById('po-edit-id').value;
+  let m = null, torneo = null;
+  for (const t of ['M','F']) {
+    if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m){torneo=t;break;} }
+  }
+  if (!m) return;
+  const sh = document.getElementById('po-sh').value;
+  const sa = document.getElementById('po-sa').value;
+  if (sh!=='' && sa!=='') { m.scoreHome=parseInt(sh); m.scoreAway=parseInt(sa); }
+  m.date = document.getElementById('po-date').value;
+  m.time = document.getElementById('po-time').value;
+  resolvePlayoffLabels(torneo);
+  saveToStorage();
+  closeModal('playoffEditModal');
+  renderPlayoff();
+  showToast('✅ Partita playoff aggiornata!');
+}
+
+
+function renderAll(){renderTeams();renderCalendario();renderStandings();renderResults();updateStats();renderStats();renderPlayoff();}
 
 // Init fascia selector state on page load
 window.addEventListener('DOMContentLoaded', ()=>{
@@ -2291,7 +2728,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});});
 });
 window.addEventListener('scroll',()=>{
-  const secs=['home','squadre','calendario','classifica','risultati','stats-section','eventi','menu','musica'];
+  const secs=['home','squadre','calendario','classifica','risultati','playoff','stats-section','eventi','menu','musica'];
   let active='home';
   secs.forEach(s=>{const el=document.getElementById(s);if(el&&window.scrollY>=el.offsetTop-80)active=s;});
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active));
