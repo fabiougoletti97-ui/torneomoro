@@ -182,6 +182,86 @@ body.admin-mode .admin-only-block{display:block;}
 /* MENU */
 #menu{background:var(--dark);}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.4rem;}
+/* ── SPONSOR ── */
+.sponsor-section{padding:4rem 2rem;}
+.sponsor-tier{margin-bottom:3rem;}
+.sponsor-tier-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:1.4rem;
+  padding-bottom:10px;border-bottom:2px solid;
+}
+.sponsor-tier-header.main{border-color:#fff;}
+.sponsor-tier-header.gold{border-color:var(--gold);}
+.sponsor-tier-header.silver{border-color:#9e9e9e;}
+.sponsor-tier-icon{
+  width:46px;height:46px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;flex-shrink:0;
+}
+.sponsor-tier-icon.main{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);}
+.sponsor-tier-icon.gold{background:rgba(245,197,24,0.12);border:1px solid rgba(245,197,24,0.3);}
+.sponsor-tier-icon.silver{background:rgba(158,158,158,0.1);border:1px solid rgba(158,158,158,0.25);}
+.sponsor-tier-label{font-family:'Bebas Neue';font-size:1.6rem;letter-spacing:3px;}
+.sponsor-tier-label.main{color:#ffffff;}
+.sponsor-tier-label.gold{color:var(--gold);}
+.sponsor-tier-label.silver{color:#9e9e9e;}
+.sponsor-tier-sub{font-family:'Oswald';font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+/* Sponsor grid */
+.sponsor-grid{display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+.sponsor-grid.main-grid{gap:20px;}
+.sponsor-card{
+  background:var(--dark3);border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:1.2rem;gap:10px;transition:all 0.25s;position:relative;
+  overflow:hidden;
+}
+.sponsor-card.main-card{width:200px;height:120px;border-color:rgba(255,255,255,0.15);}
+.sponsor-card.gold-card{width:150px;height:95px;border-color:rgba(245,197,24,0.15);}
+.sponsor-card.silver-card{width:120px;height:80px;border-color:rgba(158,158,158,0.12);}
+.sponsor-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.2);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
+.sponsor-card.main-card:hover{box-shadow:0 8px 24px rgba(255,255,255,0.06);}
+.sponsor-card.gold-card:hover{box-shadow:0 8px 20px rgba(245,197,24,0.08);}
+.sponsor-card.silver-card:hover{box-shadow:0 6px 16px rgba(158,158,158,0.06);}
+.sponsor-logo{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;}
+.sponsor-name{font-family:'Oswald';font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;}
+/* Admin remove button */
+.sponsor-remove-btn{
+  display:none;position:absolute;top:5px;right:5px;
+  background:rgba(224,53,53,0.85);border:none;border-radius:50%;
+  color:#fff;font-size:0.65rem;width:18px;height:18px;
+  cursor:pointer;line-height:18px;text-align:center;
+}
+body.admin-mode .sponsor-remove-btn{display:block;}
+/* Add sponsor button */
+.add-sponsor-btn{
+  display:none;align-items:center;justify-content:center;gap:8px;
+  background:rgba(245,197,24,0.07);border:1px dashed rgba(245,197,24,0.25);
+  border-radius:8px;padding:0.8rem 1.2rem;color:var(--gold);
+  font-family:'Oswald';font-size:0.8rem;letter-spacing:1px;cursor:pointer;
+  transition:all 0.2s;margin-top:1rem;
+}
+body.admin-mode .add-sponsor-btn{display:flex;}
+.add-sponsor-btn:hover{background:rgba(245,197,24,0.14);}
+/* Home main sponsor strip */
+.home-sponsor-strip{
+  display:flex;align-items:center;justify-content:center;
+  gap:1.5rem;flex-wrap:wrap;margin-top:2rem;padding-top:1.5rem;
+  border-top:1px solid rgba(255,255,255,0.07);
+}
+.home-sponsor-label{
+  font-family:'Oswald';font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap;
+}
+.home-sponsor-logo{
+  height:36px;object-fit:contain;filter:brightness(0.9);
+  transition:filter 0.2s;border-radius:4px;
+}
+.home-sponsor-logo:hover{filter:brightness(1.1);}
+.home-sponsor-name{
+  font-family:'Oswald';font-size:0.82rem;letter-spacing:1px;
+  color:rgba(255,255,255,0.6);
+}
+
 /* ── STREET FOOD MENU ── */
 .menu-hero{
   text-align:center;margin-bottom:2.5rem;
@@ -704,6 +784,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <a class="nav-link" href="#stats-section">Statistiche</a>
     <a class="nav-link" href="#eventi">Eventi</a>
     <a class="nav-link" href="#menu">Menu</a>
+    <a class="nav-link" href="#sponsor">Sponsor</a>
   </div>
   <button class="nav-admin-btn" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
   <!-- Hamburger (mobile only) -->
@@ -726,6 +807,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <div class="mobile-menu-divider"></div>
     <a class="mobile-nav-link" href="#eventi" onclick="closeMobileMenu()"><span class="mn-icon">🎉</span>Eventi</a>
     <a class="mobile-nav-link" href="#menu" onclick="closeMobileMenu()"><span class="mn-icon">🍔</span>Menu</a>
+    <a class="mobile-nav-link" href="#sponsor" onclick="closeMobileMenu()"><span class="mn-icon">🤝</span>Sponsor</a>
     <div class="mobile-admin-row">
       <span class="mobile-admin-label">Area Gestione</span>
       <button class="mobile-admin-btn" id="mobileAdminBtn" onclick="toggleAdmin()">🔐 Admin</button>
@@ -760,6 +842,8 @@ body.admin-mode .gen-cal-btn{display:flex;}
       <div class="hero-stat"><div class="hero-stat-num" id="stat-matches">0</div><div class="hero-stat-label">Partite Giocate</div></div>
       <div class="hero-stat"><div class="hero-stat-num" id="stat-goals">0</div><div class="hero-stat-label">Gol Segnati</div></div>
     </div>
+    <!-- Main sponsor strip -->
+    <div class="home-sponsor-strip" id="home-sponsor-strip" style="display:none;"></div>
   </div>
 </section>
 
@@ -1010,6 +1094,19 @@ body.admin-mode .gen-cal-btn{display:flex;}
   </div>
 </section>
 
+
+<!-- SPONSOR -->
+<section id="sponsor" style="background:var(--dark2);" class="sponsor-section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🤝 Partner</div>
+      <h2 class="section-title">I Nostri <em>Sponsor</em></h2>
+    </div>
+    <div id="sponsor-content"></div>
+    <button class="add-sponsor-btn" onclick="openAddSponsorModal()">+ Aggiungi Sponsor</button>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer>
   <div style="font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);letter-spacing:3px;margin-bottom:4px;">Torneo Moro</div>
@@ -1091,6 +1188,52 @@ body.admin-mode .gen-cal-btn{display:flex;}
       </div>
     </div>
     <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="savePlayoffMatch()">💾 Salva</button>
+  </div>
+</div>
+
+
+<!-- ADD SPONSOR MODAL -->
+<div class="modal-overlay" id="addSponsorModal">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeModal('addSponsorModal')">&#x2715;</button>
+    <div class="modal-title">🤝 Aggiungi Sponsor</div>
+    <div class="form-group">
+      <label class="form-label">Nome Sponsor</label>
+      <input class="form-input" id="sp-name" placeholder="es. Officine Rossi"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <div class="fascia-selector">
+        <div class="fascia-opt active" data-val="main" onclick="selectSponsorTier(this)" style="border-color:rgba(255,255,255,0.25);">
+          <span class="fascia-badge" style="background:rgba(255,255,255,0.08);border:2px solid #fff;color:#fff;font-family:Oswald;font-size:0.8rem;display:flex;align-items:center;justify-content:center;">⭐</span>
+          <div class="fascia-opt-text"><strong>Main Sponsor</strong><span>Logo in homepage + sezione sponsor</span></div>
+        </div>
+        <div class="fascia-opt" data-val="gold" onclick="selectSponsorTier(this)">
+          <span class="fascia-badge fascia-1">Au</span>
+          <div class="fascia-opt-text"><strong>Gold Sponsor</strong><span>Sezione sponsor — card grande</span></div>
+        </div>
+        <div class="fascia-opt" data-val="silver" onclick="selectSponsorTier(this)">
+          <span class="fascia-badge fascia-2">Ag</span>
+          <div class="fascia-opt-text"><strong>Silver Sponsor</strong><span>Sezione sponsor — card compatta</span></div>
+        </div>
+      </div>
+      <input type="hidden" id="sp-tier" value="main"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Logo (opzionale, max 500KB)</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="flex:1;padding:10px;background:var(--dark);border:1px dashed rgba(255,255,255,0.15);
+          border-radius:5px;cursor:pointer;font-size:0.82rem;color:var(--muted);text-align:center;">
+          📁 Scegli immagine
+          <input type="file" id="sp-logo-file" accept="image/*" style="display:none;" onchange="previewSponsorLogo(this)">
+        </label>
+        <div id="sp-logo-preview" style="width:60px;height:60px;background:var(--dark);border:1px solid rgba(255,255,255,0.1);
+          border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.7rem;overflow:hidden;">
+          Anteprima
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="addSponsor()">Salva Sponsor</button>
   </div>
 </div>
 
@@ -1306,7 +1449,8 @@ function saveToStorage() {
       teams: db.teams,
       matches: db.matches,
       calGenerated: calGenerated,
-      playoff: db.playoff||{}
+      playoff: db.playoff||{},
+      sponsors: db.sponsors||[]
     }));
     // Flash saved indicator
     const ind = document.getElementById('storage-indicator');
@@ -1324,6 +1468,7 @@ function loadFromStorage() {
       db.matches = saved.matches || [];
       calGenerated = saved.calGenerated || false;
       db.playoff = saved.playoff || { M: null, F: null };
+      db.sponsors = saved.sponsors || [];
       return true;
     }
   } catch(e) { console.warn('Storage load failed:', e); }
@@ -2605,7 +2750,7 @@ function syncMobileAdmin() {
 
 // Update mobile nav active link on scroll
 window.addEventListener('scroll', () => {
-  const secs = ['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu'];
+  const secs = ['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu','sponsor'];
   let active = 'home';
   secs.forEach(s => {
     const el = document.getElementById(s);
@@ -2920,7 +3065,139 @@ function savePlayoffMatch() {
   showToast('✅ Partita playoff aggiornata!');
 }
 
-function renderAll(){renderTeams();renderCalendario();renderStandings();updateStats();renderStats();renderPlayoff();}
+
+// ─── SPONSOR ENGINE ────────────────────────────────────────────────────────
+if (!db.sponsors) db.sponsors = [];
+
+function openAddSponsorModal() {
+  document.getElementById('sp-name').value = '';
+  document.getElementById('sp-tier').value = 'main';
+  document.getElementById('sp-logo-preview').innerHTML = 'Anteprima';
+  document.getElementById('sp-logo-file').value = '';
+  // Reset tier selector
+  document.querySelectorAll('#addSponsorModal .fascia-opt').forEach((o,i) => {
+    o.classList.remove('active','sel-1','sel-2','sel-3');
+    if (i===0) o.classList.add('active');
+  });
+  openModal('addSponsorModal');
+}
+
+function selectSponsorTier(el) {
+  document.querySelectorAll('#addSponsorModal .fascia-opt').forEach(o => {
+    o.classList.remove('active','sel-1','sel-2','sel-3');
+  });
+  el.classList.add('active');
+  document.getElementById('sp-tier').value = el.dataset.val;
+}
+
+function previewSponsorLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 512000) { showToast('⚠️ Max 500KB!'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('sp-logo-preview');
+    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;border-radius:4px;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addSponsor() {
+  const name = document.getElementById('sp-name').value.trim();
+  if (!name) { alert('Inserisci il nome dello sponsor!'); return; }
+  const tier = document.getElementById('sp-tier').value;
+  const fileInput = document.getElementById('sp-logo-file');
+  const file = fileInput.files[0];
+
+  const finish = (logo) => {
+    if (!db.sponsors) db.sponsors = [];
+    db.sponsors.push({ id: Date.now(), name, tier, logo: logo||null });
+    saveToStorage();
+    closeModal('addSponsorModal');
+    renderSponsors();
+    renderHomeSponsor();
+    showToast('🤝 Sponsor aggiunto!');
+  };
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => finish(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    finish(null);
+  }
+}
+
+function removeSponsor(id) {
+  db.sponsors = db.sponsors.filter(s => s.id !== id);
+  saveToStorage();
+  renderSponsors();
+  renderHomeSponsor();
+  showToast('🗑️ Sponsor rimosso');
+}
+
+function renderSponsors() {
+  const cont = document.getElementById('sponsor-content');
+  if (!cont) return;
+  if (!db.sponsors) db.sponsors = [];
+
+  const tiers = [
+    { key:'main',   label:'Main Sponsor',   icon:'⭐', sub:'Official Partner' },
+    { key:'gold',   label:'Gold Sponsor',   icon:'🥇', sub:'Gold Partner' },
+    { key:'silver', label:'Silver Sponsor', icon:'🥈', sub:'Silver Partner' }
+  ];
+
+  let out = '';
+  tiers.forEach(tier => {
+    const sponsors = db.sponsors.filter(s => s.tier === tier.key);
+    if (!sponsors.length && !isAdmin) return;
+    const cardSize = tier.key==='main'?'main-card':tier.key==='gold'?'gold-card':'silver-card';
+    out += `<div class="sponsor-tier">
+      <div class="sponsor-tier-header ${tier.key}">
+        <div class="sponsor-tier-icon ${tier.key}">${tier.icon}</div>
+        <div>
+          <div class="sponsor-tier-label ${tier.key}">${tier.label}</div>
+          <div class="sponsor-tier-sub">${tier.sub}</div>
+        </div>
+      </div>
+      <div class="sponsor-grid ${tier.key==='main'?'main-grid':''}">`;
+
+    if (sponsors.length) {
+      sponsors.forEach(s => {
+        out += `<div class="sponsor-card ${cardSize}">
+          <button class="sponsor-remove-btn" onclick="removeSponsor(${s.id})">✕</button>
+          ${s.logo
+            ? `<img class="sponsor-logo" src="${s.logo}" alt="${s.name}">`
+            : `<span style="font-family:'Oswald';font-size:0.88rem;color:var(--muted);text-align:center;padding:0 8px;">${s.name}</span>`
+          }
+          ${s.logo ? `<div class="sponsor-name">${s.name}</div>` : ''}
+        </div>`;
+      });
+    } else {
+      out += `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">Nessuno sponsor in questa categoria</div>`;
+    }
+
+    out += `</div></div>`;
+  });
+
+  cont.innerHTML = out || '<p style="color:var(--muted);font-size:0.88rem;">Nessuno sponsor ancora. Aggiungili come admin.</p>';
+}
+
+function renderHomeSponsor() {
+  const strip = document.getElementById('home-sponsor-strip');
+  if (!strip) return;
+  if (!db.sponsors) { strip.style.display='none'; return; }
+  const mainSponsors = db.sponsors.filter(s => s.tier === 'main');
+  if (!mainSponsors.length) { strip.style.display='none'; return; }
+  strip.style.display = 'flex';
+  strip.innerHTML = `<span class="home-sponsor-label">Main Sponsor</span>` +
+    mainSponsors.map(s => s.logo
+      ? `<img class="home-sponsor-logo" src="${s.logo}" alt="${s.name}" title="${s.name}">`
+      : `<span class="home-sponsor-name">${s.name}</span>`
+    ).join('');
+}
+
+function renderAll(){renderTeams();renderCalendario();renderStandings();updateStats();renderStats();renderPlayoff();renderSponsors();renderHomeSponsor();}
 
 // Init fascia selector state on page load
 window.addEventListener('DOMContentLoaded', ()=>{
@@ -2933,7 +3210,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});});
 });
 window.addEventListener('scroll',()=>{
-  const secs=['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu'];
+  const secs=['home','squadre','calendario','classifica','playoff','stats-section','eventi','menu','sponsor'];
   let active='home';
   secs.forEach(s=>{const el=document.getElementById(s);if(el&&window.scrollY>=el.offsetTop-80)active=s;});
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active));
