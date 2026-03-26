@@ -779,10 +779,15 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <!-- ADMIN BAR -->
 <div class="admin-bar" style="margin-top:62px;">
   <span class="admin-label" style="font-family:'Oswald';font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">🔐 Modalità Admin attiva</span>
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <span id="storage-indicator" style="font-size:0.68rem;color:var(--accent);font-family:'Oswald';letter-spacing:1px;opacity:0;transition:opacity 0.4s;">💾 Salvato</span>
-    <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="Cancella tutti i dati e ripristina">🗑 Reset dati</button>
-    <button class="admin-bar-btn" onclick="exitAdmin()">Esci dall'admin</button>
+    <button class="admin-bar-btn" onclick="exportData()" title="Scarica backup dati JSON">📤 Esporta</button>
+    <label class="admin-bar-btn" style="cursor:pointer;" title="Carica backup dati JSON">
+      📥 Importa
+      <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
+    </label>
+    <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="Cancella tutti i dati e ripristina">🗑 Reset</button>
+    <button class="admin-bar-btn" onclick="exitAdmin()">Esci</button>
   </div>
 </div>
 
@@ -1451,6 +1456,10 @@ body.admin-mode .gen-cal-btn{display:flex;}
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'moro2025';
@@ -1534,44 +1543,111 @@ function genMatches() {
 // ─── EARLY DECLARATIONS (needed by loadFromStorage) ─────────────────────────
 let calGenerated = false;
 
-// ─── STORAGE ───────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'torneo_moro_v3';
+// ─── FIREBASE + STORAGE ──────────────────────────────────────────────────────
+const STORAGE_KEY = 'torneo_moro_data'; // localStorage fallback
 
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBOq5jNuiMwQn6n_AkYu9MTTh0fz5FYcCE",
+  authDomain: "torneo-moro.firebaseapp.com",
+  databaseURL: "https://torneo-moro-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "torneo-moro",
+  storageBucket: "torneo-moro.firebasestorage.app",
+  messagingSenderId: "299026990961",
+  appId: "1:299026990961:web:d231cae16a5544ec1618d0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const fbDb = firebase.database();
+const FB_REF = fbDb.ref('torneo');
+
+let fbConnected = false;
+let saveDebounceTimer = null;
+
+// Monitor connection status
+fbDb.ref('.info/connected').on('value', snap => {
+  fbConnected = snap.val() === true;
+  const ind = document.getElementById('storage-indicator');
+  if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
+});
+
+// ── SAVE ─────────────────────────────────────────────────────────────────
 function saveToStorage() {
+  const payload = {
+    teams: db.teams,
+    matches: db.matches,
+    calGenerated: calGenerated,
+    playoff: db.playoff || {},
+    sponsors: db.sponsors || []
+  };
+
+  // Always save to localStorage as immediate fallback
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      teams: db.teams,
-      matches: db.matches,
-      calGenerated: calGenerated,
-      playoff: db.playoff||{},
-      sponsors: db.sponsors||[]
-    }));
-    // Flash saved indicator
-    const ind = document.getElementById('storage-indicator');
-    if(ind){ ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2000); }
-  } catch(e) { console.warn('Storage save failed:', e); }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e) { console.warn('localStorage save failed:', e); }
+
+  // Save to Firebase (debounced 600ms to avoid flooding)
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(() => {
+    // Add admin key to authorize write
+    const securePayload = { ...payload, _adminKey: 'moro2025' };
+    FB_REF.set(securePayload)
+      .then(() => {
+        const ind = document.getElementById('storage-indicator');
+        if(ind){ ind.textContent='☁️ Salvato'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
+      })
+      .catch(e => {
+        console.warn('Firebase save failed:', e);
+        const ind = document.getElementById('storage-indicator');
+        if(ind){ ind.textContent='💾 Salvato (locale)'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
+      });
+  }, 600);
 }
 
+// ── LOAD ─────────────────────────────────────────────────────────────────
 function loadFromStorage() {
+  // Try localStorage first (instant, synchronous)
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const saved = JSON.parse(raw);
-    if (saved.teams && saved.teams.length) {
-      db.teams = saved.teams;
-      db.matches = saved.matches || [];
-      calGenerated = saved.calGenerated || false;
-      db.playoff = saved.playoff || { M: null, F: null };
-      db.sponsors = saved.sponsors || [];
-
-      return true;
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved.teams && saved.teams.length) {
+        applyStoredData(saved);
+        return true;
+      }
     }
-  } catch(e) { console.warn('Storage load failed:', e); }
+  } catch(e) { console.warn('localStorage load failed:', e); }
   return false;
 }
 
+function applyStoredData(saved) {
+  if (saved.teams)    db.teams    = saved.teams;
+  if (saved.matches)  db.matches  = saved.matches;
+  if (saved.calGenerated !== undefined) calGenerated = saved.calGenerated;
+  db.playoff  = saved.playoff  || { M: null, F: null };
+  db.sponsors = saved.sponsors || [];
+  // _adminKey is ignored (never stored in db object)
+}
+
+// ── FIREBASE REALTIME LISTENER ────────────────────────────────────────────
+// All users receive updates instantly when admin saves
+FB_REF.on('value', snap => {
+  const saved = snap.val();
+  if (!saved || !saved.teams || !saved.teams.length) return;
+  applyStoredData(saved);
+  // Also update localStorage cache
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e){}
+  renderAll();
+  if(calGenerated){
+    const btn = document.getElementById('genCalBtn');
+    if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
+  }
+});
+
+// ── RESET ─────────────────────────────────────────────────────────────────
 function resetStorage() {
   if (!confirm('Sei sicuro di voler RESETTARE tutti i dati del torneo? Questa operazione è irreversibile.')) return;
+  FB_REF.remove();
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
@@ -3330,6 +3406,65 @@ function renderHomeSponsor() {
       ? `<img class="home-sponsor-logo" src="${s.logo}" alt="${s.name}" title="${s.name}">`
       : `<span class="home-sponsor-name">${s.name}</span>`
     ).join('');
+}
+
+
+// ─── EXPORT / IMPORT DATA ─────────────────────────────────────────────────
+function exportData() {
+  const payload = {
+    _version: 1,
+    _date: new Date().toISOString(),
+    _label: 'Torneo Moro Chiozza — Backup dati',
+    teams: db.teams,
+    matches: db.matches,
+    calGenerated: calGenerated,
+    playoff: db.playoff || {},
+    sponsors: db.sponsors || []
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const date = new Date().toISOString().slice(0,10);
+  a.download = 'TorneoMoro_backup_' + date + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Backup esportato!');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.teams || !data.matches) {
+        showToast('⚠️ File non valido!');
+        return;
+      }
+      if (!confirm('Importare i dati dal backup? I dati attuali verranno sostituiti.')) return;
+      db.teams    = data.teams;
+      db.matches  = data.matches;
+      db.playoff  = data.playoff  || { M: null, F: null };
+      db.sponsors = data.sponsors || [];
+      calGenerated = data.calGenerated || false;
+      saveToStorage();
+      renderAll();
+      // Restore gen button state
+      if (calGenerated) {
+        const btn = document.getElementById('genCalBtn');
+        if (btn) { btn.classList.add('used'); btn.textContent = '✅ Calendario Generato'; }
+      }
+      showToast('📥 Dati importati con successo!');
+    } catch(err) {
+      showToast('⚠️ Errore nel file JSON!');
+      console.error(err);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 function renderAll(){renderTeams();renderCalendario();renderStandings();updateStats();renderStats();renderPlayoff();renderSponsors();renderHomeSponsor();}
