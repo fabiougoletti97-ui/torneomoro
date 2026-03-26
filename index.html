@@ -1593,18 +1593,23 @@ try {
       const ind = document.getElementById('storage-indicator');
       if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
     });
-    // Realtime listener
+    // Realtime listener — fires immediately on connect AND on every change
     FB_REF.on('value', snap => {
       const saved = snap.val();
-      if (!saved || !saved.teams || !saved.teams.length) return;
-      applyStoredData(saved);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e){}
+      if (saved && saved.teams && saved.teams.length) {
+        applyStoredData(saved);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e){}
+      }
+      // Always render — first time replaces defaults, subsequent times update live
+      fbDataLoaded = true;
       renderAll();
       if(calGenerated){
         const btn = document.getElementById('genCalBtn');
         if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
       }
     });
+    // If Firebase doesn't respond in 3 seconds, render with local data anyway
+    setTimeout(() => { if(!fbDataLoaded) renderAll(); }, 3000);
   } else {
     console.warn('Firebase non disponibile — uso localStorage');
   }
@@ -1696,6 +1701,7 @@ function resetStorage() {
 
 // Init: load saved data or generate fresh
 const hadSavedData = loadFromStorage();
+let fbDataLoaded = false; // track if Firebase has responded
 if (!hadSavedData) {
   genMatches();
   if (!db.sponsors) db.sponsors = [];
@@ -3531,6 +3537,8 @@ window.addEventListener('scroll',()=>{
 });
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
+// Render immediately from localStorage (fast first paint)
+// Firebase listener will update again when it connects
 renderAll();
 
 // If calendar was already generated, update the button state
