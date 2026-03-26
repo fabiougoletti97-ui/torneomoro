@@ -772,6 +772,29 @@ body.admin-mode .gen-cal-btn{display:flex;}
   .hamburger{display:none;}
   .mobile-menu{display:none !important;}
 }
+
+/* STANDINGS ZONE COLORS */
+.standings-table tr.zona-qual td {
+  background: rgba(34,136,59,0.07);
+  border-bottom: 1px solid rgba(34,136,59,0.07);
+}
+.standings-table tr.zona-qual:hover td { background: rgba(34,136,59,0.12); }
+.standings-table tr.zona-qual td:first-child { border-left: 3px solid var(--grass-l); }
+
+.standings-table tr.zona-playoff td {
+  background: rgba(245,197,24,0.06);
+  border-bottom: 1px solid rgba(245,197,24,0.07);
+}
+.standings-table tr.zona-playoff:hover td { background: rgba(245,197,24,0.11); }
+.standings-table tr.zona-playoff td:first-child { border-left: 3px solid var(--gold); }
+
+.standings-table tr.zona-elim td {
+  background: rgba(224,53,53,0.05);
+  border-bottom: 1px solid rgba(224,53,53,0.06);
+}
+.standings-table tr.zona-elim:hover td { background: rgba(224,53,53,0.1); }
+.standings-table tr.zona-elim td:first-child { border-left: 3px solid rgba(224,53,53,0.5); }
+
 </style>
 </head>
 <body>
@@ -917,7 +940,7 @@ body.admin-mode .gen-cal-btn{display:flex;}
     <div class="standings-wrap"><div id="standings-content"></div></div>
     <div style="display:flex;gap:1.5rem;margin-top:1rem;font-size:0.72rem;color:var(--muted);border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;">
       <span><span style="display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:4px;"></span>Quarti/Playoff diretti (1°-4°)</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Ottavi di finale (5°-12°)</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Play-In (5°-12°)</span>
       <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:4px;"></span>Eliminato (13°-16°)</span>
     </div>
   </div>
@@ -1457,8 +1480,8 @@ body.admin-mode .gen-cal-btn{display:flex;}
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-database-compat.min.js"></script>
 
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -1557,19 +1580,37 @@ const firebaseConfig = {
   appId: "1:299026990961:web:d231cae16a5544ec1618d0"
 };
 
-firebase.initializeApp(firebaseConfig);
-const fbDb = firebase.database();
-const FB_REF = fbDb.ref('torneo');
+let fbDb = null, FB_REF = null, fbConnected = false, saveDebounceTimer = null;
 
-let fbConnected = false;
-let saveDebounceTimer = null;
-
-// Monitor connection status
-fbDb.ref('.info/connected').on('value', snap => {
-  fbConnected = snap.val() === true;
-  const ind = document.getElementById('storage-indicator');
-  if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
-});
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    fbDb = firebase.database();
+    FB_REF = fbDb.ref('torneo');
+    // Monitor connection status
+    fbDb.ref('.info/connected').on('value', snap => {
+      fbConnected = snap.val() === true;
+      const ind = document.getElementById('storage-indicator');
+      if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
+    });
+    // Realtime listener
+    FB_REF.on('value', snap => {
+      const saved = snap.val();
+      if (!saved || !saved.teams || !saved.teams.length) return;
+      applyStoredData(saved);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e){}
+      renderAll();
+      if(calGenerated){
+        const btn = document.getElementById('genCalBtn');
+        if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
+      }
+    });
+  } else {
+    console.warn('Firebase non disponibile — uso localStorage');
+  }
+} catch(e) {
+  console.warn('Firebase init failed:', e);
+}
 
 // ── SAVE ─────────────────────────────────────────────────────────────────
 function saveToStorage() {
@@ -1591,16 +1632,21 @@ function saveToStorage() {
   saveDebounceTimer = setTimeout(() => {
     // Add admin key to authorize write
     const securePayload = { ...payload, _adminKey: 'moro2025' };
-    FB_REF.set(securePayload)
-      .then(() => {
-        const ind = document.getElementById('storage-indicator');
-        if(ind){ ind.textContent='☁️ Salvato'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
-      })
-      .catch(e => {
-        console.warn('Firebase save failed:', e);
-        const ind = document.getElementById('storage-indicator');
-        if(ind){ ind.textContent='💾 Salvato (locale)'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
-      });
+    if (FB_REF) {
+      FB_REF.set(securePayload)
+        .then(() => {
+          const ind = document.getElementById('storage-indicator');
+          if(ind){ ind.textContent='☁️ Salvato'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
+        })
+        .catch(e => {
+          console.warn('Firebase save failed:', e);
+          const ind = document.getElementById('storage-indicator');
+          if(ind){ ind.textContent='💾 Salvato (locale)'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
+        });
+    } else {
+      const ind = document.getElementById('storage-indicator');
+      if(ind){ ind.textContent='💾 Salvato'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
+    }
   }, 600);
 }
 
@@ -1621,33 +1667,29 @@ function loadFromStorage() {
 }
 
 function applyStoredData(saved) {
-  if (saved.teams)    db.teams    = saved.teams;
-  if (saved.matches)  db.matches  = saved.matches;
+  if (saved.teams) db.teams = saved.teams;
+  if (saved.matches) {
+    // Firebase strips null values — restore them explicitly
+    db.matches = saved.matches.map(m => ({
+      ...m,
+      scoreHome: (m.scoreHome !== undefined && m.scoreHome !== null) ? m.scoreHome : null,
+      scoreAway: (m.scoreAway !== undefined && m.scoreAway !== null) ? m.scoreAway : null,
+      goals:  m.goals  || [],
+      yellow: m.yellow || [],
+      red:    m.red    || []
+    }));
+  }
   if (saved.calGenerated !== undefined) calGenerated = saved.calGenerated;
   db.playoff  = saved.playoff  || { M: null, F: null };
   db.sponsors = saved.sponsors || [];
-  // _adminKey is ignored (never stored in db object)
 }
 
-// ── FIREBASE REALTIME LISTENER ────────────────────────────────────────────
-// All users receive updates instantly when admin saves
-FB_REF.on('value', snap => {
-  const saved = snap.val();
-  if (!saved || !saved.teams || !saved.teams.length) return;
-  applyStoredData(saved);
-  // Also update localStorage cache
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e){}
-  renderAll();
-  if(calGenerated){
-    const btn = document.getElementById('genCalBtn');
-    if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
-  }
-});
+// Firebase realtime listener moved to init block above
 
 // ── RESET ─────────────────────────────────────────────────────────────────
 function resetStorage() {
   if (!confirm('Sei sicuro di voler RESETTARE tutti i dati del torneo? Questa operazione è irreversibile.')) return;
-  FB_REF.remove();
+  if(FB_REF) FB_REF.remove();
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
@@ -1850,9 +1892,9 @@ function renderCalendario(){
           </div></div>
           <div class="match-score-box" style="flex-direction:column;gap:6px;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <input class="score-input" type="number" id="sh-${m.id}" value="${m.scoreHome!==null?m.scoreHome:''}" placeholder="-" min="0" max="99">
+              <input class="score-input" type="number" id="sh-${m.id}" value="${(m.scoreHome!==null&&m.scoreHome!==undefined)?m.scoreHome:''}" placeholder="-" min="0" max="99">
               <span class="score-sep">:</span>
-              <input class="score-input" type="number" id="sa-${m.id}" value="${m.scoreAway!==null?m.scoreAway:''}" placeholder="-" min="0" max="99">
+              <input class="score-input" type="number" id="sa-${m.id}" value="${(m.scoreAway!==null&&m.scoreAway!==undefined)?m.scoreAway:''}" placeholder="-" min="0" max="99">
               <button class="save-score-btn" onclick="saveScore('${m.id}')">SALVA</button>
               <span class="saved-tag" id="saved-${m.id}">✓</span>
             </div>
@@ -1862,7 +1904,8 @@ function renderCalendario(){
           <div><div class="match-team">${away?teamDisplay(away):'TBD'}</div>
           <div class="match-info">${m.date} · ${m.time}</div></div>`;
       } else {
-        const scoreStr = m.scoreHome!==null ? `${m.scoreHome}<span style="color:var(--muted);font-size:1.2rem;padding:0 4px;">—</span>${m.scoreAway}` : `<span style="color:var(--muted);font-size:1rem;">vs</span>`;
+        const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
+        const scoreStr = hasScore ? `${m.scoreHome}<span style="color:var(--muted);font-size:1.2rem;padding:0 4px;">—</span>${m.scoreAway}` : `<span style="color:var(--muted);font-size:1rem;">vs</span>`;
         // Build event lines for public view
         let homeEvents='', awayEvents='';
         (m.goals||[]).forEach(e=>{
@@ -2039,7 +2082,7 @@ function saveMatchDetail() {
 // ─── CLASSIFICA ────────────────────────────────────────────────────────────
 function computeStandings(torneo){
   const teams=db.teams.filter(t=>t.torneo===torneo);
-  const matches=db.matches.filter(m=>m.torneo===torneo&&m.scoreHome!==null);
+  const matches=db.matches.filter(m=>m.torneo===torneo&&m.scoreHome!==null&&m.scoreHome!==undefined&&m.scoreAway!==null&&m.scoreAway!==undefined);
   const stats={};
   teams.forEach(t=>stats[t.id]={id:t.id,name:t.name,emoji:t.emoji,fascia:t.fascia||1,G:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0,form:[]});
   matches.forEach(m=>{
@@ -2062,9 +2105,9 @@ function renderStandings(){
   // Maschile: 1-4 giallo, 5-12 verde, 13-16 rosso
   // Femminile: 1-4 giallo, 5-8 verde (no red zone)
   function getZone(i){
-    if(i<=3) return 'zona-playoff';
-    if(curSt==='M' && i<=11) return 'zona-qual';
-    if(curSt==='F') return 'zona-qual';
+    if(i<=3) return 'zona-qual';
+    if(curSt==='M' && i<=11) return 'zona-playoff';
+    if(curSt==='F') return 'zona-playoff';
     return 'zona-elim';
   }
   function getPosStyle(i){
@@ -3023,7 +3066,7 @@ function autoUpdatePlayoff(torneo) {
         id: e.id||newId('quarti',slot), round:'quarti', slot,
         homeId: topRow?.id||null, awayId: null,
         homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name : 'TBD',
-        awayLabel: 'Vin. Ottavi '+(slot+1),
+        awayLabel: 'Vin. Play-In '+(slot+1),
         homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
         scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
       });
@@ -3089,14 +3132,14 @@ function resolvePlayoffLabels(torneo) {
   };
 
   if (torneo === 'M') {
-    // Ottavi → Quarti (away side)
+    // Play-In → Quarti (away side)
     const ottavi = byRound('ottavi');
     byRound('quarti').forEach((q, i) => {
       const ott = ottavi[q.ottaviRef !== undefined ? q.ottaviRef : i];
       if (ott) {
         const w = winner(ott);
         q.awayId    = w ? w.id    : null;
-        q.awayLabel = w ? w.label : 'Vin. Ottavi '+(i+1);
+        q.awayLabel = w ? w.label : 'Vin. Play-In '+(i+1);
         q.awaySeed  = w ? w.seed  : null;
       }
     });
@@ -3133,14 +3176,15 @@ function switchPlayoff(t, el) {
 }
 
 function nbaMatchHtml(m, extraCls) {
-  const hw = m.scoreHome!==null && m.scoreAway!==null && m.scoreHome > m.scoreAway;
-  const aw = m.scoreHome!==null && m.scoreAway!==null && m.scoreAway > m.scoreHome;
+  const hasResult = m.scoreHome!==null && m.scoreHome!==undefined && m.scoreAway!==null && m.scoreAway!==undefined;
+  const hw = hasResult && m.scoreHome > m.scoreAway;
+  const aw = hasResult && m.scoreAway > m.scoreHome;
   const isTbdH = !m.homeId && (m.homeLabel.startsWith('Vin')||m.homeLabel.startsWith('Perd'));
   const isTbdA = !m.awayId && (m.awayLabel.startsWith('Vin')||m.awayLabel.startsWith('Perd'));
   const hCls = hw?'winner':aw?'loser':isTbdH?'tbd':'';
   const aCls = aw?'winner':hw?'loser':isTbdA?'tbd':'';
-  const sH = m.scoreHome!==null ? m.scoreHome : '';
-  const sA = m.scoreAway!==null ? m.scoreAway : '';
+  const sH = (m.scoreHome!==null && m.scoreHome!==undefined) ? m.scoreHome : '';
+  const sA = (m.scoreAway!==null && m.scoreAway!==undefined) ? m.scoreAway : '';
   const dateStr = [m.date, m.time].filter(Boolean).join(' · ') || '';
   return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
@@ -3175,7 +3219,7 @@ function renderPlayoff() {
   if (curPlayoff === 'M') {
     // OTTAVI (4 match, stacked)
     html += `<div class="nba-round">
-      <div class="nba-round-title">Ottavi di Finale</div>
+      <div class="nba-round-title">Play-In</div>
       <div class="nba-slots">`;
     byRound('ottavi').forEach(m => { html += nbaMatchHtml(m, ''); });
     html += `</div></div>`;
@@ -3246,7 +3290,7 @@ function openPlayoffEdit(mid) {
   document.getElementById('po-time').value       = m.time || '16:00';
   document.getElementById('po-edit-home-label').textContent = m.homeLabel || 'Casa';
   document.getElementById('po-edit-away-label').textContent = m.awayLabel || 'Ospite';
-  const roundNames = { ottavi:'Ottavi di Finale', quarti:'Quarti di Finale',
+  const roundNames = { ottavi:'Play-In', quarti:'Quarti di Finale',
     semi:'Semifinale', finale:'Finale' };
   document.getElementById('po-edit-title').textContent = '✏️ ' + (roundNames[m.round] || 'Playoff');
   openModal('playoffEditModal');
