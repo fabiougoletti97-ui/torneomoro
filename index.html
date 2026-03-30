@@ -1625,6 +1625,7 @@ const firebaseConfig = {
 };
 
 let fbDb = null, FB_REF = null, fbAuth = null, fbConnected = false, saveDebounceTimer = null;
+let loginRequested = false;
 
 try {
   if (typeof firebase !== 'undefined') {
@@ -1640,7 +1641,6 @@ try {
     });
     // Monitor auth state
     // Only activate admin when user explicitly logs in (not on auto-restore)
-    let loginRequested = false;
     fbAuth.onAuthStateChanged(user => {
       if (user && loginRequested) {
         // User logged in via explicit login form
