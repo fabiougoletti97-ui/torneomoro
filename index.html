@@ -1437,10 +1437,15 @@ body.admin-mode .ig-export-bar{display:flex;}
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-title">Area Admin</div>
-    <div class="login-sub">Inserisci la password per accedere alla gestione del torneo</div>
-    <div class="form-group"><input class="form-input" id="login-pw" type="password" placeholder="Password" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkLogin()"/></div>
+    <div class="login-sub">Accedi con le credenziali admin del torneo</div>
+    <div class="form-group">
+      <input class="form-input" id="login-email" type="email" placeholder="Email" style="text-align:center;" onkeydown="if(event.key==='Enter')checkLogin()" value="fabio.ugoletti97@gmail.com"/>
+    </div>
+    <div class="form-group">
+      <input class="form-input" id="login-pw" type="password" placeholder="Password" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkLogin()"/>
+    </div>
     <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="checkLogin()">Accedi</button>
-    <div class="login-error" id="login-error">Password errata. Riprova.</div>
+    <div class="login-error" id="login-error" style="display:none;">Email o password errata. Riprova.</div>
     <button class="btn-outline" style="width:100%;margin-top:0.8rem;font-size:0.75rem;" onclick="closeModal('loginOverlay')">Annulla</button>
   </div>
 </div>
@@ -1520,6 +1525,7 @@ body.admin-mode .ig-export-bar{display:flex;}
 <!-- Firebase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-database-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.min.js"></script>
 
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -1624,12 +1630,30 @@ try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     fbDb = firebase.database();
+    const fbAuth = firebase.auth();
     FB_REF = fbDb.ref('torneo');
     // Monitor connection status
     fbDb.ref('.info/connected').on('value', snap => {
       fbConnected = snap.val() === true;
       const ind = document.getElementById('storage-indicator');
       if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
+    });
+    // Monitor auth state
+    fbAuth.onAuthStateChanged(user => {
+      if (user) {
+        // User is signed in — activate admin mode
+        closeModal('loginOverlay');
+        activateAdmin();
+      } else {
+        // User signed out — deactivate admin if currently active
+        if (isAdmin) {
+          isAdmin = false;
+          document.body.classList.remove('admin-mode');
+          document.getElementById('adminBtn').classList.remove('active-admin');
+          document.getElementById('adminBtn').textContent = '🔐 Admin';
+          syncMobileAdmin();
+        }
+      }
     });
     // Realtime listener — fires immediately on connect AND on every change
     FB_REF.on('value', snap => {
@@ -1768,28 +1792,58 @@ function toggleAdmin() {
   else openModal('loginOverlay');
 }
 function checkLogin() {
+  const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
-  if (pw === ADMIN_PASSWORD) {
-    isAdmin = true;
-    document.body.classList.add('admin-mode');
-    document.getElementById('adminBtn').classList.add('active-admin');
-    document.getElementById('adminBtn').textContent = '🔓 Admin ON';
-    closeModal('loginOverlay');
-    document.getElementById('login-pw').value='';
-    document.getElementById('login-error').style.display='none';
-    renderAll();
-    syncMobileAdmin(); showToast('🔐 Modalità admin attiva');
+  if (!email || !pw) { showToast('⚠️ Inserisci email e password'); return; }
+  const btn = document.querySelector('#loginOverlay .btn-primary');
+  if(btn) { btn.textContent = '⏳ Accesso...'; btn.disabled = true; }
+  if (typeof fbAuth !== 'undefined' && fbAuth) {
+    fbAuth.signInWithEmailAndPassword(email, pw)
+      .then(() => {
+        // Firebase Auth success — handled by onAuthStateChanged
+      })
+      .catch(err => {
+        document.getElementById('login-error').style.display='block';
+        document.getElementById('login-pw').value='';
+        document.getElementById('login-pw').focus();
+        if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+        console.warn('Login failed:', err.code);
+      });
   } else {
-    document.getElementById('login-error').style.display='block';
-    document.getElementById('login-pw').value='';
-    document.getElementById('login-pw').focus();
+    // Fallback: local password if Firebase Auth not available
+    if (pw === ADMIN_PASSWORD) { activateAdmin(); closeModal('loginOverlay'); }
+    else {
+      document.getElementById('login-error').style.display='block';
+      document.getElementById('login-pw').value='';
+    }
+    if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
   }
+}
+
+function activateAdmin() {
+  isAdmin = true;
+  document.body.classList.add('admin-mode');
+  document.getElementById('adminBtn').classList.add('active-admin');
+  document.getElementById('adminBtn').textContent = '🔓 Admin ON';
+  document.getElementById('login-pw').value='';
+  document.getElementById('login-error').style.display='none';
+  if(document.getElementById('login-email'))
+    document.getElementById('login-email').value='';
+  const btn = document.querySelector('#loginOverlay .btn-primary');
+  if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+  renderAll();
+  syncMobileAdmin();
+  showToast('🔐 Modalità admin attiva');
 }
 function exitAdmin() {
   isAdmin = false;
   document.body.classList.remove('admin-mode');
   document.getElementById('adminBtn').classList.remove('active-admin');
   document.getElementById('adminBtn').textContent = '🔐 Admin';
+  // Sign out from Firebase Auth
+  if (typeof fbAuth !== 'undefined' && fbAuth) {
+    fbAuth.signOut().catch(e => console.warn('Sign out error:', e));
+  }
   renderAll();
   syncMobileAdmin(); showToast('🔒 Modalità admin disattivata');
 }
