@@ -1844,6 +1844,10 @@ function checkLogin() {
     .then((result) => {
       clearTimeout(loginTimeout);
       console.log('[checkLogin] signIn success:', result.user.email);
+      // Activate admin directly here instead of relying on onAuthStateChanged
+      loginRequested = false;
+      closeModal('loginOverlay');
+      activateAdmin();
     })
     .catch(err => {
       clearTimeout(loginTimeout);
