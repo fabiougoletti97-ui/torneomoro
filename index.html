@@ -1526,6 +1526,7 @@ body.admin-mode .ig-export-bar{display:flex;}
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-database-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.min.js"></script>
+<script>window._firebaseAuthLoaded = true;</script>
 
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -1623,13 +1624,13 @@ const firebaseConfig = {
   appId: "1:299026990961:web:d231cae16a5544ec1618d0"
 };
 
-let fbDb = null, FB_REF = null, fbConnected = false, saveDebounceTimer = null;
+let fbDb = null, FB_REF = null, fbAuth = null, fbConnected = false, saveDebounceTimer = null;
 
 try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     fbDb = firebase.database();
-    const fbAuth = firebase.auth();
+    fbAuth = firebase.auth();
     FB_REF = fbDb.ref('torneo');
     // Monitor connection status
     fbDb.ref('.info/connected').on('value', snap => {
@@ -1638,20 +1639,21 @@ try {
       if(ind && fbConnected) { ind.style.color = 'var(--accent)'; }
     });
     // Monitor auth state
+    // Only activate admin when user explicitly logs in (not on auto-restore)
+    let loginRequested = false;
     fbAuth.onAuthStateChanged(user => {
-      if (user) {
-        // User is signed in — activate admin mode
+      if (user && loginRequested) {
+        // User logged in via explicit login form
+        loginRequested = false;
         closeModal('loginOverlay');
         activateAdmin();
-      } else {
-        // User signed out — deactivate admin if currently active
-        if (isAdmin) {
-          isAdmin = false;
-          document.body.classList.remove('admin-mode');
-          document.getElementById('adminBtn').classList.remove('active-admin');
-          document.getElementById('adminBtn').textContent = '🔐 Admin';
-          syncMobileAdmin();
-        }
+      } else if (!user && isAdmin) {
+        // User signed out — deactivate admin
+        isAdmin = false;
+        document.body.classList.remove('admin-mode');
+        document.getElementById('adminBtn').classList.remove('active-admin');
+        document.getElementById('adminBtn').textContent = '🔐 Admin';
+        syncMobileAdmin();
       }
     });
     // Realtime listener — fires immediately on connect AND on every change
@@ -1795,21 +1797,33 @@ function checkLogin() {
   const btn = document.querySelector('#loginOverlay .btn-primary');
   if(btn) { btn.textContent = '⏳ Accesso...'; btn.disabled = true; }
   if (typeof fbAuth !== 'undefined' && fbAuth) {
+    loginRequested = true;
     fbAuth.signInWithEmailAndPassword(email, pw)
       .then(() => {
         // Firebase Auth success — handled by onAuthStateChanged
       })
       .catch(err => {
-        document.getElementById('login-error').style.display='block';
+        const errEl = document.getElementById('login-error');
+        errEl.style.display='block';
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          errEl.textContent = '❌ Password errata. Riprova.';
+        } else if (err.code === 'auth/user-not-found') {
+          errEl.textContent = '❌ Email non trovata.';
+        } else if (err.code === 'auth/network-request-failed') {
+          errEl.textContent = '❌ Errore di rete. Controlla la connessione.';
+        } else {
+          errEl.textContent = '❌ Errore: ' + err.code;
+        }
         document.getElementById('login-pw').value='';
         document.getElementById('login-pw').focus();
         if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
-        console.warn('Login failed:', err.code);
+        console.warn('Login failed:', err.code, err.message);
       });
   } else {
-    // Firebase Auth not available
-    document.getElementById('login-error').style.display='block';
-    document.getElementById('login-error').textContent = 'Connessione Firebase non disponibile. Ricarica la pagina.';
+    // Firebase Auth not loaded yet
+    const errEl = document.getElementById('login-error');
+    errEl.style.display='block';
+    errEl.textContent = '⚠️ Firebase non caricato. Ricarica la pagina con connessione internet attiva.';
     if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
   }
 }
