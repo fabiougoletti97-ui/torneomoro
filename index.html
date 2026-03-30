@@ -972,11 +972,7 @@ body.admin-mode .ig-export-bar{display:flex;}
       <button class="ig-export-btn" onclick="exportIGStandings('M')">♂ Classifica Maschile</button>
       <button class="ig-export-btn" onclick="exportIGStandings('F')">♀ Classifica Femminile</button>
     </div>
-    <div style="display:flex;gap:1.5rem;margin-top:1rem;font-size:0.72rem;color:var(--muted);border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;">
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--grass-l);border-radius:50%;margin-right:4px;"></span>Quarti/Playoff diretti (1°-4°)</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:4px;"></span>Play-In (5°-12°)</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:4px;"></span>Eliminato (13°-16°)</span>
-    </div>
+    <div id="standings-legend" style="display:flex;gap:1.5rem;margin-top:1rem;font-size:0.72rem;color:var(--muted);border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;flex-wrap:wrap;"></div>
   </div>
 </section>
 
@@ -1922,7 +1918,7 @@ function renderTeams() {
     const fasciaNum = team.fascia||1;
     const fasciaLabel = ['','1ª Fascia','2ª Fascia','3ª Fascia'][fasciaNum];
     const fasciaIcon = ['','⭐⭐⭐','⭐⭐','⭐'][fasciaNum];
-    const fasciaBadge = `<span class="team-fascia team-fascia-${fasciaNum}">${fasciaIcon} ${fasciaLabel}</span>`;
+    const fasciaBadge = team.torneo==='F' ? '' : `<span class="team-fascia team-fascia-${fasciaNum}">${fasciaIcon} ${fasciaLabel}</span>`;
     const hasLogo = !!team.logo;
     const headerContent = hasLogo
       ? `<div class="team-logo-wrap ${hasLogo?'has-logo':''}">
@@ -2253,23 +2249,30 @@ function renderStandings(){
   // Maschile: 1-4 giallo, 5-12 verde, 13-16 rosso
   // Femminile: 1-4 giallo, 5-8 verde (no red zone)
   function getZone(i){
+    if(curSt==='F'){
+      if(i<=3) return 'zona-qual';   // top 4 = green
+      return 'zona-elim';            // bottom 4 = red
+    }
     if(i<=3) return 'zona-qual';
-    if(curSt==='M' && i<=11) return 'zona-playoff';
-    if(curSt==='F') return 'zona-playoff';
+    if(i<=11) return 'zona-playoff';
     return 'zona-elim';
   }
   function getPosStyle(i){
+    if(curSt==='F'){
+      if(i<=3) return 'color:var(--grass-l);font-weight:700;';
+      return 'color:var(--red);font-weight:600;';
+    }
     if(i<=3) return 'color:var(--grass-l);font-weight:700;';
-    if(curSt==='M' && i<=11) return 'color:var(--gold);font-weight:600;';
-    if(curSt==='F') return 'color:var(--gold);font-weight:600;';
+    if(i<=11) return 'color:var(--gold);font-weight:600;';
     return 'color:var(--red);font-weight:600;';
   }
 
   const posIcons=['🥇','🥈','🥉'];
 
   const fasciaStars = ['','⭐⭐⭐','⭐⭐','⭐'];
+  const showFascia = curSt === 'M';
   document.getElementById('standings-content').innerHTML=`<table class="standings-table">
-    <thead><tr><th>#</th><th>Squadra</th><th style="font-size:0.65rem;">Fascia</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GA</th><th>DR</th><th>Pts</th><th>Forma</th></tr></thead>
+    <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GA</th><th>DR</th><th>Pts</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
       const zone=getZone(i);
@@ -2281,12 +2284,30 @@ function renderStandings(){
       return `<tr class="${zone}">
         <td><span style="font-family:Oswald;font-size:1rem;${posStyle}">${posLabel}</span></td>
         <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),22)}${r.name}</span></td>
-        <td>${fasciaCell}</td>
+        ${showFascia ? `<td>${fasciaCell}</td>` : ''}
         <td>${r.G}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
         <td>${r.GF}</td><td>${r.GA}</td><td>${r.GF-r.GA>0?'+':''}${r.GF-r.GA}</td>
         <td><span class="rank-pts">${r.Pts}</span></td>
         <td><div class="form-badges">${form}</div></td></tr>`;
     }).join('')}</tbody></table>`;
+}
+
+function renderStandingsLegend() {
+  const leg = document.getElementById('standings-legend');
+  if (!leg) return;
+  const dot = (color, label) =>
+    `<span><span style="display:inline-block;width:8px;height:8px;background:${color};border-radius:50%;margin-right:4px;"></span>${label}</span>`;
+  if (curSt === 'F') {
+    leg.innerHTML =
+      dot('var(--grass-l)', 'Semifinali (1°-4°)') +
+      dot('var(--red)', 'Eliminata (5°-8°)');
+  } else {
+    leg.innerHTML =
+      dot('var(--grass-l)', 'Quarti/Playoff diretti (1°-4°)') +
+      dot('var(--gold)', 'Play-In (5°-12°)') +
+      dot('var(--red)', 'Eliminato (13°-16°)');
+  }
+  renderStandingsLegend();
 }
 
 function switchSt(t,el){
