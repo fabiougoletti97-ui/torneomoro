@@ -1529,7 +1529,6 @@ body.admin-mode .ig-export-bar{display:flex;}
 
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
-const ADMIN_PASSWORD = 'moro2025';
 
 
 
@@ -1696,10 +1695,8 @@ function saveToStorage() {
   // Save to Firebase (debounced 600ms to avoid flooding)
   clearTimeout(saveDebounceTimer);
   saveDebounceTimer = setTimeout(() => {
-    // Add admin key to authorize write
-    const securePayload = { ...payload, _adminKey: 'moro2025' };
     if (FB_REF) {
-      FB_REF.set(securePayload)
+      FB_REF.set(payload)
         .then(() => {
           const ind = document.getElementById('storage-indicator');
           if(ind){ ind.textContent='☁️ Salvato'; ind.style.opacity='1'; clearTimeout(ind._t); ind._t=setTimeout(()=>ind.style.opacity='0',2500); }
@@ -1810,12 +1807,9 @@ function checkLogin() {
         console.warn('Login failed:', err.code);
       });
   } else {
-    // Fallback: local password if Firebase Auth not available
-    if (pw === ADMIN_PASSWORD) { activateAdmin(); closeModal('loginOverlay'); }
-    else {
-      document.getElementById('login-error').style.display='block';
-      document.getElementById('login-pw').value='';
-    }
+    // Firebase Auth not available
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('login-error').textContent = 'Connessione Firebase non disponibile. Ricarica la pagina.';
     if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
   }
 }
