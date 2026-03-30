@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+<!-- VERSION 2.1 - 2026-03-30 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Torneo Moro Chiozza — IV° Edizione · Calcio a 7</title>
+<title>Torneo Moro Chiozza v2.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1810,42 +1811,43 @@ function toggleAdmin() {
 function checkLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
   if (!email || !pw) { showToast('⚠️ Inserisci email e password'); return; }
   const btn = document.querySelector('#loginOverlay .btn-primary');
   if(btn) { btn.textContent = '⏳ Accesso...'; btn.disabled = true; }
-  if (fbAuth) {
-    loginRequested = true;
-    fbAuth.signInWithEmailAndPassword(email, pw)
-      .then(() => {
-        // Firebase Auth success — handled by onAuthStateChanged
-      })
-      .catch(err => {
-        loginRequested = false;
-        const errEl = document.getElementById('login-error');
-        errEl.style.display='block';
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-          errEl.textContent = '❌ Credenziali errate. Riprova.';
-        } else if (err.code === 'auth/user-not-found') {
-          errEl.textContent = '❌ Email non trovata.';
-        } else if (err.code === 'auth/network-request-failed') {
-          errEl.textContent = '❌ Errore di rete. Controlla la connessione internet.';
-        } else if (err.code === 'auth/unauthorized-domain') {
-          errEl.textContent = '❌ Dominio non autorizzato in Firebase Console.';
-        } else {
-          errEl.textContent = '❌ ' + (err.code || err.message);
-        }
-        document.getElementById('login-pw').value='';
-        document.getElementById('login-pw').focus();
-        if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
-        console.error('[Firebase Auth] Login failed:', err.code, err.message);
-      });
-  } else {
-    // Firebase Auth not loaded yet
-    const errEl = document.getElementById('login-error');
-    errEl.style.display='block';
-    errEl.textContent = '⚠️ Firebase non caricato. Ricarica la pagina con connessione internet attiva.';
+
+  // Debug: show Firebase status
+  if (!fbAuth) {
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Firebase Auth non caricato. fbAuth=' + fbAuth + ' fbDb=' + fbDb;
     if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+    return;
   }
+
+  loginRequested = true;
+  fbAuth.signInWithEmailAndPassword(email, pw)
+    .then(() => {
+      // Success handled by onAuthStateChanged
+    })
+    .catch(err => {
+      loginRequested = false;
+      errEl.style.display = 'block';
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        errEl.textContent = '❌ Credenziali errate. Riprova.';
+      } else if (err.code === 'auth/user-not-found') {
+        errEl.textContent = '❌ Email non trovata.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errEl.textContent = '❌ Errore di rete.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errEl.textContent = '❌ Dominio non autorizzato. Aggiungilo su Firebase Console → Authentication → Authorized domains.';
+      } else {
+        errEl.textContent = '❌ ' + (err.code || err.message || 'Errore sconosciuto');
+      }
+      document.getElementById('login-pw').value = '';
+      document.getElementById('login-pw').focus();
+      if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+    });
 }
 
 function activateAdmin() {
