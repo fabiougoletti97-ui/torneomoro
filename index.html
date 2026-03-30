@@ -1829,11 +1829,24 @@ function checkLogin() {
   }
 
   loginRequested = true;
+  console.log('[checkLogin] calling signInWithEmailAndPassword...');
+
+  // Timeout: se Firebase non risponde in 8 secondi mostra errore
+  const loginTimeout = setTimeout(() => {
+    loginRequested = false;
+    errEl.style.display = 'block';
+    errEl.textContent = '❌ Timeout — il dominio potrebbe non essere autorizzato in Firebase Console. Vai su Authentication → Settings → Authorized domains e aggiungi: fabiougoletti97-ui.github.io';
+    if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+    console.error('[checkLogin] TIMEOUT — probabile auth/unauthorized-domain');
+  }, 8000);
+
   fbAuth.signInWithEmailAndPassword(email, pw)
-    .then(() => {
-      // Success handled by onAuthStateChanged
+    .then((result) => {
+      clearTimeout(loginTimeout);
+      console.log('[checkLogin] signIn success:', result.user.email);
     })
     .catch(err => {
+      clearTimeout(loginTimeout);
       loginRequested = false;
       errEl.style.display = 'block';
       if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -1843,13 +1856,14 @@ function checkLogin() {
       } else if (err.code === 'auth/network-request-failed') {
         errEl.textContent = '❌ Errore di rete.';
       } else if (err.code === 'auth/unauthorized-domain') {
-        errEl.textContent = '❌ Dominio non autorizzato. Aggiungilo su Firebase Console → Authentication → Authorized domains.';
+        errEl.textContent = '❌ Dominio non autorizzato. Vai su Firebase Console → Authentication → Settings → Authorized domains e aggiungi: fabiougoletti97-ui.github.io';
       } else {
         errEl.textContent = '❌ ' + (err.code || err.message || 'Errore sconosciuto');
       }
       document.getElementById('login-pw').value = '';
       document.getElementById('login-pw').focus();
       if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
+      console.error('[checkLogin] error:', err.code, err.message);
     });
 }
 
