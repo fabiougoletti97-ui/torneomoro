@@ -1631,11 +1631,13 @@ let fbDb = null, FB_REF = null, fbAuth = null, fbConnected = false, saveDebounce
 let loginRequested = false;
 
 function initFirebase() {
+  console.log('[initFirebase] starting...');
   try {
     firebase.initializeApp(firebaseConfig);
     fbDb = firebase.database();
     fbAuth = firebase.auth();
     FB_REF = fbDb.ref('torneo');
+    console.log('[initFirebase] OK — fbAuth:', !!fbAuth, 'fbDb:', !!fbDb);
 
     // Connection status
     fbDb.ref('.info/connected').on('value', snap => {
@@ -1809,6 +1811,7 @@ function toggleAdmin() {
   else openModal('loginOverlay');
 }
 function checkLogin() {
+  console.log('[checkLogin] called, fbAuth=', !!fbAuth, 'fbDb=', !!fbDb);
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
