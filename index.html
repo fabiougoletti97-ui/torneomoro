@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Torneo Moro Chiozza v2.1</title>
+<title>Torneo Moro Chiozza</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1265,7 +1265,7 @@ body.admin-mode .ig-export-bar{display:flex;}
 <footer>
   <div style="font-family:'Bebas Neue';font-size:1.6rem;color:var(--gold);letter-spacing:3px;margin-bottom:4px;">Torneo Moro</div>
   <div class="footer-sub">Centro Sportivo Sporting Scandiano · Via dell'Eco 10, Scandiano (RE)</div>
-  <div style="margin-top:0.8rem;font-size:0.72rem;color:var(--muted);">IV° Edizione · Made with ❤️ per la nostra comunità</div>
+  <div style="margin-top:0.8rem;font-size:0.72rem;color:var(--muted);">IV° Edizione · Developed by MS &amp; UF</div>
 </footer>
 
 <!-- MODALS -->
@@ -3625,7 +3625,7 @@ function renderHomeSponsor() {
   const mainSponsors = db.sponsors.filter(s => s.tier === 'main');
   if (!mainSponsors.length) { strip.style.display='none'; return; }
   strip.style.display = 'flex';
-  strip.innerHTML = `<span class="home-sponsor-label">Main Sponsor</span>` +
+  strip.innerHTML = `<span class="home-sponsor-label">Sponsored by</span>` +
     mainSponsors.map(s => s.logo
       ? `<img class="home-sponsor-logo" src="${s.logo}" alt="${s.name}" title="${s.name}">`
       : `<span class="home-sponsor-name">${s.name}</span>`
