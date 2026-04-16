@@ -535,6 +535,9 @@ body.admin-mode .nba-edit-btn{display:inline-block;}
 .team-logo-img{
   width:72px;height:72px;object-fit:contain;
   border-radius:6px;
+  background:rgba(255,255,255,0.06);
+  padding:4px;
+  box-sizing:border-box;
 }
 .team-logo-placeholder{
   width:72px;height:72px;border-radius:8px;
@@ -2124,16 +2127,16 @@ function openMatchDetail(mid) {
   mdCurrentMatch = m;
   const home = getTeam(m.home), away = getTeam(m.away);
   document.getElementById('md-title').textContent = (home?home.name:'?') + ' vs ' + (away?away.name:'?');
-  document.getElementById('md-home-name').innerHTML = home ? teamDisplay(home, 20) : '?';
-  document.getElementById('md-away-name').innerHTML = away ? teamDisplay(away, 20) : '?';
+  document.getElementById('md-home-name').innerHTML = home ? teamDisplay(home, 12) : '?';
+  document.getElementById('md-away-name').innerHTML = away ? teamDisplay(away, 12) : '?';
   document.getElementById('md-sh').value = m.scoreHome!==null ? m.scoreHome : '';
   document.getElementById('md-sa').value = m.scoreAway!==null ? m.scoreAway : '';
-  document.getElementById('md-goals-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
-  document.getElementById('md-goals-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
-  document.getElementById('md-yellow-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
-  document.getElementById('md-yellow-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
-  document.getElementById('md-red-home-label').innerHTML = home ? teamDisplay(home, 18) : 'Casa';
-  document.getElementById('md-red-away-label').innerHTML = away ? teamDisplay(away, 18) : 'Ospite';
+  document.getElementById('md-goals-home-label').innerHTML = home ? teamDisplay(home, 12) : 'Casa';
+  document.getElementById('md-goals-away-label').innerHTML = away ? teamDisplay(away, 12) : 'Ospite';
+  document.getElementById('md-yellow-home-label').innerHTML = home ? teamDisplay(home, 12) : 'Casa';
+  document.getElementById('md-yellow-away-label').innerHTML = away ? teamDisplay(away, 12) : 'Ospite';
+  document.getElementById('md-red-home-label').innerHTML = home ? teamDisplay(home, 12) : 'Casa';
+  document.getElementById('md-red-away-label').innerHTML = away ? teamDisplay(away, 12) : 'Ospite';
   // Render existing events
   renderEventList('goals','home', m.goals.filter(e=>e.teamId===m.home), home);
   renderEventList('goals','away', m.goals.filter(e=>e.teamId===m.away), away);
@@ -2283,7 +2286,7 @@ function renderStandings(){
       const fasciaCell=`<span class="team-fascia team-fascia-${fn}" style="font-size:0.6rem;padding:2px 6px;">${fasciaStars[fn]}</span>`;
       return `<tr class="${zone}">
         <td><span style="font-family:Oswald;font-size:1rem;${posStyle}">${posLabel}</span></td>
-        <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),22)}${r.name}</span></td>
+        <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),24)}${r.name}</span></td>
         ${showFascia ? `<td>${fasciaCell}</td>` : ''}
         <td>${r.G}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
         <td>${r.GF}</td><td>${r.GA}</td><td>${r.GF-r.GA>0?'+':''}${r.GF-r.GA}</td>
@@ -2372,7 +2375,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-size:1rem;">${posIcons[i]||i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-goals">${p.goals}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -2386,7 +2389,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-yellow">${p.yellow}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -2400,7 +2403,7 @@ function renderStats(){
         return `<tr>
           <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
-          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,18):'-'}</span></td>
+          <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-red">${p.red}</span></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -3063,9 +3066,10 @@ function teamLogo(team, size) {
   if (!team) return '';
   const s = size || 24;
   if (team.logo) {
-    return `<img src="${team.logo}" alt="${team.name}" style="width:${s}px;height:${s}px;object-fit:contain;border-radius:3px;vertical-align:middle;margin-right:5px;">`;
+    // Uniform square box: all logos same visual size regardless of original dimensions
+    return `<img src="${team.logo}" alt="${team.name}" style="width:${s}px;height:${s}px;object-fit:contain;border-radius:3px;vertical-align:middle;margin-right:5px;background:rgba(255,255,255,0.05);padding:1px;box-sizing:border-box;flex-shrink:0;">`;
   }
-  return ''; // no logo, no emoji
+  return '';
 }
 
 function teamDisplay(team, size) {
@@ -3587,35 +3591,55 @@ function renderSponsors() {
     const sponsors = db.sponsors.filter(s => s.tier === tier.key);
     if (!sponsors.length && !isAdmin) return;
     const cardSize = tier.key==='main'?'main-card':tier.key==='gold'?'gold-card':'silver-card';
+
     out += `<div class="sponsor-tier">
-      <div class="sponsor-tier-header ${tier.key}">
-        <div class="sponsor-tier-icon ${tier.key}">${tier.icon}</div>
-        <div>
-          <div class="sponsor-tier-label ${tier.key}">${tier.label}</div>
-          <div class="sponsor-tier-sub">${tier.sub}</div>
+      <div class="sponsor-tier-header ${tier.key}" style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="sponsor-tier-icon ${tier.key}">${tier.icon}</div>
+          <div>
+            <div class="sponsor-tier-label ${tier.key}">${tier.label}</div>
+            <div class="sponsor-tier-sub">${tier.sub} · ${sponsors.length} partner</div>
+          </div>
         </div>
+        ${isAdmin ? `<button class="add-sponsor-tier-btn" onclick="openAddSponsorModalWithTier('${tier.key}')"
+          style="font-size:0.72rem;padding:5px 12px;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.3);
+          border-radius:5px;color:var(--gold);cursor:pointer;font-family:Oswald;letter-spacing:1px;">
+          + Aggiungi
+        </button>` : ''}
       </div>
-      <div class="sponsor-grid ${tier.key==='main'?'main-grid':''}">`;
+      <div class="sponsor-grid ${tier.key==='main'?'main-grid':''}" style="flex-wrap:wrap;">`;
 
     if (sponsors.length) {
       sponsors.forEach(s => {
-        out += `<div class="sponsor-card ${cardSize}">
-          <button class="sponsor-remove-btn" onclick="removeSponsor(${s.id})">✕</button>
+        out += `<div class="sponsor-card ${cardSize}" style="position:relative;">
+          ${isAdmin ? `<button class="sponsor-remove-btn" onclick="removeSponsor(${s.id})">✕</button>` : ''}
           ${s.logo
-            ? `<img class="sponsor-logo" src="${s.logo}" alt="${s.name}">`
+            ? `<img class="sponsor-logo" src="${s.logo}" alt="${s.name}" style="mix-blend-mode:screen;">`
             : `<span style="font-family:'Oswald';font-size:0.88rem;color:var(--muted);text-align:center;padding:0 8px;">${s.name}</span>`
           }
           ${s.logo ? `<div class="sponsor-name">${s.name}</div>` : ''}
         </div>`;
       });
     } else {
-      out += `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">Nessuno sponsor in questa categoria</div>`;
+      out += `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;padding:8px 0;">Nessuno sponsor in questa categoria</div>`;
     }
 
     out += `</div></div>`;
   });
 
   cont.innerHTML = out || '<p style="color:var(--muted);font-size:0.88rem;">Nessuno sponsor ancora. Aggiungili come admin.</p>';
+}
+
+function openAddSponsorModalWithTier(tier) {
+  openAddSponsorModal();
+  // Pre-select the tier
+  setTimeout(() => {
+    document.querySelectorAll('#addSponsorModal .fascia-opt').forEach(o => {
+      o.classList.remove('active','sel-1','sel-2','sel-3');
+    });
+    const opt = document.querySelector(`#addSponsorModal .fascia-opt[data-val="${tier}"]`);
+    if (opt) { opt.classList.add('active'); document.getElementById('sp-tier').value = tier; }
+  }, 50);
 }
 
 function renderHomeSponsor() {
