@@ -822,6 +822,233 @@ body.admin-mode .ig-export-bar{display:flex;}
   white-space:nowrap;
 }
 #igCanvasWrap{display:none;}
+
+/* ══════════════════════════════════════════════════════
+   TV MODE — 65" display optimised
+   ══════════════════════════════════════════════════════ */
+#tvModeOverlay {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #050805;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  font-family: 'Oswald', sans-serif;
+}
+
+/* Exit button */
+#tvExitBtn {
+  position: absolute; top: 18px; right: 24px; z-index: 10;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.4); padding: 8px 18px; border-radius: 6px;
+  font-family: 'Oswald'; font-size: 1rem; cursor: pointer; letter-spacing: 2px;
+  transition: all 0.2s;
+}
+#tvExitBtn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+
+/* Progress bar */
+#tvProgressBar {
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: rgba(255,255,255,0.08); z-index: 10;
+}
+#tvProgressFill {
+  height: 100%; background: linear-gradient(90deg, var(--gold), #fff8dc);
+  width: 0%; transition: none;
+}
+
+/* Dots */
+#tvDots {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px; z-index: 10;
+}
+.tv-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); transition: all 0.4s;
+}
+.tv-dot.active {
+  background: var(--gold); transform: scale(1.3);
+}
+
+/* Slides */
+#tvSlides {
+  flex: 1; position: relative; overflow: hidden;
+}
+.tv-slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 0 60px 60px;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity 0.7s cubic-bezier(.4,0,.2,1),
+              transform 0.7s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+.tv-slide.active {
+  opacity: 1; transform: translateX(0);
+  pointer-events: all;
+}
+.tv-slide.exit {
+  opacity: 0; transform: translateX(-60px);
+}
+
+/* Slide header */
+.tv-slide-header {
+  display: flex; align-items: center; gap: 20px;
+  padding: 28px 0 20px;
+  border-bottom: 2px solid rgba(245,197,24,0.2);
+  margin-bottom: 28px; flex-shrink: 0;
+}
+.tv-slide-icon { font-size: 2.4rem; }
+.tv-slide-title {
+  font-size: 3rem; font-weight: 700; letter-spacing: 6px;
+  color: var(--gold); text-shadow: 0 0 40px rgba(245,197,24,0.3);
+  flex: 1;
+}
+
+/* Torneo tabs in TV mode */
+.tv-torneo-tabs { display: flex; gap: 10px; }
+.tv-tab {
+  font-family: 'Oswald'; font-size: 1rem; letter-spacing: 2px;
+  padding: 8px 20px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: rgba(255,255,255,0.5);
+  transition: all 0.2s;
+}
+.tv-tab.active {
+  background: rgba(245,197,24,0.15);
+  border-color: rgba(245,197,24,0.5); color: var(--gold);
+}
+
+/* Content area */
+.tv-content-area {
+  flex: 1; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* TV Standings table */
+.tv-standings-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 1.6rem;
+}
+.tv-standings-table thead tr {
+  border-bottom: 1px solid rgba(245,197,24,0.2);
+}
+.tv-standings-table th {
+  font-size: 0.9rem; letter-spacing: 2px; color: rgba(255,255,255,0.4);
+  padding: 8px 12px; text-align: center; font-weight: 400;
+}
+.tv-standings-table th:nth-child(2) { text-align: left; }
+.tv-standings-table td {
+  padding: 10px 12px; text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 1.5rem; color: var(--light);
+}
+.tv-standings-table td:nth-child(2) {
+  text-align: left; font-size: 1.6rem; font-weight: 600;
+}
+.tv-standings-table tr.tv-zona-q td:first-child { color: #3ecf5e; }
+.tv-standings-table tr.tv-zona-p td:first-child { color: var(--gold); }
+.tv-standings-table tr.tv-zona-e td:first-child { color: var(--red); }
+.tv-standings-table .tv-pts {
+  font-size: 1.8rem; font-weight: 700; color: var(--gold);
+}
+
+/* TV Bracket */
+.tv-bracket {
+  display: flex; gap: 24px; align-items: flex-start;
+  height: 100%; overflow-x: auto;
+}
+.tv-round { display: flex; flex-direction: column; gap: 16px; min-width: 240px; flex-shrink: 0; }
+.tv-round-title {
+  font-size: 1rem; letter-spacing: 3px; color: rgba(245,197,24,0.6);
+  text-align: center; margin-bottom: 8px;
+}
+.tv-match-card {
+  background: rgba(20,28,18,0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; overflow: hidden;
+}
+.tv-match-team {
+  display: flex; align-items: center; padding: 12px 16px;
+  font-size: 1.15rem; gap: 10px;
+}
+.tv-match-team + .tv-match-team {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.tv-match-team.tv-winner { color: #3ecf5e; background: rgba(62,207,94,0.08); }
+.tv-match-seed { color: rgba(255,255,255,0.3); font-size: 0.85rem; min-width: 26px; }
+.tv-match-name { flex: 1; }
+.tv-match-score { font-size: 1.4rem; font-weight: 700; color: var(--gold); min-width: 28px; text-align: right; }
+
+/* TV Stats */
+.tv-stats-bar-row {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+}
+.tv-stats-rank {
+  font-size: 2rem; font-weight: 700; color: var(--gold);
+  min-width: 48px; text-align: center;
+}
+.tv-stats-name {
+  font-size: 1.6rem; font-weight: 600; min-width: 260px;
+}
+.tv-stats-team {
+  font-size: 1rem; color: rgba(255,255,255,0.4); min-width: 180px;
+}
+.tv-stats-bar-wrap {
+  flex: 1; height: 18px; background: rgba(255,255,255,0.07);
+  border-radius: 9px; overflow: hidden;
+}
+.tv-stats-bar-fill {
+  height: 100%; border-radius: 9px;
+  background: linear-gradient(90deg, rgba(245,197,24,0.8), var(--gold));
+  transition: width 1s cubic-bezier(.4,0,.2,1);
+}
+.tv-stats-val {
+  font-size: 1.8rem; font-weight: 700; color: var(--gold);
+  min-width: 48px; text-align: right;
+}
+
+/* TV Sponsors */
+.tv-sponsor-grid {
+  display: flex; flex-wrap: wrap; gap: 30px;
+  justify-content: center; align-items: center;
+  padding: 20px 0; flex: 1;
+}
+.tv-sponsor-card {
+  background: rgba(20,28,18,0.8);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 32px; gap: 14px;
+}
+.tv-sponsor-card.tv-main { width: 320px; height: 180px; border-color: rgba(245,197,24,0.2); }
+.tv-sponsor-card.tv-gold { width: 240px; height: 150px; border-color: rgba(245,197,24,0.12); }
+.tv-sponsor-card.tv-silver { width: 180px; height: 120px; }
+.tv-sponsor-card img { max-width: 100%; max-height: 100px; object-fit: contain; mix-blend-mode: screen; }
+.tv-sponsor-name { font-size: 1.2rem; color: rgba(255,255,255,0.7); letter-spacing: 2px; }
+.tv-sponsor-tier-label {
+  font-size: 0.85rem; letter-spacing: 3px; color: rgba(245,197,24,0.5);
+  margin-bottom: 16px; width: 100%; text-align: center;
+}
+
+/* Watermark */
+#tvWatermark {
+  position: absolute; bottom: 40px; right: 50px;
+  font-size: 0.85rem; letter-spacing: 4px;
+  color: rgba(255,255,255,0.1); pointer-events: none;
+}
+
+/* Section label toast */
+#tvSectionLabel {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  font-size: 4rem; letter-spacing: 8px; color: var(--gold);
+  opacity: 0; pointer-events: none;
+  transition: all 0.5s; text-shadow: 0 0 60px rgba(245,197,24,0.5);
+  white-space: nowrap;
+}
+#tvSectionLabel.show {
+  opacity: 1; transform: translate(-50%, -50%) scale(1);
+}
+
 </style>
 </head>
 <body>
@@ -837,6 +1064,7 @@ body.admin-mode .ig-export-bar{display:flex;}
       <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
     </label>
     <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="Cancella tutti i dati e ripristina">🗑 Reset</button>
+    <button class="admin-bar-btn" id="tvModeBtn" onclick="enterTVMode()" style="border-color:rgba(59,139,212,0.5);color:#7ec8f7;letter-spacing:1px;" title="Modalità visualizzazione TV 65 pollici">📺 TV Mode</button>
     <button class="admin-bar-btn" onclick="exitAdmin()">Esci</button>
   </div>
 </div>
@@ -4077,6 +4305,454 @@ if(calGenerated) {
   const btn = document.getElementById('genCalBtn');
   if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
 }
+
+
+// ══════════════════════════════════════════════════════
+//  TV MODE ENGINE
+// ══════════════════════════════════════════════════════
+let tvInterval = null;
+let tvCurrentSlide = 0;
+let tvCurrentTorneo = { standings: 'M', playoff: 'M', stats: 'M' };
+const TV_DURATION = 20000;
+const TV_SLIDES = 5;
+
+function enterTVMode() {
+  const overlay = document.getElementById('tvModeOverlay');
+  overlay.style.display = 'flex';
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+  tvCurrentSlide = 0;
+  tvRenderAll();
+  tvShowSlide(0, true);
+  tvStartCycle();
+  document.addEventListener('keydown', tvKeyHandler);
+}
+
+function exitTVMode() {
+  document.getElementById('tvModeOverlay').style.display = 'none';
+  tvStopCycle();
+  document.removeEventListener('keydown', tvKeyHandler);
+  if (document.exitFullscreen && document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+function tvKeyHandler(e) {
+  if (e.key === 'Escape') exitTVMode();
+  if (e.key === 'ArrowRight') { tvCurrentSlide = (tvCurrentSlide + 1) % TV_SLIDES; tvShowSlide(tvCurrentSlide, true); tvStartCycle(); }
+  if (e.key === 'ArrowLeft')  { tvCurrentSlide = (tvCurrentSlide - 1 + TV_SLIDES) % TV_SLIDES; tvShowSlide(tvCurrentSlide, true); tvStartCycle(); }
+}
+
+function tvStartCycle() {
+  tvStopCycle();
+  tvStartProgress();
+  tvInterval = setInterval(() => {
+    tvCurrentSlide = (tvCurrentSlide + 1) % TV_SLIDES;
+    tvShowSlide(tvCurrentSlide, false);
+    tvStartProgress();
+  }, TV_DURATION);
+}
+
+function tvStopCycle() {
+  if (tvInterval) { clearInterval(tvInterval); tvInterval = null; }
+  const fill = document.getElementById('tvProgressFill');
+  if (fill) { fill.style.transition = 'none'; fill.style.width = '0%'; }
+}
+
+function tvStartProgress() {
+  const fill = document.getElementById('tvProgressFill');
+  if (!fill) return;
+  fill.style.transition = 'none'; fill.style.width = '0%';
+  setTimeout(() => {
+    fill.style.transition = 'width ' + TV_DURATION + 'ms linear';
+    fill.style.width = '100%';
+  }, 60);
+}
+
+function tvShowSlide(idx, immediate) {
+  document.querySelectorAll('.tv-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  const slides = document.querySelectorAll('.tv-slide');
+  slides.forEach((s, i) => {
+    if (s.classList.contains('active') && i !== idx) {
+      s.classList.add('exit');
+      setTimeout(() => s.classList.remove('active', 'exit'), 700);
+    }
+  });
+  setTimeout(() => {
+    slides.forEach(s => { if (!s.classList.contains('exit')) s.classList.remove('active'); });
+    const target = document.getElementById('tvSlide' + idx);
+    if (target) target.classList.add('active');
+    tvRenderSlide(idx);
+  }, immediate ? 0 : 50);
+}
+
+function tvRenderAll() {
+  for (let i = 0; i < TV_SLIDES; i++) tvRenderSlide(i);
+}
+
+function tvRenderSlide(idx) {
+  if (idx === 0) tvRenderStandings(tvCurrentTorneo.standings);
+  if (idx === 1) tvRenderPlayoff(tvCurrentTorneo.playoff);
+  if (idx === 2) tvRenderStats(tvCurrentTorneo.stats);
+  if (idx === 3) tvRenderSponsors();
+  if (idx === 4) tvRenderRisultati();
+}
+
+// ── Torneo tab selectors ──────────────────────────────────────────────
+function tvSetTorneo(t, el) {
+  tvCurrentTorneo.standings = t;
+  el.closest('.tv-torneo-tabs').querySelectorAll('.tv-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); tvRenderStandings(t);
+}
+function tvSetPlayoffTorneo(t, el) {
+  tvCurrentTorneo.playoff = t;
+  el.closest('.tv-torneo-tabs').querySelectorAll('.tv-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); tvRenderPlayoff(t);
+}
+function tvSetStatsTorneo(t, el) {
+  tvCurrentTorneo.stats = t;
+  el.closest('.tv-torneo-tabs').querySelectorAll('.tv-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); tvRenderStats(t);
+}
+
+// ── CLASSIFICA TV ────────────────────────────────────────────────────
+function tvRenderStandings(torneo) {
+  const cont = document.getElementById('tvStandingsContent');
+  if (!cont) return;
+  const rows = computeStandings(torneo);
+  if (!rows.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;">Nessuna partita registrata.</p>'; return; }
+  function getZone(i) {
+    if (torneo === 'F') return i <= 3 ? 'tv-zona-q' : 'tv-zona-e';
+    if (i <= 3) return 'tv-zona-q';
+    if (i <= 11) return 'tv-zona-p';
+    return 'tv-zona-e';
+  }
+  const posIcons = ['🥇','🥈','🥉'];
+  const displayRows = torneo === 'M' ? rows.slice(0, 12) : rows;
+  let t = '<table class="tv-standings-table"><thead><tr><th style="width:52px;">#</th><th>Squadra</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GA</th><th>DR</th><th style="width:70px;">Pts</th></tr></thead><tbody>';
+  displayRows.forEach((r, i) => {
+    const team = db.teams.find(x => x.id === r.id);
+    const logo = team && team.logo ? '<img src="' + team.logo + '" style="width:36px;height:36px;object-fit:contain;vertical-align:middle;margin-right:10px;border-radius:4px;">' : '';
+    const dr = r.GF - r.GA;
+    t += '<tr class="' + getZone(i) + '"><td style="font-size:1.4rem;">' + (posIcons[i] || (i+1)) + '</td>'
+       + '<td>' + logo + r.name + '</td>'
+       + '<td>' + r.G + '</td><td>' + r.W + '</td><td>' + r.D + '</td><td>' + r.L + '</td>'
+       + '<td>' + r.GF + '</td><td>' + r.GA + '</td>'
+       + '<td style="color:' + (dr > 0 ? '#3ecf5e' : dr < 0 ? 'var(--red)' : 'var(--muted)') + '">' + (dr > 0 ? '+' : '') + dr + '</td>'
+       + '<td><span class="tv-pts">' + r.Pts + '</span></td></tr>';
+  });
+  cont.innerHTML = t + '</tbody></table>';
+}
+
+// ── PLAYOFF TV ───────────────────────────────────────────────────────
+function tvRenderPlayoff(torneo) {
+  const cont = document.getElementById('tvPlayoffContent');
+  if (!cont) return;
+  autoUpdatePlayoff(torneo);
+  const pd = db.playoff[torneo];
+  if (!pd || !pd.matches.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;">Playoff non ancora generati.</p>'; return; }
+  const ms = pd.matches;
+  const byRound = r => ms.filter(m => m.round === r);
+  const getWinner = m => { if (m.scoreHome === null || m.scoreAway === null) return null; return m.scoreHome > m.scoreAway ? 'home' : m.scoreAway > m.scoreHome ? 'away' : null; };
+  const rounds = torneo === 'M'
+    ? [['ottavi','PLAY-IN'],['quarti','QUARTI'],['semi','SEMIFINALI'],['finale','FINALE']]
+    : [['semi','SEMIFINALI'],['finale','FINALE']];
+  let html = '<div class="tv-bracket">';
+  rounds.forEach(([round, label]) => {
+    html += '<div class="tv-round"><div class="tv-round-title">' + label + '</div>';
+    byRound(round).forEach(m => {
+      const w = getWinner(m);
+      const hScore = m.scoreHome !== null ? m.scoreHome : '';
+      const aScore = m.scoreAway !== null ? m.scoreAway : '';
+      html += '<div class="tv-match-card">'
+            + '<div class="tv-match-team ' + (w === 'home' ? 'tv-winner' : '') + '">'
+            + '<span class="tv-match-seed">' + (m.homeSeed||'') + '</span>'
+            + '<span class="tv-match-name">' + (m.homeLabel||'TBD').replace(/#\d+ /,'').substring(0,20) + '</span>'
+            + '<span class="tv-match-score">' + hScore + '</span></div>'
+            + '<div class="tv-match-team ' + (w === 'away' ? 'tv-winner' : '') + '">'
+            + '<span class="tv-match-seed">' + (m.awaySeed||'') + '</span>'
+            + '<span class="tv-match-name">' + (m.awayLabel||'TBD').replace(/#\d+ /,'').substring(0,20) + '</span>'
+            + '<span class="tv-match-score">' + aScore + '</span></div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  const fin = ms.find(m => m.round === 'finale');
+  if (fin && fin.scoreHome !== null && fin.scoreHome !== fin.scoreAway) {
+    const champ = (fin.scoreHome > fin.scoreAway ? fin.homeLabel : fin.awayLabel).replace(/#\d+ /,'');
+    html += '<div style="text-align:center;margin-top:24px;font-size:2rem;color:var(--gold);letter-spacing:4px;">🏆 ' + champ.toUpperCase() + '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+// ── STATISTICHE TV ───────────────────────────────────────────────────
+function tvRenderStats(torneo) {
+  const cont = document.getElementById('tvStatsContent');
+  if (!cont) return;
+  const matches = db.matches.filter(m => m.torneo === torneo && m.scoreHome !== null);
+  const players = {};
+  const ensure = (name, teamId) => { if (!players[name]) players[name] = { name, teamId, goals:0 }; };
+  matches.forEach(m => { (m.goals||[]).forEach(e => { ensure(e.player, e.teamId); players[e.player].goals += (e.goals||1); }); });
+  const scorers = Object.values(players).filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 8);
+  if (!scorers.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;">Nessun marcatore registrato.</p>'; return; }
+  const max = scorers[0].goals;
+  const posIcons = ['🥇','🥈','🥉'];
+  let html = '<div style="padding-right:30px;">';
+  scorers.forEach((p, i) => {
+    const team = getTeam(p.teamId);
+    const logo = team && team.logo ? '<img src="' + team.logo + '" style="width:32px;height:32px;object-fit:contain;vertical-align:middle;border-radius:3px;margin-right:6px;">' : '';
+    const pct = Math.round((p.goals / max) * 100);
+    html += '<div class="tv-stats-bar-row">'
+          + '<span class="tv-stats-rank">' + (posIcons[i]||(i+1)) + '</span>'
+          + '<span class="tv-stats-name">' + p.name + '</span>'
+          + '<span class="tv-stats-team">' + logo + (team ? team.name : '') + '</span>'
+          + '<div class="tv-stats-bar-wrap"><div class="tv-stats-bar-fill" style="width:' + pct + '%"></div></div>'
+          + '<span class="tv-stats-val">⚽ ' + p.goals + '</span></div>';
+  });
+  cont.innerHTML = html + '</div>';
+}
+
+// ── SPONSOR TV ───────────────────────────────────────────────────────
+function tvRenderSponsors() {
+  const cont = document.getElementById('tvSponsorContent');
+  if (!cont) return;
+  if (!db.sponsors || !db.sponsors.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;text-align:center;">Nessuno sponsor registrato.</p>'; return; }
+  const tiers = [
+    { key:'main',   label:'MAIN SPONSOR',   cls:'tv-main'   },
+    { key:'gold',   label:'GOLD PARTNER',   cls:'tv-gold'   },
+    { key:'silver', label:'SILVER PARTNER', cls:'tv-silver' }
+  ];
+  let html = '<div style="flex:1;overflow-y:auto;">';
+  tiers.forEach(tier => {
+    const sponsors = db.sponsors.filter(s => s.tier === tier.key);
+    if (!sponsors.length) return;
+    html += '<div class="tv-sponsor-tier-label">' + tier.label + '</div><div class="tv-sponsor-grid" style="margin-bottom:20px;">';
+    sponsors.forEach(s => {
+      html += '<div class="tv-sponsor-card ' + tier.cls + '">'
+            + (s.logo ? '<img src="' + s.logo + '" alt="' + s.name + '">' : '')
+            + '<div class="tv-sponsor-name">' + s.name + '</div></div>';
+    });
+    html += '</div>';
+  });
+  cont.innerHTML = html + '</div>';
+}
+
+// ── RISULTATI SETTIMANA TV ───────────────────────────────────────────
+function tvGetCurrentWeekDates() {
+  const now = new Date();
+  const day = now.getDay(); // 0=dom, 1=lun ... 6=sab
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMon);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23,59,59,999);
+  return { monday, sunday };
+}
+
+function tvParseMatchDate(dateStr) {
+  if (!dateStr) return null;
+  // Formats: "5 Lug 2025", "05/07/2025", "2025-07-05", "5 Jul 2025"
+  const monthsIT = { gen:0, feb:1, mar:2, apr:3, mag:4, giu:5, lug:6, ago:7, set:8, ott:9, nov:10, dic:11 };
+  const monthsEN = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+  const clean = dateStr.trim().toLowerCase();
+  // Try "D Mon YYYY" or "D Mon" (Italian/English)
+  const m1 = clean.match(/^(\d{1,2})\s+([a-z]{3})\s*(\d{4})?$/);
+  if (m1) {
+    const d = parseInt(m1[1]);
+    const mon = m1[2];
+    const y = m1[3] ? parseInt(m1[3]) : new Date().getFullYear();
+    const mIdx = monthsIT[mon] !== undefined ? monthsIT[mon] : monthsEN[mon];
+    if (mIdx !== undefined) return new Date(y, mIdx, d);
+  }
+  // Try DD/MM/YYYY
+  const m2 = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m2) return new Date(parseInt(m2[3]), parseInt(m2[2])-1, parseInt(m2[1]));
+  // Try YYYY-MM-DD
+  const m3 = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m3) return new Date(parseInt(m3[1]), parseInt(m3[2])-1, parseInt(m3[3]));
+  return null;
+}
+
+function tvRenderRisultati() {
+  const cont = document.getElementById('tvRisultatiContent');
+  if (!cont) return;
+  const { monday, sunday } = tvGetCurrentWeekDates();
+
+  // Filter matches played this week
+  const weekMatches = db.matches.filter(m => {
+    if (m.scoreHome === null || m.scoreHome === undefined) return false;
+    const d = tvParseMatchDate(m.date);
+    if (!d) return false;
+    return d >= monday && d <= sunday;
+  });
+
+  if (!weekMatches.length) {
+    // Fallback: show last giornata played
+    const played = db.matches.filter(m => m.scoreHome !== null && m.scoreHome !== undefined);
+    if (!played.length) {
+      cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;text-align:center;">Nessun risultato disponibile questa settimana.</p>';
+      return;
+    }
+    const lastG = Math.max(...played.map(m => m.giornata));
+    const fallback = played.filter(m => m.giornata === lastG);
+    tvRenderRisultatiList(cont, fallback, 'Ultima Giornata Disputata');
+    return;
+  }
+  tvRenderRisultatiList(cont, weekMatches, 'Risultati della Settimana');
+}
+
+function tvRenderRisultatiList(cont, matches, subtitle) {
+  // Group by giornata
+  const byGiornata = {};
+  matches.forEach(m => {
+    const key = m.giornata;
+    if (!byGiornata[key]) byGiornata[key] = [];
+    byGiornata[key].push(m);
+  });
+
+  let html = '<div style="overflow-y:auto;flex:1;padding-right:20px;">';
+  Object.keys(byGiornata).sort((a,b) => a-b).forEach(g => {
+    const gMatches = byGiornata[g];
+    const dateStr = gMatches[0].date || '';
+    html += '<div style="font-size:1rem;letter-spacing:3px;color:rgba(245,197,24,0.5);margin:0 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07);">'
+          + 'GIORNATA ' + g + (dateStr ? ' &nbsp;·&nbsp; ' + dateStr.toUpperCase() : '') + '</div>';
+    gMatches.forEach(m => {
+      const home = getTeam(m.home);
+      const away = getTeam(m.away);
+      const hName = home ? home.name : 'Casa';
+      const aName = away ? away.name : 'Ospite';
+      const hLogo = home && home.logo ? '<img src="' + home.logo + '" style="width:44px;height:44px;object-fit:contain;border-radius:5px;">' : '<span style="width:44px;display:inline-block;"></span>';
+      const aLogo = away && away.logo ? '<img src="' + away.logo + '" style="width:44px;height:44px;object-fit:contain;border-radius:5px;">' : '<span style="width:44px;display:inline-block;"></span>';
+      const hColor = home ? home.color : '#f5c518';
+      const aColor = away ? away.color : '#3b8bd4';
+      const hWin = m.scoreHome > m.scoreAway;
+      const aWin = m.scoreAway > m.scoreHome;
+
+      html += '<div style="display:flex;align-items:center;margin-bottom:18px;background:rgba(20,28,18,0.8);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 24px;gap:12px;">'
+            // Home
+            + '<div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:14px;">'
+            + '<span style="font-size:1.6rem;font-weight:' + (hWin?'700':'400') + ';color:' + (hWin?'#fff':'rgba(255,255,255,0.6)') + ';text-align:right;">' + hName + '</span>'
+            + hLogo
+            + '</div>'
+            // Score
+            + '<div style="display:flex;align-items:center;gap:0;background:rgba(0,0,0,0.4);border-radius:10px;padding:10px 20px;min-width:140px;justify-content:center;">'
+            + '<span style="font-size:2.8rem;font-weight:700;color:' + (hWin?'#3ecf5e':'#fff') + ';font-family:Bebas Neue;">' + m.scoreHome + '</span>'
+            + '<span style="font-size:1.8rem;color:rgba(255,255,255,0.3);margin:0 10px;font-family:Bebas Neue;">—</span>'
+            + '<span style="font-size:2.8rem;font-weight:700;color:' + (aWin?'#3ecf5e':'#fff') + ';font-family:Bebas Neue;">' + m.scoreAway + '</span>'
+            + '</div>'
+            // Away
+            + '<div style="flex:1;display:flex;align-items:center;justify-content:flex-start;gap:14px;">'
+            + aLogo
+            + '<span style="font-size:1.6rem;font-weight:' + (aWin?'700':'400') + ';color:' + (aWin?'#fff':'rgba(255,255,255,0.6)') + ';">' + aName + '</span>'
+            + '</div>'
+            // Goals
+            + '</div>';
+
+      // Marcatori (if any)
+      const goals = (m.goals||[]);
+      if (goals.length) {
+        const hGoals = goals.filter(g => g.teamId === m.home);
+        const aGoals = goals.filter(g => g.teamId === m.away);
+        html += '<div style="display:flex;justify-content:space-between;margin:-10px 0 18px;padding:0 24px;font-size:1rem;color:rgba(255,255,255,0.4);">'
+              + '<div>' + hGoals.map(g => '⚽ ' + g.player + (g.goals>1?' (x'+g.goals+')':'')).join('  ') + '</div>'
+              + '<div>' + aGoals.map(g => g.player + (g.goals>1?' (x'+g.goals+')':'') + ' ⚽').join('  ') + '</div>'
+              + '</div>';
+      }
+    });
+  });
+  cont.innerHTML = html + '</div>';
+}
+
 </script>
+
+<!-- TV MODE OVERLAY -->
+<div id="tvModeOverlay" style="display:none;">
+  <!-- Exit button (top right, semi-hidden) -->
+  <button id="tvExitBtn" onclick="exitTVMode()" title="Esci TV Mode (ESC)">✕ Esci</button>
+
+  <!-- Current section indicator dots -->
+  <div id="tvDots">
+    <div class="tv-dot active" data-idx="0"></div>
+    <div class="tv-dot" data-idx="1"></div>
+    <div class="tv-dot" data-idx="2"></div>
+    <div class="tv-dot" data-idx="3"></div>
+    <div class="tv-dot" data-idx="4"></div>
+  </div>
+
+  <!-- Progress bar -->
+  <div id="tvProgressBar"><div id="tvProgressFill"></div></div>
+
+  <!-- Section label -->
+  <div id="tvSectionLabel"></div>
+
+  <!-- Slides container -->
+  <div id="tvSlides">
+
+    <!-- SLIDE 1: Classifica -->
+    <div class="tv-slide" id="tvSlide0">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">🏆</span>
+        <span class="tv-slide-title">CLASSIFICA</span>
+        <div class="tv-torneo-tabs">
+          <button class="tv-tab active" onclick="tvSetTorneo('M',this)">♂ MASCHILE</button>
+          <button class="tv-tab" onclick="tvSetTorneo('F',this)">♀ FEMMINILE</button>
+        </div>
+      </div>
+      <div id="tvStandingsContent" class="tv-content-area"></div>
+    </div>
+
+    <!-- SLIDE 2: Playoff -->
+    <div class="tv-slide" id="tvSlide1">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">⚡</span>
+        <span class="tv-slide-title">PLAYOFF</span>
+        <div class="tv-torneo-tabs">
+          <button class="tv-tab active" onclick="tvSetPlayoffTorneo('M',this)">♂ MASCHILE</button>
+          <button class="tv-tab" onclick="tvSetPlayoffTorneo('F',this)">♀ FEMMINILE</button>
+        </div>
+      </div>
+      <div id="tvPlayoffContent" class="tv-content-area"></div>
+    </div>
+
+    <!-- SLIDE 3: Statistiche -->
+    <div class="tv-slide" id="tvSlide2">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">📊</span>
+        <span class="tv-slide-title">STATISTICHE</span>
+        <div class="tv-torneo-tabs">
+          <button class="tv-tab active" onclick="tvSetStatsTorneo('M',this)">♂ MASCHILE</button>
+          <button class="tv-tab" onclick="tvSetStatsTorneo('F',this)">♀ FEMMINILE</button>
+        </div>
+      </div>
+      <div id="tvStatsContent" class="tv-content-area"></div>
+    </div>
+
+    <!-- SLIDE 4: Sponsor -->
+    <div class="tv-slide" id="tvSlide3">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">🤝</span>
+        <span class="tv-slide-title">I NOSTRI PARTNER</span>
+      </div>
+      <div id="tvSponsorContent" class="tv-content-area"></div>
+    </div>
+
+    <!-- SLIDE 5: Risultati settimana -->
+    <div class="tv-slide" id="tvSlide4">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">⚽</span>
+        <span class="tv-slide-title">RISULTATI SETTIMANA</span>
+      </div>
+      <div id="tvRisultatiContent" class="tv-content-area"></div>
+    </div>
+
+  </div><!-- /tvSlides -->
+
+  <!-- TMC watermark -->
+  <div id="tvWatermark">TORNEO MORO CHIOZZA · 2026</div>
+</div>
+<!-- /TV MODE OVERLAY -->
 </body>
 </html>
