@@ -2211,7 +2211,7 @@ function renderTeams() {
             <span class="player-num">${p.num}</span>
             <span style="flex:1">${p.name}</span>
             <span class="player-role">${p.role}</span>
-            ${isAdmin ? `<button onclick="removePlayer(${team.id},${pi})" style="display:none;background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:3px;color:var(--red);font-size:0.65rem;padding:1px 6px;cursor:pointer;margin-left:4px;" class="rm-player-btn">✕</button>` : ''}
+            ${isAdmin ? `<button onclick="removePlayer(${team.id},'${p.name.replace(/'/g,"\\'")}')" style="display:none;background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:3px;color:var(--red);font-size:0.65rem;padding:1px 6px;cursor:pointer;margin-left:4px;" class="rm-player-btn">✕</button>` : ''}
           </div>`).join('')}
           <button class="add-player-btn" onclick="openAddPlayerModal(${team.id})">+ Aggiungi Calciatore</button>
         </div>
@@ -3426,11 +3426,13 @@ function uploadTeamLogo(teamId, input) {
 }
 
 
-function removePlayer(teamId, playerIndex) {
+function removePlayer(teamId, playerName) {
   const team = db.teams.find(t => t.id === teamId);
   if (!team) return;
+  // Find by name (not index) to avoid stale-index bug
+  const playerIndex = team.players.findIndex(p => p.name === playerName);
+  if (playerIndex === -1) return;
   const player = team.players[playerIndex];
-  if (!player) return;
   if (!confirm('Rimuovere ' + player.name + ' dalla squadra?')) return;
   team.players.splice(playerIndex, 1);
   saveToStorage();
