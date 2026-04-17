@@ -2361,6 +2361,7 @@ function switchCal(t,el){
 
 function saveScore(mid){
   const m=db.matches.find(x=>x.id===mid);
+  if(!m){ console.error('[saveScore] match not found:', mid); showToast('⚠️ Partita non trovata. Rigenera il calendario.'); return; }
   const sh=document.getElementById('sh-'+mid).value;
   const sa=document.getElementById('sa-'+mid).value;
   if(sh===''||sa===''){alert('Inserisci entrambi i punteggi!');return;}
@@ -2376,7 +2377,7 @@ let mdCurrentMatch = null;
 
 function openMatchDetail(mid) {
   const m = db.matches.find(x=>x.id===mid);
-  if(!m) return;
+  if(!m){ console.error('[openMatchDetail] match not found:', mid); showToast('⚠️ Partita non trovata. Rigenera il calendario.'); return; }
   if(!m.goals) m.goals=[];
   if(!m.yellow) m.yellow=[];
   if(!m.red) m.red=[];
@@ -3233,14 +3234,14 @@ function assignTimeslots(pairs, torneo) {
     }
   });
 
-  // Build match objects with time slots
+  // Build match objects with time slots — prefix with torneo to prevent ID collision
   let matchId = Date.now();
   slots.forEach((dayPairs, gi) => {
     const dayConf = genDays[gi] || {date:`Giornata ${gi+1}`, startTime:'16:00'};
     let currentTime = dayConf.startTime || '16:00';
     dayPairs.forEach(p => {
       scheduled.push({
-        id: 'm'+(matchId++),
+        id: torneo + '_m' + (matchId++),
         torneo,
         giornata: gi+1,
         home: p.home.id,
