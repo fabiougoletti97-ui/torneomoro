@@ -1077,6 +1077,9 @@ body.admin-mode .ig-export-bar{display:flex;}
 .tv-standings-table.tv-compact td,
 .tv-standings-table.tv-compact th { padding: 7px 10px; font-size: 1.15rem; }
 .tv-standings-table.tv-compact td:nth-child(2) { font-size: 1.2rem; }
+.delete-team-btn{display:none;width:100%;margin-top:8px;padding:6px;background:rgba(224,53,53,0.08);border:1px dashed rgba(224,53,53,0.3);border-radius:4px;color:var(--red);font-size:0.72rem;font-family:'Oswald';letter-spacing:1px;cursor:pointer;transition:background 0.2s;}
+.delete-team-btn:hover{background:rgba(224,53,53,0.18);}
+body.admin-mode .delete-team-btn{display:block;}
 </style>
 </head>
 <body>
@@ -2206,6 +2209,7 @@ function renderTeams() {
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">${fasciaBadge}</div>
         <div class="team-card-meta" style="margin-top:4px;">${team.players.length} calciatori iscritti</div>
+        ${isAdmin ? `<button onclick="deleteTeam(${team.id})" class="delete-team-btn">🗑️ Elimina Squadra</button>` : ''}
         <div class="team-card-players">
           ${team.players.map((p,pi)=>`<div class="player-row">
             <span class="player-num">${p.num}</span>
@@ -3448,6 +3452,30 @@ function removeTeamLogo(teamId) {
   saveToStorage();
   renderTeams();
   showToast('🗑️ Logo rimosso');
+}
+
+function deleteTeam(teamId) {
+  const team = db.teams.find(t => t.id === teamId);
+  if (!team) return;
+  if (!confirm('Eliminare la squadra "' + team.name + '"? Questa operazione è irreversibile.')) return;
+  // Remove team from array
+  db.teams = db.teams.filter(t => t.id !== teamId);
+  // Remove matches involving this team
+  db.matches = db.matches.filter(m => m.home !== teamId && m.away !== teamId);
+  // Clean up playoff references
+  ['M','F'].forEach(torneo => {
+    if (db.playoff && db.playoff[torneo] && db.playoff[torneo].matches) {
+      db.playoff[torneo].matches = db.playoff[torneo].matches.map(m => {
+        const updated = {...m};
+        if (m.homeId === teamId) { updated.homeLabel = 'TBD'; updated.homeId = null; }
+        if (m.awayId === teamId) { updated.awayLabel = 'TBD'; updated.awayId = null; }
+        return updated;
+      });
+    }
+  });
+  saveToStorage();
+  renderAll();
+  showToast('🗑️ Squadra "' + team.name + '" eliminata');
 }
 
 function renameTeam(teamId, newName) {
