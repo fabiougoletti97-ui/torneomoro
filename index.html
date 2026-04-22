@@ -143,7 +143,7 @@ body.admin-mode .admin-only-block{display:block;}
   color:#ffffff;font-family:'Oswald';font-size:0.68rem;letter-spacing:1px;cursor:pointer;
   margin-left:6px;transition:all 0.2s;}
 .save-score-btn:hover{background:#22883b;}
-.match-info{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.match-info{font-size:0.72rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .saved-tag{color:var(--accent);font-size:0.68rem;margin-left:4px;opacity:0;transition:opacity 0.3s;}
 
 /* CLASSIFICA */
@@ -1596,11 +1596,18 @@ body.admin-mode .delete-team-btn{display:block;}
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Data</label>
-        <input class="form-input" type="text" id="po-date" placeholder="es. 2 Ago 2026"/>
+        <input class="form-input" type="text" id="po-date" placeholder="es. 17 Giu 2026"/>
       </div>
       <div class="form-group">
         <label class="form-label">Orario</label>
-        <input class="form-input" type="time" id="po-time" value="16:00"/>
+        <input class="form-input" type="time" id="po-time" value="20:00"/>
+      </div>
+      <div class="form-group" style="max-width:100px;">
+        <label class="form-label">Campo</label>
+        <select class="form-select" id="po-field">
+          <option value="7">Campo 7</option>
+          <option value="11">Campo 11</option>
+        </select>
       </div>
     </div>
     <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="savePlayoffMatch()">💾 Salva</button>
@@ -1658,22 +1665,23 @@ body.admin-mode .delete-team-btn{display:block;}
   <div class="modal" style="max-width:640px;">
     <button class="modal-close" onclick="closeModal('genCalModal')">&#x2715;</button>
     <div class="modal-title">🎲 Genera Calendario Automatico</div>
-    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;">
-      L'algoritmo crea le sfide rispettando la regola fascia: ogni squadra affronta
-      <strong style="color:var(--white);">1 squadra di 1ª fascia</strong>,
-      <strong style="color:var(--white);">1 di 2ª fascia</strong> e
-      <strong style="color:var(--white);">2 di 3ª fascia</strong> — 4 partite totali.
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">
+      L'algoritmo assegna le partite agli slot fissi del calendario ufficiale rispettando i vincoli:
+      <strong style="color:var(--white);">max 2 partite/settimana</strong> per squadra,
+      <strong style="color:var(--white);">no giorni consecutivi</strong> e
+      <strong style="color:var(--white);">1 partita su Campo 11</strong> per ogni squadra maschile.
     </p>
+    <div style="background:rgba(59,139,212,0.08);border:1px solid rgba(59,139,212,0.25);border-radius:6px;padding:0.8rem 1rem;margin-bottom:1.2rem;font-size:0.78rem;color:rgba(255,255,255,0.7);">
+      📅 <strong style="color:#7ec8f7;">Maschile:</strong> 32 partite · 26 Mag → 10 Giu 2026 · Campi 7 e 11<br>
+      ♀ <strong style="color:#f7a8e0;">Femminile:</strong> 12 partite · 26 Mag → 11 Giu 2026 · Campo 11<br>
+      ⚡ <strong style="color:var(--gold);">Playoff M:</strong> Play-In 15/6 · Quarti 17-18/6 · Semi 23/6 · Finale 25/6<br>
+      🏆 <strong style="color:var(--gold);">Playoff F:</strong> Semi 17-18/6 · Finale 25/6
+    </div>
 
     <div id="gen-status-box"></div>
 
-    <!-- Date & time config -->
-    <div style="margin-bottom:1.2rem;">
-      <div class="md-section-title" style="margin-bottom:0.8rem;">📅 Giornate e Orari</div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;">Inserisci data e orario di inizio per ogni giornata (le partite si succedono ogni 45 minuti).</p>
-      <div id="gen-days-config"></div>
-      <button class="md-add-btn" onclick="addGenDay()" style="margin-top:8px;">+ Aggiungi Giornata</button>
-    </div>
+    <!-- Date & time config — hidden: dates are fixed from Excel schedule -->
+    <div id="gen-days-config" style="display:none;"></div>
 
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;">
       <button class="btn-primary" style="flex:1;" onclick="previewCalendario()">👁 Anteprima Sfide</button>
@@ -1829,45 +1837,229 @@ let db = {
 
 // Generate matches
 function genMatches() {
-  let id = 1;
-  // Maschile: 16 squadre, girone unico round-robin (every team plays each other once)
+  // Uses fixed schedule from Excel (SCHEDULE_M / SCHEDULE_F)
+  // Constraints: max 2 matches/week per team, no consecutive days,
+  //              each male team plays exactly 1 match on field 11.
+
   const mTeams = db.teams.filter(t=>t.torneo==='M').map(t=>t.id);
   const fTeams = db.teams.filter(t=>t.torneo==='F').map(t=>t.id);
-  const dates = ['5 Lug','12 Lug','19 Lug','26 Lug','2 Ago'];
-  const times = ['16:00','17:30','19:00','20:30'];
-  
-  function roundRobin(ids, torneo) {
-    const n = ids.length, rounds = [];
+
+  // ── Round-robin pair generation ──────────────────────────────────────────
+  function generatePairs(ids) {
     const pool = [...ids];
-    if (n % 2 !== 0) pool.push(null);
+    if (pool.length % 2 !== 0) pool.push(null);
     const N = pool.length;
+    const allPairs = [];
     for (let r = 0; r < N-1; r++) {
-      const round = [];
       for (let i = 0; i < N/2; i++) {
         const h = pool[i], a = pool[N-1-i];
-        if (h && a) round.push({h,a});
+        if (h !== null && a !== null) allPairs.push({home:h, away:a, round:r});
       }
-      rounds.push(round);
-      pool.splice(1,0,pool.pop());
+      pool.splice(1, 0, pool.pop());
     }
-    let dateIdx=0, timeIdx=0, giornata=1;
-    rounds.forEach((round, ri) => {
-      round.forEach(m => {
-        db.matches.push({
-          id:'m'+id++, torneo, giornata:ri+1,
-          home:m.h, away:m.a,
-          scoreHome:null, scoreAway:null,
-          goals:[], yellow:[], red:[],
-          date:dates[dateIdx%dates.length], time:times[timeIdx%times.length]
-        });
-        timeIdx++;
-      });
-      dateIdx++;
-    });
+    return allPairs;
   }
-  roundRobin(mTeams,'M');
-  roundRobin(fTeams,'F');
+
+  // ── Get ISO week number ───────────────────────────────────────────────────
+  function getWeek(dateStr) {
+    // dateStr: "26 Mag 2026"
+    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
+    const parts = dateStr.split(' ');
+    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  }
+
+  // ── Parse date to comparable number ──────────────────────────────────────
+  function dateToNum(dateStr) {
+    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
+    const parts = dateStr.split(' ');
+    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
+    return d.getTime();
+  }
+
+  // ── Assign pairs to fixed schedule slots (Maschile) ──────────────────────
+  function assignMaschile(pairs) {
+    const slots = [...SCHEDULE_M]; // 32 slots
+    const teamWeekCount = {};      // teamId -> {week -> count}
+    const teamLastDay = {};        // teamId -> last dateNum played
+    const teamField11Count = {};   // teamId -> count of field-11 matches
+    mTeams.forEach(id => {
+      teamWeekCount[id] = {};
+      teamLastDay[id] = 0;
+      teamField11Count[id] = 0;
+    });
+
+    // Shuffle pairs for randomness, but keep field-11 constraint in mind
+    const shuffled = [...pairs].sort(() => Math.random() - 0.5);
+    const assigned = new Array(slots.length).fill(null);
+    const usedPairs = new Set();
+
+    // First pass: assign pairs to slots respecting all constraints
+    // We try slot-by-slot and pick best valid pair
+    for (let si = 0; si < slots.length; si++) {
+      const slot = slots[si];
+      const slotWeek = getWeek(slot.date);
+      const slotDateNum = dateToNum(slot.date);
+
+      // Find a valid pair for this slot
+      for (let pi = 0; pi < shuffled.length; pi++) {
+        const pair = shuffled[pi];
+        const key = pair.home + '_' + pair.away;
+        if (usedPairs.has(key)) continue;
+
+        const h = pair.home, a = pair.away;
+
+        // Field 11 constraint: if this slot is field 11,
+        // skip if either team already has a field-11 match
+        if (slot.field === '11') {
+          if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
+        }
+        // If field 7: skip if both teams already have a field-11 match
+        // (don't force; we'll handle at end)
+
+        // Max 2/week constraint
+        const hWeekMatches = (teamWeekCount[h]||{})[slotWeek]||0;
+        const aWeekMatches = (teamWeekCount[a]||{})[slotWeek]||0;
+        if (hWeekMatches >= 2 || aWeekMatches >= 2) continue;
+
+        // No consecutive days
+        const hLast = teamLastDay[h]||0;
+        const aLast = teamLastDay[a]||0;
+        const ONE_DAY = 86400000;
+        if (hLast && (slotDateNum - hLast) <= ONE_DAY) continue;
+        if (aLast && (slotDateNum - aLast) <= ONE_DAY) continue;
+
+        // Valid! Assign
+        assigned[si] = {home:h, away:a, slot};
+        usedPairs.add(key);
+        if (!teamWeekCount[h]) teamWeekCount[h] = {};
+        if (!teamWeekCount[a]) teamWeekCount[a] = {};
+        teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
+        teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
+        teamLastDay[h] = slotDateNum;
+        teamLastDay[a] = slotDateNum;
+        if (slot.field === '11') {
+          teamField11Count[h] = (teamField11Count[h]||0) + 1;
+          teamField11Count[a] = (teamField11Count[a]||0) + 1;
+        }
+        break;
+      }
+    }
+
+    // Second pass: assign remaining unassigned pairs to empty slots (relaxed)
+    const unassigned = shuffled.filter(p => !usedPairs.has(p.home + '_' + p.away));
+    let emptySlot = assigned.findIndex(a => a === null);
+    for (const pair of unassigned) {
+      if (emptySlot < 0) break;
+      const slot = slots[emptySlot];
+      assigned[emptySlot] = {home: pair.home, away: pair.away, slot};
+      emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+    }
+
+    // Build match objects
+    let matchId = Date.now();
+    const matches = [];
+    let matchNum = 1;
+    assigned.forEach(a => {
+      if (!a) return;
+      matches.push({
+        id: 'M_m' + (matchId++),
+        torneo: 'M',
+        giornata: matchNum++,
+        home: a.home,
+        away: a.away,
+        date: a.slot.date,
+        time: a.slot.time,
+        field: a.slot.field,
+        scoreHome: null, scoreAway: null,
+        goals:[], yellow:[], red:[]
+      });
+    });
+    return matches;
+  }
+
+  // ── Assign pairs to fixed schedule slots (Femminile) ────────────────────
+  function assignFemminile(pairs) {
+    const slots = [...SCHEDULE_F]; // 12 slots
+    const teamWeekCount = {};
+    const teamLastDay = {};
+    fTeams.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
+
+    const shuffled = [...pairs].sort(() => Math.random() - 0.5);
+    const assigned = new Array(slots.length).fill(null);
+    const usedPairs = new Set();
+
+    for (let si = 0; si < slots.length; si++) {
+      const slot = slots[si];
+      const slotWeek = getWeek(slot.date);
+      const slotDateNum = dateToNum(slot.date);
+
+      for (let pi = 0; pi < shuffled.length; pi++) {
+        const pair = shuffled[pi];
+        const key = pair.home + '_' + pair.away;
+        if (usedPairs.has(key)) continue;
+
+        const h = pair.home, a = pair.away;
+        const hWeekMatches = (teamWeekCount[h]||{})[slotWeek]||0;
+        const aWeekMatches = (teamWeekCount[a]||{})[slotWeek]||0;
+        if (hWeekMatches >= 2 || aWeekMatches >= 2) continue;
+
+        const ONE_DAY = 86400000;
+        const hLast = teamLastDay[h]||0;
+        const aLast = teamLastDay[a]||0;
+        if (hLast && (slotDateNum - hLast) <= ONE_DAY) continue;
+        if (aLast && (slotDateNum - aLast) <= ONE_DAY) continue;
+
+        assigned[si] = {home:h, away:a, slot};
+        usedPairs.add(key);
+        if (!teamWeekCount[h]) teamWeekCount[h] = {};
+        if (!teamWeekCount[a]) teamWeekCount[a] = {};
+        teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
+        teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
+        teamLastDay[h] = slotDateNum;
+        teamLastDay[a] = slotDateNum;
+        break;
+      }
+    }
+
+    // Fallback: place remaining pairs in empty slots
+    const unassigned = shuffled.filter(p => !usedPairs.has(p.home + '_' + p.away));
+    let emptySlot = assigned.findIndex(a => a === null);
+    for (const pair of unassigned) {
+      if (emptySlot < 0) break;
+      const slot = slots[emptySlot];
+      assigned[emptySlot] = {home: pair.home, away: pair.away, slot};
+      emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+    }
+
+    let matchId = Date.now() + 10000;
+    const matches = [];
+    let matchNum = 1;
+    assigned.forEach(a => {
+      if (!a) return;
+      matches.push({
+        id: 'F_m' + (matchId++),
+        torneo: 'F',
+        giornata: matchNum++,
+        home: a.home,
+        away: a.away,
+        date: a.slot.date,
+        time: a.slot.time,
+        field: a.slot.field,
+        scoreHome: null, scoreAway: null,
+        goals:[], yellow:[], red:[]
+      });
+    });
+    return matches;
+  }
+
+  const mPairs = generatePairs(mTeams);
+  const fPairs = generatePairs(fTeams);
+  db.matches = [...assignMaschile(mPairs), ...assignFemminile(fPairs)];
 }
+
+
 // ─── EARLY DECLARATIONS (needed by loadFromStorage) ─────────────────────────
 let calGenerated = false;
 
@@ -2276,14 +2468,24 @@ function addPlayer(){
 // ─── CALENDARIO ────────────────────────────────────────────────────────────
 function renderCalendario(){
   const matches=db.matches.filter(m=>m.torneo===curCal);
-  const giornate=[...new Set(matches.map(m=>m.giornata))].sort((a,b)=>a-b);
+  // Group by date (from fixed schedule)
+  const dateMap = {};
+  matches.forEach(m => {
+    const key = m.date || ('Giornata '+m.giornata);
+    if (!dateMap[key]) dateMap[key] = [];
+    dateMap[key].push(m);
+  });
+  // Sort dates chronologically using dateToNum
+  function _dNum(s){const mp={'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};const p=s.split(' ');const d=new Date(parseInt(p[2]||2026),mp[p[1]]||0,parseInt(p[0]));return isNaN(d)?0:d.getTime();}
+  const sortedDates = Object.keys(dateMap).sort((a,b)=>_dNum(a)-_dNum(b));
+  const giornate = sortedDates; // repurpose variable for compatibility
   const cont=document.getElementById('calendario-content');
   cont.innerHTML='';
-  giornate.slice(0,8).forEach(g=>{
+  giornate.slice(0,20).forEach(g=>{
     const block=document.createElement('div');
     block.className='matchday-block';
-    block.innerHTML=`<div class="matchday-title">Giornata ${g}</div>`;
-    const gMatches=matches.filter(m=>m.giornata===g);
+    block.innerHTML=`<div class="matchday-title">📅 ${g}</div>`;
+    const gMatches=dateMap[g].sort((a,b)=>a.time>b.time?1:-1);
     gMatches.forEach(m=>{
       const home=getTeam(m.home),away=getTeam(m.away);
       const row=document.createElement('div');
@@ -2309,7 +2511,7 @@ function renderCalendario(){
             ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
           </div>
           <div><div class="match-team">${away?teamDisplay(away):'TBD'}</div>
-          <div class="match-info">${m.date} · ${m.time}</div></div>`;
+          <div class="match-info">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div></div>`;
       } else {
         const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
         const scoreStr = hasScore ? `${m.scoreHome}<span style="color:var(--muted);font-size:1.2rem;padding:0 4px;">—</span>${m.scoreAway}` : `<span style="color:var(--muted);font-size:1rem;">vs</span>`;
@@ -2334,13 +2536,13 @@ function renderCalendario(){
         row.innerHTML=`
           <div>
             <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
-            <div class="match-info" style="text-align:right">${m.date} · ${m.time}</div>
+            <div class="match-info" style="text-align:right">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div>
             ${homeEvents?`<div class="match-events-pub" style="text-align:right;">${homeEvents}</div>`:''}
           </div>
           <div class="score-display">${scoreStr}</div>
           <div>
             <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
-            <div class="match-info">${m.date} · ${m.time}</div>
+            <div class="match-info">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div>
             ${awayEvents?`<div class="match-events-pub">${awayEvents}</div>`:''}
           </div>`;
       }
@@ -2348,7 +2550,7 @@ function renderCalendario(){
     });
     cont.appendChild(block);
   });
-  if(giornate.length>8){
+  if(giornate.length>20){
     const more=document.createElement('div');
     more.style.cssText='text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;font-family:Oswald;letter-spacing:1px;';
     more.textContent=`... e altre ${giornate.length-8} giornate`;
@@ -3011,11 +3213,94 @@ function drawEventLine(ctx, text, x, y, align, maxW, color) {
 
 
 // ─── GENERA CALENDARIO ALGORITHM ──────────────────────────────────────────
+// ── CALENDARIO FISSO DA EXCEL ─────────────────────────────────────────────
+// 32 slot Maschile + 12 slot Femminile + fasi finali
+const SCHEDULE_M = [
+  {date:'26 Mag 2026', time:'20:00', field:'7'},
+  {date:'26 Mag 2026', time:'21:00', field:'7'},
+  {date:'26 Mag 2026', time:'22:00', field:'7'},
+  {date:'26 Mag 2026', time:'20:00', field:'11'},
+  {date:'27 Mag 2026', time:'20:00', field:'7'},
+  {date:'27 Mag 2026', time:'21:00', field:'7'},
+  {date:'27 Mag 2026', time:'22:00', field:'7'},
+  {date:'27 Mag 2026', time:'20:00', field:'11'},
+  {date:'28 Mag 2026', time:'20:00', field:'7'},
+  {date:'28 Mag 2026', time:'21:00', field:'7'},
+  {date:'28 Mag 2026', time:'22:00', field:'7'},
+  {date:'3 Giu 2026',  time:'20:00', field:'7'},
+  {date:'3 Giu 2026',  time:'21:00', field:'7'},
+  {date:'3 Giu 2026',  time:'22:00', field:'7'},
+  {date:'3 Giu 2026',  time:'20:00', field:'11'},
+  {date:'3 Giu 2026',  time:'22:00', field:'11'},
+  {date:'4 Giu 2026',  time:'20:00', field:'7'},
+  {date:'4 Giu 2026',  time:'21:00', field:'7'},
+  {date:'4 Giu 2026',  time:'22:00', field:'7'},
+  {date:'4 Giu 2026',  time:'20:00', field:'11'},
+  {date:'4 Giu 2026',  time:'22:00', field:'11'},
+  {date:'8 Giu 2026',  time:'20:00', field:'7'},
+  {date:'8 Giu 2026',  time:'21:00', field:'7'},
+  {date:'8 Giu 2026',  time:'22:00', field:'7'},
+  {date:'8 Giu 2026',  time:'20:00', field:'11'},
+  {date:'9 Giu 2026',  time:'20:00', field:'7'},
+  {date:'9 Giu 2026',  time:'21:00', field:'7'},
+  {date:'9 Giu 2026',  time:'22:00', field:'7'},
+  {date:'9 Giu 2026',  time:'20:00', field:'11'},
+  {date:'10 Giu 2026', time:'20:00', field:'7'},
+  {date:'10 Giu 2026', time:'21:00', field:'7'},
+  {date:'10 Giu 2026', time:'22:00', field:'7'},
+];
+const SCHEDULE_F = [
+  {date:'26 Mag 2026', time:'20:00', field:'11'},
+  {date:'26 Mag 2026', time:'21:00', field:'11'},
+  {date:'27 Mag 2026', time:'22:00', field:'11'},
+  {date:'27 Mag 2026', time:'20:00', field:'11'},
+  {date:'3 Giu 2026',  time:'21:00', field:'11'},
+  {date:'4 Giu 2026',  time:'21:00', field:'11'},
+  {date:'8 Giu 2026',  time:'21:00', field:'11'},
+  {date:'8 Giu 2026',  time:'22:00', field:'11'},
+  {date:'9 Giu 2026',  time:'21:00', field:'11'},
+  {date:'9 Giu 2026',  time:'22:00', field:'11'},
+  {date:'11 Giu 2026', time:'21:00', field:'11'},
+  {date:'11 Giu 2026', time:'22:00', field:'11'},
+];
+// Fasi finali maschile
+const SCHEDULE_M_PLAYOFF = {
+  ottavi: [
+    {date:'15 Giu 2026', time:'19:00', field:'7'},
+    {date:'15 Giu 2026', time:'20:00', field:'7'},
+    {date:'15 Giu 2026', time:'21:00', field:'7'},
+    {date:'15 Giu 2026', time:'22:00', field:'7'},
+  ],
+  quarti: [
+    {date:'17 Giu 2026', time:'21:00', field:'7'},
+    {date:'17 Giu 2026', time:'22:00', field:'7'},
+    {date:'18 Giu 2026', time:'21:00', field:'7'},
+    {date:'18 Giu 2026', time:'22:00', field:'7'},
+  ],
+  semi: [
+    {date:'23 Giu 2026', time:'21:00', field:'7'},
+    {date:'23 Giu 2026', time:'22:00', field:'7'},
+  ],
+  finale: [{date:'25 Giu 2026', time:'21:45', field:'7'}],
+};
+// Fasi finali femminile
+const SCHEDULE_F_PLAYOFF = {
+  semi: [
+    {date:'17 Giu 2026', time:'20:00', field:'7'},
+    {date:'18 Giu 2026', time:'20:00', field:'7'},
+  ],
+  finale: [{date:'25 Giu 2026', time:'21:00', field:'7'}],
+};
+
 let genDays = [
-  {date:'5 Lug 2025', startTime:'16:00'},
-  {date:'12 Lug 2025', startTime:'16:00'},
-  {date:'19 Lug 2025', startTime:'16:00'},
-  {date:'26 Lug 2025', startTime:'16:00'}
+  {date:'26 Mag 2026', startTime:'20:00'},
+  {date:'27 Mag 2026', startTime:'20:00'},
+  {date:'28 Mag 2026', startTime:'20:00'},
+  {date:'3 Giu 2026',  startTime:'20:00'},
+  {date:'4 Giu 2026',  startTime:'20:00'},
+  {date:'8 Giu 2026',  startTime:'20:00'},
+  {date:'9 Giu 2026',  startTime:'20:00'},
+  {date:'10 Giu 2026', startTime:'20:00'},
 ];
 let genPreviewMatches = [];
 
@@ -3204,62 +3489,105 @@ function buildFasciaMatchups(teams) {
 }
 
 function assignTimeslots(pairs, torneo) {
-  // Femminile: 3 giornate; Maschile: use configured days (default 4)
-  const giornate = torneo==='F' ? Math.min(3, genDays.length) : (genDays.length || 4);
-  const scheduled = [];
-  const teamDay = {}; // teamId -> set of giornata indices
+  // Uses fixed schedule SCHEDULE_M / SCHEDULE_F with constraints:
+  // - max 2 matches/week per team
+  // - no consecutive days
+  // - male teams: exactly 1 match on field 11
 
-  const shuffledPairs = shuffle(pairs);
-  
-  // Try to assign each pair to a giornata where neither team already plays
-  shuffledPairs.forEach(p => {
-    teamDay[p.home.id] = teamDay[p.home.id] || new Set();
-    teamDay[p.away.id] = teamDay[p.away.id] || new Set();
-  });
+  const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
+  const slots = [...schedule];
 
-  const slots = Array.from({length:giornate}, ()=>[]);
-  
-  shuffledPairs.forEach(p => {
-    // find first giornata where neither team is busy
-    let placed = false;
-    for(let g=0;g<giornate;g++){
-      if(!teamDay[p.home.id].has(g) && !teamDay[p.away.id].has(g)){
-        slots[g].push(p);
-        teamDay[p.home.id].add(g);
-        teamDay[p.away.id].add(g);
-        placed = true;
-        break;
+  function getWeek(dateStr) {
+    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
+    const parts = dateStr.split(' ');
+    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  }
+  function dateToNum(dateStr) {
+    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
+    const parts = dateStr.split(' ');
+    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
+    return d.getTime();
+  }
+
+  const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
+  const teamWeekCount = {};
+  const teamLastDay = {};
+  const teamField11Count = {};
+  allTeamIds.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; teamField11Count[id] = 0; });
+
+  const shuffledPairs = shuffle([...pairs]);
+  const assigned = new Array(slots.length).fill(null);
+  const usedPairs = new Set();
+
+  for (let si = 0; si < slots.length; si++) {
+    const slot = slots[si];
+    const slotWeek = getWeek(slot.date);
+    const slotDateNum = dateToNum(slot.date);
+
+    for (let pi = 0; pi < shuffledPairs.length; pi++) {
+      const pair = shuffledPairs[pi];
+      const key = pair.home.id + '_' + pair.away.id;
+      if (usedPairs.has(key)) continue;
+
+      const h = pair.home.id, a = pair.away.id;
+
+      if (torneo === 'M' && slot.field === '11') {
+        if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
       }
-    }
-    if(!placed) {
-      // fallback: put in least loaded giornata
-      const minIdx = slots.reduce((min,s,i)=>s.length<slots[min].length?i:min,0);
-      slots[minIdx].push(p);
-    }
-  });
 
-  // Build match objects with time slots — prefix with torneo to prevent ID collision
+      if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
+      if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
+
+      const ONE_DAY = 86400000;
+      if (teamLastDay[h] && (slotDateNum - teamLastDay[h]) <= ONE_DAY) continue;
+      if (teamLastDay[a] && (slotDateNum - teamLastDay[a]) <= ONE_DAY) continue;
+
+      assigned[si] = {pair, slot};
+      usedPairs.add(key);
+      if (!teamWeekCount[h]) teamWeekCount[h] = {};
+      if (!teamWeekCount[a]) teamWeekCount[a] = {};
+      teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
+      teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
+      teamLastDay[h] = slotDateNum;
+      teamLastDay[a] = slotDateNum;
+      if (torneo === 'M' && slot.field === '11') {
+        teamField11Count[h] = (teamField11Count[h]||0) + 1;
+        teamField11Count[a] = (teamField11Count[a]||0) + 1;
+      }
+      break;
+    }
+  }
+
+  // Fallback for remaining pairs
+  const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
+  let emptySlot = assigned.findIndex(a => a === null);
+  for (const pair of unassigned) {
+    if (emptySlot < 0) break;
+    const slot = slots[emptySlot];
+    assigned[emptySlot] = {pair, slot};
+    emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+  }
+
   let matchId = Date.now();
-  slots.forEach((dayPairs, gi) => {
-    const dayConf = genDays[gi] || {date:`Giornata ${gi+1}`, startTime:'16:00'};
-    let currentTime = dayConf.startTime || '16:00';
-    dayPairs.forEach(p => {
-      scheduled.push({
-        id: torneo + '_m' + (matchId++),
-        torneo,
-        giornata: gi+1,
-        home: p.home.id,
-        away: p.away.id,
-        fasciaTag: p.fasciaTag,
-        scoreHome: null, scoreAway: null,
-        goals:[], yellow:[], red:[],
-        date: dayConf.date || ('Giornata '+(gi+1)),
-        time: currentTime
-      });
-      currentTime = addMinutes(currentTime, 45);
+  const scheduled = [];
+  assigned.forEach(a => {
+    if (!a) return;
+    scheduled.push({
+      id: torneo + '_m' + (matchId++),
+      torneo,
+      giornata: scheduled.length + 1,
+      home: a.pair.home.id,
+      away: a.pair.away.id,
+      fasciaTag: a.pair.fasciaTag,
+      scoreHome: null, scoreAway: null,
+      goals:[], yellow:[], red:[],
+      date: a.slot.date,
+      time: a.slot.time,
+      field: a.slot.field
     });
   });
-
   return scheduled;
 }
 
@@ -3331,17 +3659,20 @@ function previewCalendario() {
     const fasciaColors = {f1:'gmp-f1',f2:'gmp-f2',f3:'gmp-f3',random:''};
     const fasciaLabel = {f1:'⭐⭐⭐ 1ª',f2:'⭐⭐ 2ª',f3:'⭐ 3ª',random:''};
 
-    const giornate = [...new Set(matches.map(m=>m.giornata))].sort((a,b)=>a-b);
+    // Group preview by date
+    function _pDNum(s){const mp={'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};const p=(s||'').split(' ');const d=new Date(parseInt(p[2]||2026),mp[p[1]]||0,parseInt(p[0]));return isNaN(d)?0:d.getTime();}
+    const dateGroups = {};
+    matches.forEach(m => { const k = m.date||('Partita '+m.giornata); if(!dateGroups[k]) dateGroups[k]=[]; dateGroups[k].push(m); });
+    const giornate = Object.keys(dateGroups).sort((a,b)=>_pDNum(a)-_pDNum(b));
     html += `<div style="margin-bottom:1.5rem;">
       <div style="font-family:Oswald;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;
         color:${tor==='M'?'var(--blue)':'var(--pink)'};margin-bottom:0.8rem;padding-bottom:6px;
         border-bottom:1px solid rgba(255,255,255,0.07);">${label} — ${matches.length} partite${tor==='F'?' · 3 giornate casuali':''}</div>`;
 
     giornate.forEach(g => {
-      const gMatches = matches.filter(m=>m.giornata===g);
-      const dayConf = genDays[g-1]||{};
+      const gMatches = dateGroups[g].sort((a,b) => a.time > b.time ? 1 : -1);
       html += `<div style="font-family:Oswald;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:8px 0 5px;">
-        Giornata ${g} — ${dayConf.date||''}</div>`;
+        📅 ${g}</div>`;
       gMatches.forEach(m => {
         const home = getTeam(m.home), away = getTeam(m.away);
         const cls = fasciaColors[m.fasciaTag]||'';
@@ -3351,6 +3682,7 @@ function previewCalendario() {
           <span class="gmp-vs">VS</span>
           <span class="gmp-team">${away?teamDisplay(away):'?'}</span>
           <span style="font-size:0.65rem;color:var(--muted);min-width:50px;text-align:right;">${fasciaLabel[m.fasciaTag]||''}</span>
+          <span style="font-size:0.65rem;color:rgba(59,139,212,0.8);min-width:55px;text-align:right;">🏟️ C.${m.field||'?'}</span>
         </div>`;
       });
     });
@@ -3572,9 +3904,14 @@ function autoUpdatePlayoff(torneo) {
   const prev = db.playoff[torneo] ? db.playoff[torneo].matches : [];
   const ex = (round, slot) => {
     const m = prev.find(x => x.round===round && x.slot===slot) || {};
+    // Use saved date/time if exists, else use schedule defaults
+    const schedM = SCHEDULE_M_PLAYOFF[round] && SCHEDULE_M_PLAYOFF[round][slot];
+    const schedF = SCHEDULE_F_PLAYOFF[round] && SCHEDULE_F_PLAYOFF[round][slot];
+    const sched = torneo === 'M' ? schedM : schedF;
     return { scoreHome: m.scoreHome!==undefined?m.scoreHome:null,
              scoreAway: m.scoreAway!==undefined?m.scoreAway:null,
-             date: m.date||'', time: m.time||'',
+             date: m.date||(sched?sched.date:''), time: m.time||(sched?sched.time:''),
+             field: m.field||(sched?sched.field:'7'),
              id: m.id || null };
   };
   const newId = (round, slot) => 'po_'+torneo+'_'+round+'_'+slot;
@@ -3593,7 +3930,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
         awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
     });
 
@@ -3607,7 +3944,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name : 'TBD',
         awayLabel: 'Vin. Play-In '+(slot+1),
         homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
     });
 
@@ -3619,7 +3956,7 @@ function autoUpdatePlayoff(torneo) {
         homeId:null, awayId:null,
         homeLabel:'Vin. Q'+(qa+1), awayLabel:'Vin. Q'+(qb+1),
         semiRef:[qa,qb],
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
     });
 
@@ -3633,7 +3970,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
         awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
     });
   }
@@ -3724,7 +4061,7 @@ function nbaMatchHtml(m, extraCls) {
   const aCls = aw?'winner':hw?'loser':isTbdA?'tbd':'';
   const sH = (m.scoreHome!==null && m.scoreHome!==undefined) ? m.scoreHome : '';
   const sA = (m.scoreAway!==null && m.scoreAway!==undefined) ? m.scoreAway : '';
-  const dateStr = [m.date, m.time].filter(Boolean).join(' · ') || '';
+  const dateStr = [m.date, m.time, m.field?'🏟️ C.'+m.field:null].filter(Boolean).join(' · ') || '';
   return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
       <span class="nba-seed">${m.homeSeed||''}</span>
@@ -3827,6 +4164,7 @@ function openPlayoffEdit(mid) {
   document.getElementById('po-sa').value         = m.scoreAway !== null ? m.scoreAway : '';
   document.getElementById('po-date').value       = m.date || '';
   document.getElementById('po-time').value       = m.time || '16:00';
+  const _poFieldEl = document.getElementById('po-field'); if(_poFieldEl) _poFieldEl.value = m.field || '7';
   document.getElementById('po-edit-home-label').textContent = m.homeLabel || 'Casa';
   document.getElementById('po-edit-away-label').textContent = m.awayLabel || 'Ospite';
   const roundNames = { ottavi:'Play-In', quarti:'Quarti di Finale',
@@ -3853,6 +4191,8 @@ function savePlayoffMatch() {
   }
   m.date = document.getElementById('po-date').value.trim();
   m.time = document.getElementById('po-time').value;
+  const poField = document.getElementById('po-field');
+  if (poField) m.field = poField.value.trim();
   resolvePlayoffLabels(torneo);
   saveToStorage();
   closeModal('playoffEditModal');
@@ -4592,7 +4932,7 @@ function tvRenderRisultati(torneo, containerId) {
   let html = '<div style="overflow-y:auto;flex:1;">';
   Object.keys(byG).sort((a,b) => +a - +b).forEach(g => {
     const gm = byG[g];
-    html += '<div style="font-size:0.8rem;letter-spacing:2px;color:rgba(245,197,24,0.5);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);">GRN ' + g + (gm[0].date ? ' · ' + gm[0].date.toUpperCase() : '') + '</div>';
+    html += '<div style="font-size:0.8rem;letter-spacing:2px;color:rgba(245,197,24,0.5);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);">GRN ' + g + (gm[0].date ? ' · ' + gm[0].date.toUpperCase() : '') + (gm[0].field ? ' · 🏟️ C.' + gm[0].field : '') + '</div>';
     gm.forEach(m => {
       const h = getTeam(m.home), a = getTeam(m.away);
       const hWin = m.scoreHome > m.scoreAway, aWin = m.scoreAway > m.scoreHome;
