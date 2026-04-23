@@ -1230,9 +1230,14 @@ body.admin-mode .delete-team-btn{display:block;}
       <div class="section-tag">📅 Programma & Risultati</div>
       <h2 class="section-title">Calendario & <em>Risultati</em></h2>
     </div>
-    <button class="gen-cal-btn" id="genCalBtn" onclick="startTVCalendarioMode()" title="Avvia presentazione TV del calendario">
-      📺 Presenta Calendario TV
-    </button>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
+      <button class="gen-cal-btn" id="genCalBtn" onclick="openGenCalModal()" title="Genera calendario automatico">
+        🎲 Genera Calendario
+      </button>
+      <button class="gen-cal-btn" onclick="startTVCalendarioMode()" title="Avvia presentazione TV del calendario" style="background:var(--blue);border-color:var(--blue);">
+        📺 Presenta Calendario TV
+      </button>
+    </div>
     <div class="t-switcher">
       <div class="t-tab active-m" id="cal-tab-m" onclick="switchCal('M',this)">♂ Maschile</div>
       <div class="t-tab" id="cal-tab-f" onclick="switchCal('F',this)">♀ Femminile</div>
