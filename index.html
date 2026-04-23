@@ -3587,12 +3587,11 @@ function buildFasciaMatchups(teams) {
 
 function assignTimeslots(pairs, torneo) {
   // Uses fixed schedule SCHEDULE_M / SCHEDULE_F with constraints:
+  // - Ogni squadra gioca 1 partita per giornata
   // - max 2 matches/week per team
   // - no consecutive days
   // - male teams: exactly 1 match on field 11
-  // - BILANCIAMENTO: ogni squadra gioca con lo stesso numero di partite
   // - MAX 1 PARTITA AL GIORNO per squadra
-  // - MAX 1 PARTITA PER GIORNATA per squadra (organizzato per giornate)
 
   const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
   const matchesPerGiornata = torneo === 'M' ? 8 : 4;
@@ -3621,7 +3620,6 @@ function assignTimeslots(pairs, torneo) {
   const teamWeekCount = {};
   const teamLastDay = {};
   const teamField11Count = {};
-  const teamMatchCount = {}; // BILANCIAMENTO: contatore totale partite
   const teamDayMatches = {}; // MAX 1 al giorno
   const teamGiornataMatches = {}; // MAX 1 per giornata
   
@@ -3629,7 +3627,6 @@ function assignTimeslots(pairs, torneo) {
     teamWeekCount[id] = {}; 
     teamLastDay[id] = 0; 
     teamField11Count[id] = 0;
-    teamMatchCount[id] = 0;
     teamDayMatches[id] = {};
     teamGiornataMatches[id] = {};
   });
@@ -3638,43 +3635,48 @@ function assignTimeslots(pairs, torneo) {
   const assigned = [];
   const usedPairs = new Set();
 
-  // Helper function: check if a team can play (balance rule)
-  function canTeamPlay(teamId) {
-    const currentCount = teamMatchCount[teamId] || 0;
-    const minCount = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
-    return currentCount <= minCount;
-  }
-
   // Assegna partite giornata per giornata
   let giornataNum = 1;
   for (const giornataSlots of giornate) {
-    let slotIndex = 0;
     
-    for (const slot of giornataSlots) {
+    // Per questa giornata, trova le partite valide
+    const validPairsForGiornata = [];
+    
+    for (const pair of shuffledPairs) {
+      const key = pair.home.id + '_' + pair.away.id;
+      if (usedPairs.has(key)) continue;
+
+      const h = pair.home.id, a = pair.away.id;
+
+      // REGOLA CRITICA: MAX 1 PARTITA PER GIORNATA
+      const hGiornataMatches = (teamGiornataMatches[h]||{})[giornataNum]||0;
+      const aGiornataMatches = (teamGiornataMatches[a]||{})[giornataNum]||0;
+      if (hGiornataMatches >= 1 || aGiornataMatches >= 1) continue;
+
+      // Questa coppia è valida per questa giornata
+      validPairsForGiornata.push(pair);
+    }
+    
+    // Ora assegna queste coppie agli slot della giornata
+    for (let slotIdx = 0; slotIdx < giornataSlots.length && validPairsForGiornata.length > 0; slotIdx++) {
+      const slot = giornataSlots[slotIdx];
       const slotWeek = getWeek(slot.date);
       const slotDateNum = dateToNum(slot.date);
       const slotDate = slot.date;
       
       let assigned_this_slot = false;
       
-      for (const pair of shuffledPairs) {
+      for (let pairIdx = 0; pairIdx < validPairsForGiornata.length; pairIdx++) {
+        const pair = validPairsForGiornata[pairIdx];
         const key = pair.home.id + '_' + pair.away.id;
         if (usedPairs.has(key)) continue;
 
         const h = pair.home.id, a = pair.away.id;
 
-        // REGOLA: MAX 1 PARTITA PER GIORNATA
-        const hGiornataMatches = (teamGiornataMatches[h]||{})[giornataNum]||0;
-        const aGiornataMatches = (teamGiornataMatches[a]||{})[giornataNum]||0;
-        if (hGiornataMatches >= 1 || aGiornataMatches >= 1) continue;
-
         // REGOLA: MAX 1 PARTITA AL GIORNO
         const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
         const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
         if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-
-        // REGOLA: BILANCIAMENTO
-        if (!canTeamPlay(h) || !canTeamPlay(a)) continue;
 
         // Campo 11 constraint
         if (torneo === 'M' && slot.field === '11') {
@@ -3700,8 +3702,6 @@ function assignTimeslots(pairs, torneo) {
         teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
         teamLastDay[h] = slotDateNum;
         teamLastDay[a] = slotDateNum;
-        teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
-        teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
         
         // Aggiorna contatori giornata e giorno
         if (!teamGiornataMatches[h]) teamGiornataMatches[h] = {};
@@ -3720,19 +3720,47 @@ function assignTimeslots(pairs, torneo) {
         }
         
         assigned_this_slot = true;
+        validPairsForGiornata.splice(pairIdx, 1); // Rimuovi dalla lista
         break;
       }
-      
-      slotIndex++;
     }
     
     giornataNum++;
   }
 
-  // Fallback per partite rimanenti (rilassato)
+  // Fallback per partite rimanenti (rilassato - senza vincolo di giornata)
   const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
   if (unassigned.length > 0) {
-    console.warn(`${unassigned.length} partite non assegnate con le regole strette`);
+    console.warn(`${unassigned.length} partite non assegnate con le regole strette, tentativo fallback...`);
+    
+    // Prova ad assegnare alle giornate successive senza vincoli troppo stretti
+    for (const pair of unassigned) {
+      for (let gNum = 1; gNum <= giornate.length; gNum++) {
+        if (usedPairs.has(pair.home.id + '_' + pair.away.id)) break;
+        
+        const giornataSlots = giornate[gNum - 1];
+        if (!giornataSlots) continue;
+        
+        for (const slot of giornataSlots) {
+          const h = pair.home.id, a = pair.away.id;
+          
+          // Verifica solo che non abbiano già giocato in questa giornata
+          const hGiornataMatches = (teamGiornataMatches[h]||{})[gNum]||0;
+          const aGiornataMatches = (teamGiornataMatches[a]||{})[gNum]||0;
+          if (hGiornataMatches >= 1 || aGiornataMatches >= 1) continue;
+          
+          assigned.push({pair, slot, giornata: gNum});
+          usedPairs.add(pair.home.id + '_' + pair.away.id);
+          
+          if (!teamGiornataMatches[h]) teamGiornataMatches[h] = {};
+          if (!teamGiornataMatches[a]) teamGiornataMatches[a] = {};
+          teamGiornataMatches[h][gNum] = (teamGiornataMatches[h][gNum]||0) + 1;
+          teamGiornataMatches[a][gNum] = (teamGiornataMatches[a][gNum]||0) + 1;
+          
+          break;
+        }
+      }
+    }
   }
 
   let matchId = Date.now();
