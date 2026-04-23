@@ -3691,11 +3691,11 @@ function assignTimeslots(pairs, torneo) {
 
 // ─── FEMMINILE: random matchups, no repeats, 3 giornate ───────────────────
 function buildRandomMatchups(teams) {
-  // Round-robin style but stop after enough pairs for 3 giornate
-  // With N teams: N/2 matches per giornata × 3 giornate = N*3/2 total matches
-  // Each team plays 3 matches (one per giornata)
+  // Round-robin style but stop after enough pairs for 4 giornate
+  // With N teams: N/2 matches per giornata × 4 giornate = N*4/2 = N*2 total matches
+  // Each team plays 4 matches (one per giornata)
   const n = teams.length;
-  const maxMatchesPerTeam = 3; // 3 giornate
+  const maxMatchesPerTeam = 4; // 4 giornate
   const pairSet = new Set();
   const matchCount = {};
   teams.forEach(t => matchCount[t.id] = 0);
@@ -3704,7 +3704,7 @@ function buildRandomMatchups(teams) {
   // Shuffle teams for randomness
   const shuffled = shuffle([...teams]);
 
-  // Try to build pairs where each team plays exactly 3 times and no repeat opponents
+  // Try to build pairs where each team plays exactly 4 times and no repeat opponents
   let attempts = 0;
   while (attempts < 1000) {
     attempts++;
@@ -3764,7 +3764,7 @@ function previewCalendario() {
     html += `<div style="margin-bottom:1.5rem;">
       <div style="font-family:Oswald;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;
         color:${tor==='M'?'var(--blue)':'var(--pink)'};margin-bottom:0.8rem;padding-bottom:6px;
-        border-bottom:1px solid rgba(255,255,255,0.07);">${label} — ${matches.length} partite${tor==='F'?' · 3 giornate casuali':''}</div>`;
+        border-bottom:1px solid rgba(255,255,255,0.07);">${label} — ${matches.length} partite · 4 giornate</div>`;
 
     giornate.forEach(g => {
       const gMatches = dateGroups[g].sort((a,b) => a.time > b.time ? 1 : -1);
