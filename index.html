@@ -1230,14 +1230,9 @@ body.admin-mode .delete-team-btn{display:block;}
       <div class="section-tag">📅 Programma & Risultati</div>
       <h2 class="section-title">Calendario & <em>Risultati</em></h2>
     </div>
-    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
-      <button class="gen-cal-btn" id="genCalBtn" onclick="openGenCalModal()" title="Genera calendario automatico">
-        🎲 Genera Calendario
-      </button>
-      <button class="gen-cal-btn" onclick="startTVCalendarioMode()" title="Avvia presentazione TV del calendario" style="background:var(--blue);border-color:var(--blue);">
-        📺 Presenta Calendario TV
-      </button>
-    </div>
+    <button class="gen-cal-btn" id="genCalBtn" onclick="openGenCalModal()" title="Genera calendario automatico e avvia presentazione TV">
+      🎲 Genera Calendario
+    </button>
     <div class="t-switcher">
       <div class="t-tab active-m" id="cal-tab-m" onclick="switchCal('M',this)">♂ Maschile</div>
       <div class="t-tab" id="cal-tab-f" onclick="switchCal('F',this)">♀ Femminile</div>
@@ -3750,7 +3745,12 @@ function confirmGenerateCalendario() {
   closeModal('genCalModal');
   saveToStorage();
   renderAll();
-  showToast('✅ Calendario pubblicato! Classifica e playoff azzerati.');
+  showToast('✅ Calendario pubblicato! Avvio presentazione TV...');
+  
+  // Avvia automaticamente la presentazione TV dopo 1 secondo
+  setTimeout(() => {
+    startTVCalendarioMode();
+  }, 1000);
 }
 
 
@@ -5147,10 +5147,13 @@ function startTVCalendarioMode() {
   // Avvia lo scorrimento automatico ogni 4 secondi
   tvCalendarioInterval = setInterval(() => {
     tvCalendarioCurrentIndex++;
+    
+    // Se abbiamo finito tutte le partite, termina la presentazione
     if (tvCalendarioCurrentIndex >= tvCalendarioMatches.length) {
-      // Ricomincia dal primo
-      tvCalendarioCurrentIndex = 0;
+      exitTVCalendarioMode();
+      return;
     }
+    
     showTVCalendarioMatch();
   }, 4000);
 }
@@ -5212,6 +5215,9 @@ function exitTVCalendarioMode() {
   document.body.style.overflow = '';
   tvCalendarioMatches = [];
   tvCalendarioCurrentIndex = 0;
+  
+  // Ricarica il calendario dopo la chiusura
+  renderAll();
 }
 
 function formatDateITA(dateStr) {
