@@ -1916,16 +1916,28 @@ function genMatches() {
     const teamWeekCount = {};      // teamId -> {week -> count}
     const teamLastDay = {};        // teamId -> last dateNum played
     const teamField11Count = {};   // teamId -> count of field-11 matches
+    const teamMatchCount = {};     // teamId -> total match count (NUOVA REGOLA)
     mTeams.forEach(id => {
       teamWeekCount[id] = {};
       teamLastDay[id] = 0;
       teamField11Count[id] = 0;
+      teamMatchCount[id] = 0;
     });
 
     // Shuffle pairs for randomness, but keep field-11 constraint in mind
     const shuffled = [...pairs].sort(() => Math.random() - 0.5);
     const assigned = new Array(slots.length).fill(null);
     const usedPairs = new Set();
+
+    // Helper function: check if a team can play (balance rule)
+    function canTeamPlay(teamId) {
+      const currentCount = teamMatchCount[teamId] || 0;
+      // Find the minimum match count across all teams
+      const minCount = Math.min(...mTeams.map(id => teamMatchCount[id] || 0));
+      // A team can play if its count is equal to minCount (everyone plays equally)
+      // or if it's only 1 behind minCount
+      return currentCount <= minCount;
+    }
 
     // First pass: assign pairs to slots respecting all constraints
     // We try slot-by-slot and pick best valid pair
@@ -1941,6 +1953,9 @@ function genMatches() {
         if (usedPairs.has(key)) continue;
 
         const h = pair.home, a = pair.away;
+
+        // NUOVA REGOLA: Balance check - both teams must be eligible to play
+        if (!canTeamPlay(h) || !canTeamPlay(a)) continue;
 
         // Field 11 constraint: if this slot is field 11,
         // skip if either team already has a field-11 match
@@ -1971,6 +1986,8 @@ function genMatches() {
         teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
         teamLastDay[h] = slotDateNum;
         teamLastDay[a] = slotDateNum;
+        teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
+        teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
         if (slot.field === '11') {
           teamField11Count[h] = (teamField11Count[h]||0) + 1;
           teamField11Count[a] = (teamField11Count[a]||0) + 1;
@@ -2016,11 +2033,23 @@ function genMatches() {
     const slots = [...SCHEDULE_F]; // 12 slots
     const teamWeekCount = {};
     const teamLastDay = {};
-    fTeams.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
+    const teamMatchCount = {}; // NUOVA REGOLA
+    fTeams.forEach(id => { 
+      teamWeekCount[id] = {}; 
+      teamLastDay[id] = 0;
+      teamMatchCount[id] = 0;
+    });
 
     const shuffled = [...pairs].sort(() => Math.random() - 0.5);
     const assigned = new Array(slots.length).fill(null);
     const usedPairs = new Set();
+
+    // Helper function: check if a team can play (balance rule)
+    function canTeamPlay(teamId) {
+      const currentCount = teamMatchCount[teamId] || 0;
+      const minCount = Math.min(...fTeams.map(id => teamMatchCount[id] || 0));
+      return currentCount <= minCount;
+    }
 
     for (let si = 0; si < slots.length; si++) {
       const slot = slots[si];
@@ -2033,6 +2062,10 @@ function genMatches() {
         if (usedPairs.has(key)) continue;
 
         const h = pair.home, a = pair.away;
+        
+        // NUOVA REGOLA: Balance check
+        if (!canTeamPlay(h) || !canTeamPlay(a)) continue;
+        
         const hWeekMatches = (teamWeekCount[h]||{})[slotWeek]||0;
         const aWeekMatches = (teamWeekCount[a]||{})[slotWeek]||0;
         if (hWeekMatches >= 2 || aWeekMatches >= 2) continue;
@@ -2051,6 +2084,8 @@ function genMatches() {
         teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
         teamLastDay[h] = slotDateNum;
         teamLastDay[a] = slotDateNum;
+        teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
+        teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
         break;
       }
     }
@@ -4909,7 +4944,6 @@ function tvRenderStandings(torneo, containerId) {
     if (torneo === 'F') return i <= 3 ? 'tv-zona-q' : 'tv-zona-e';
     if (i <= 3) return 'tv-zona-q'; if (i <= 11) return 'tv-zona-p'; return 'tv-zona-e';
   }
-  const posIcons = ['🥇','🥈','🥉'];
 
   // Compact table: #, Squadra, G (giocate), Pts, DR
   let t = '<table class="tv-standings-table tv-compact">'
@@ -4921,7 +4955,7 @@ function tvRenderStandings(torneo, containerId) {
     const logo = team && team.logo ? '<img src="' + team.logo + '" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:3px;">' : '';
     const dr = r.GF - r.GA;
     t += '<tr class="' + getZone(i) + '">'
-       + '<td style="font-size:1.1rem;">' + (posIcons[i] || (i+1)) + '</td>'
+       + '<td style="font-size:1.1rem;">' + (i+1) + '</td>'
        + '<td style="font-size:1.25rem;">' + logo + r.name + '</td>'
        + '<td>' + r.G + '</td>'
        + '<td style="color:' + (dr > 0 ? '#3ecf5e' : dr < 0 ? 'var(--red)' : 'var(--muted)') + '">' + (dr > 0 ? '+' : '') + dr + '</td>'
