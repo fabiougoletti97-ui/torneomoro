@@ -5096,42 +5096,40 @@ function startTVCalendarioMode() {
   tvCalendarioMatches = [];
   
   // Partite maschili
-  if (db.matchesM && db.matchesM.length) {
-    db.matchesM.forEach(match => {
-      const teamHome = db.teamsM.find(t => t.id === match.teamHomeId);
-      const teamAway = db.teamsM.find(t => t.id === match.teamAwayId);
-      if (teamHome && teamAway) {
-        tvCalendarioMatches.push({
-          tournament: 'MASCHILE',
-          tournamentClass: 'maschile',
-          date: match.date,
-          teamHome: teamHome.name,
-          teamAway: teamAway.name,
-          scoreHome: match.scoreHome,
-          scoreAway: match.scoreAway
-        });
-      }
-    });
-  }
+  const matchesM = db.matches.filter(m => m.torneo === 'M');
+  matchesM.forEach(match => {
+    const teamHome = db.teamsM.find(t => t.id === match.home);
+    const teamAway = db.teamsM.find(t => t.id === match.away);
+    if (teamHome && teamAway) {
+      tvCalendarioMatches.push({
+        tournament: 'MASCHILE',
+        tournamentClass: 'maschile',
+        date: match.date,
+        teamHome: teamHome.name,
+        teamAway: teamAway.name,
+        scoreHome: match.scoreHome,
+        scoreAway: match.scoreAway
+      });
+    }
+  });
   
   // Partite femminili
-  if (db.matchesF && db.matchesF.length) {
-    db.matchesF.forEach(match => {
-      const teamHome = db.teamsF.find(t => t.id === match.teamHomeId);
-      const teamAway = db.teamsF.find(t => t.id === match.teamAwayId);
-      if (teamHome && teamAway) {
-        tvCalendarioMatches.push({
-          tournament: 'FEMMINILE',
-          tournamentClass: 'femminile',
-          date: match.date,
-          teamHome: teamHome.name,
-          teamAway: teamAway.name,
-          scoreHome: match.scoreHome,
-          scoreAway: match.scoreAway
-        });
-      }
-    });
-  }
+  const matchesF = db.matches.filter(m => m.torneo === 'F');
+  matchesF.forEach(match => {
+    const teamHome = db.teamsF.find(t => t.id === match.home);
+    const teamAway = db.teamsF.find(t => t.id === match.away);
+    if (teamHome && teamAway) {
+      tvCalendarioMatches.push({
+        tournament: 'FEMMINILE',
+        tournamentClass: 'femminile',
+        date: match.date,
+        teamHome: teamHome.name,
+        teamAway: teamAway.name,
+        scoreHome: match.scoreHome,
+        scoreAway: match.scoreAway
+      });
+    }
+  });
   
   if (tvCalendarioMatches.length === 0) {
     alert('Nessuna partita in calendario da mostrare');
