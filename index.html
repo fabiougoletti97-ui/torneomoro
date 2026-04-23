@@ -1916,12 +1916,14 @@ function genMatches() {
     const teamWeekCount = {};      // teamId -> {week -> count}
     const teamLastDay = {};        // teamId -> last dateNum played
     const teamField11Count = {};   // teamId -> count of field-11 matches
-    const teamMatchCount = {};     // teamId -> total match count (NUOVA REGOLA)
+    const teamMatchCount = {};     // teamId -> total match count (REGOLA BILANCIAMENTO)
+    const teamDayMatches = {};     // teamId -> {date -> count} (NUOVA REGOLA: max 1/giorno)
     mTeams.forEach(id => {
       teamWeekCount[id] = {};
       teamLastDay[id] = 0;
       teamField11Count[id] = 0;
       teamMatchCount[id] = 0;
+      teamDayMatches[id] = {};
     });
 
     // Shuffle pairs for randomness, but keep field-11 constraint in mind
@@ -1945,6 +1947,7 @@ function genMatches() {
       const slot = slots[si];
       const slotWeek = getWeek(slot.date);
       const slotDateNum = dateToNum(slot.date);
+      const slotDate = slot.date; // Data completa (es. "2024-05-15")
 
       // Find a valid pair for this slot
       for (let pi = 0; pi < shuffled.length; pi++) {
@@ -1954,7 +1957,12 @@ function genMatches() {
 
         const h = pair.home, a = pair.away;
 
-        // NUOVA REGOLA: Balance check - both teams must be eligible to play
+        // NUOVA REGOLA: Nessuna squadra può giocare più di 1 partita nello stesso giorno
+        const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+        const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+        if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+
+        // REGOLA BILANCIAMENTO: Balance check - both teams must be eligible to play
         if (!canTeamPlay(h) || !canTeamPlay(a)) continue;
 
         // Field 11 constraint: if this slot is field 11,
@@ -1988,6 +1996,11 @@ function genMatches() {
         teamLastDay[a] = slotDateNum;
         teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
         teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
+        // Aggiorna conteggio partite per giorno
+        if (!teamDayMatches[h]) teamDayMatches[h] = {};
+        if (!teamDayMatches[a]) teamDayMatches[a] = {};
+        teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
+        teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
         if (slot.field === '11') {
           teamField11Count[h] = (teamField11Count[h]||0) + 1;
           teamField11Count[a] = (teamField11Count[a]||0) + 1;
@@ -2033,11 +2046,13 @@ function genMatches() {
     const slots = [...SCHEDULE_F]; // 12 slots
     const teamWeekCount = {};
     const teamLastDay = {};
-    const teamMatchCount = {}; // NUOVA REGOLA
+    const teamMatchCount = {}; // REGOLA BILANCIAMENTO
+    const teamDayMatches = {}; // NUOVA REGOLA: max 1/giorno
     fTeams.forEach(id => { 
       teamWeekCount[id] = {}; 
       teamLastDay[id] = 0;
       teamMatchCount[id] = 0;
+      teamDayMatches[id] = {};
     });
 
     const shuffled = [...pairs].sort(() => Math.random() - 0.5);
@@ -2055,6 +2070,7 @@ function genMatches() {
       const slot = slots[si];
       const slotWeek = getWeek(slot.date);
       const slotDateNum = dateToNum(slot.date);
+      const slotDate = slot.date; // Data completa
 
       for (let pi = 0; pi < shuffled.length; pi++) {
         const pair = shuffled[pi];
@@ -2063,7 +2079,12 @@ function genMatches() {
 
         const h = pair.home, a = pair.away;
         
-        // NUOVA REGOLA: Balance check
+        // NUOVA REGOLA: Nessuna squadra può giocare più di 1 partita nello stesso giorno
+        const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+        const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+        if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+        
+        // REGOLA BILANCIAMENTO: Balance check
         if (!canTeamPlay(h) || !canTeamPlay(a)) continue;
         
         const hWeekMatches = (teamWeekCount[h]||{})[slotWeek]||0;
@@ -2086,6 +2107,11 @@ function genMatches() {
         teamLastDay[a] = slotDateNum;
         teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
         teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
+        // Aggiorna conteggio partite per giorno
+        if (!teamDayMatches[h]) teamDayMatches[h] = {};
+        if (!teamDayMatches[a]) teamDayMatches[a] = {};
+        teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
+        teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
         break;
       }
     }
@@ -2535,24 +2561,28 @@ function addPlayer(){
 // ─── CALENDARIO ────────────────────────────────────────────────────────────
 function renderCalendario(){
   const matches=db.matches.filter(m=>m.torneo===curCal);
-  // Group by date (from fixed schedule)
-  const dateMap = {};
-  matches.forEach(m => {
-    const key = m.date || ('Giornata '+m.giornata);
-    if (!dateMap[key]) dateMap[key] = [];
-    dateMap[key].push(m);
+  const matchesPerGiornata = curCal === 'M' ? 8 : 4; // 8 partite per giornata maschile, 4 per femminile
+  
+  // Group by giornata (round number)
+  const giornateMap = {};
+  matches.forEach((m, idx) => {
+    // Calcola il numero di giornata basato sull'indice: ogni N partite = 1 giornata
+    const giornataNum = Math.floor(idx / matchesPerGiornata) + 1;
+    if (!giornateMap[giornataNum]) giornateMap[giornataNum] = [];
+    giornateMap[giornataNum].push(m);
   });
-  // Sort dates chronologically using dateToNum
-  function _dNum(s){const mp={'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};const p=s.split(' ');const d=new Date(parseInt(p[2]||2026),mp[p[1]]||0,parseInt(p[0]));return isNaN(d)?0:d.getTime();}
-  const sortedDates = Object.keys(dateMap).sort((a,b)=>_dNum(a)-_dNum(b));
-  const giornate = sortedDates; // repurpose variable for compatibility
+  
+  const sortedGiornate = Object.keys(giornateMap).sort((a,b) => parseInt(a) - parseInt(b));
   const cont=document.getElementById('calendario-content');
   cont.innerHTML='';
-  giornate.slice(0,20).forEach(g=>{
+  
+  sortedGiornate.forEach(gNum => {
+    const gMatches = giornateMap[gNum];
+    
     const block=document.createElement('div');
     block.className='matchday-block';
-    block.innerHTML=`<div class="matchday-title">📅 ${g}</div>`;
-    const gMatches=dateMap[g].sort((a,b)=>a.time>b.time?1:-1);
+    block.innerHTML=`<div class="matchday-title">⚽ GIORNATA ${gNum}</div>`;
+    
     gMatches.forEach(m=>{
       const home=getTeam(m.home),away=getTeam(m.away);
       const row=document.createElement('div');
@@ -2617,10 +2647,10 @@ function renderCalendario(){
     });
     cont.appendChild(block);
   });
-  if(giornate.length>20){
+  if(sortedGiornate.length>10){
     const more=document.createElement('div');
     more.style.cssText='text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;font-family:Oswald;letter-spacing:1px;';
-    more.textContent=`... e altre ${giornate.length-8} giornate`;
+    more.textContent=`... e altre ${sortedGiornate.length-10} giornate`;
     cont.appendChild(more);
   }
 }
@@ -5124,6 +5154,8 @@ function tvRenderSponsors() {
 let tvCalendarioInterval = null;
 let tvCalendarioCurrentIndex = 0;
 let tvCalendarioMatches = [];
+let tvCalendarioCurrentGiornata = 1;
+let tvCalendarioInPause = false;
 
 function startTVCalendarioMode() {
   const overlay = document.getElementById('tvCalendarioOverlay');
@@ -5132,41 +5164,56 @@ function startTVCalendarioMode() {
   // Raccogli tutte le partite: prima maschili, poi femminili
   tvCalendarioMatches = [];
   
-  // Partite maschili
+  // Partite maschili organizzate per giornate (8 partite per giornata)
   const matchesM = db.matches.filter(m => m.torneo === 'M');
-  matchesM.forEach(match => {
-    const teamHome = db.teams.find(t => t.id === match.home);
-    const teamAway = db.teams.find(t => t.id === match.away);
-    if (teamHome && teamAway) {
-      tvCalendarioMatches.push({
-        tournament: 'MASCHILE',
-        tournamentClass: 'maschile',
-        date: match.date,
-        teamHome: teamHome.name,
-        teamAway: teamAway.name,
-        scoreHome: match.scoreHome,
-        scoreAway: match.scoreAway
-      });
-    }
-  });
+  const giornateM = [];
+  for (let i = 0; i < matchesM.length; i += 8) {
+    giornateM.push({
+      numero: Math.floor(i / 8) + 1,
+      torneo: 'MASCHILE',
+      tournamentClass: 'maschile',
+      partite: matchesM.slice(i, i + 8).map(match => {
+        const teamHome = db.teams.find(t => t.id === match.home);
+        const teamAway = db.teams.find(t => t.id === match.away);
+        return {
+          date: match.date,
+          time: match.time,
+          field: match.field,
+          teamHome: teamHome ? teamHome.name : 'TBD',
+          teamAway: teamAway ? teamAway.name : 'TBD',
+          scoreHome: match.scoreHome,
+          scoreAway: match.scoreAway
+        };
+      })
+    });
+  }
   
-  // Partite femminili
+  // Partite femminili organizzate per giornate (4 partite per giornata)
   const matchesF = db.matches.filter(m => m.torneo === 'F');
-  matchesF.forEach(match => {
-    const teamHome = db.teams.find(t => t.id === match.home);
-    const teamAway = db.teams.find(t => t.id === match.away);
-    if (teamHome && teamAway) {
-      tvCalendarioMatches.push({
-        tournament: 'FEMMINILE',
-        tournamentClass: 'femminile',
-        date: match.date,
-        teamHome: teamHome.name,
-        teamAway: teamAway.name,
-        scoreHome: match.scoreHome,
-        scoreAway: match.scoreAway
-      });
-    }
-  });
+  const giornateF = [];
+  for (let i = 0; i < matchesF.length; i += 4) {
+    giornateF.push({
+      numero: Math.floor(i / 4) + 1,
+      torneo: 'FEMMINILE',
+      tournamentClass: 'femminile',
+      partite: matchesF.slice(i, i + 4).map(match => {
+        const teamHome = db.teams.find(t => t.id === match.home);
+        const teamAway = db.teams.find(t => t.id === match.away);
+        return {
+          date: match.date,
+          time: match.time,
+          field: match.field,
+          teamHome: teamHome ? teamHome.name : 'TBD',
+          teamAway: teamAway ? teamAway.name : 'TBD',
+          scoreHome: match.scoreHome,
+          scoreAway: match.scoreAway
+        };
+      })
+    });
+  }
+  
+  // Combina: prima tutte le giornate maschili, poi tutte le femminili
+  tvCalendarioMatches = [...giornateM, ...giornateF];
   
   if (tvCalendarioMatches.length === 0) {
     alert('Nessuna partita in calendario da mostrare');
@@ -5174,52 +5221,86 @@ function startTVCalendarioMode() {
   }
   
   tvCalendarioCurrentIndex = 0;
+  tvCalendarioCurrentGiornata = 0;
+  tvCalendarioInPause = false;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   
-  // Aggiorna l'header per mostrare entrambi i tornei
-  const tournamentLabel = document.getElementById('tvCalendarioTournament');
-  tournamentLabel.textContent = '♂ MASCHILE + ♀ FEMMINILE';
-  tournamentLabel.className = 'tv-cal-tournament';
-  
-  // Pulisci il contenitore
-  const content = document.getElementById('tvCalendarioContent');
-  content.innerHTML = '';
-  
-  // Mostra la prima partita
-  addNextMatch();
-  
-  // Aggiungi una partita ogni 2 secondi
-  tvCalendarioInterval = setInterval(() => {
-    addNextMatch();
-  }, 2000);
+  // Inizia a mostrare la prima giornata
+  startNewGiornata();
 }
 
-function addNextMatch() {
-  const content = document.getElementById('tvCalendarioContent');
-  const progress = document.getElementById('tvCalendarioProgress');
-  
-  if (!content || tvCalendarioCurrentIndex >= tvCalendarioMatches.length) {
-    // Tutte le partite sono state mostrate
-    if (tvCalendarioInterval) {
-      clearInterval(tvCalendarioInterval);
-      tvCalendarioInterval = null;
-    }
+function startNewGiornata() {
+  if (tvCalendarioCurrentGiornata >= tvCalendarioMatches.length) {
+    // Tutte le giornate sono finite
+    const progress = document.getElementById('tvCalendarioProgress');
     if (progress) {
-      progress.textContent = 'CALENDARIO COMPLETO - ' + tvCalendarioMatches.length + ' PARTITE';
+      progress.textContent = 'CALENDARIO COMPLETO';
     }
     return;
   }
   
-  const match = tvCalendarioMatches[tvCalendarioCurrentIndex];
+  const giornata = tvCalendarioMatches[tvCalendarioCurrentGiornata];
+  const content = document.getElementById('tvCalendarioContent');
+  const tournamentLabel = document.getElementById('tvCalendarioTournament');
+  const progress = document.getElementById('tvCalendarioProgress');
+  
+  // Aggiorna l'header
+  tournamentLabel.textContent = `${giornata.torneo} - GIORNATA ${giornata.numero}`;
+  tournamentLabel.className = 'tv-cal-tournament ' + giornata.tournamentClass;
+  
+  // Pulisci il contenuto
+  content.innerHTML = '';
   
   // Aggiorna progress
   if (progress) {
-    progress.textContent = 'PARTITA ' + (tvCalendarioCurrentIndex + 1) + ' DI ' + tvCalendarioMatches.length;
+    progress.textContent = `GIORNATA ${tvCalendarioCurrentGiornata + 1} DI ${tvCalendarioMatches.length}`;
   }
+  
+  // Inizia ad aggiungere partite una al secondo
+  tvCalendarioCurrentIndex = 0;
+  tvCalendarioInterval = setInterval(() => {
+    addNextMatchInGiornata();
+  }, 1000); // 1 secondo per partita
+}
+
+function addNextMatchInGiornata() {
+  const giornata = tvCalendarioMatches[tvCalendarioCurrentGiornata];
+  const content = document.getElementById('tvCalendarioContent');
+  
+  if (tvCalendarioCurrentIndex >= giornata.partite.length) {
+    // Tutte le partite della giornata sono state mostrate
+    clearInterval(tvCalendarioInterval);
+    tvCalendarioInterval = null;
+    
+    // Pausa di 15 secondi prima della prossima giornata
+    tvCalendarioInPause = true;
+    const progress = document.getElementById('tvCalendarioProgress');
+    let countdown = 15;
+    
+    const pauseInterval = setInterval(() => {
+      countdown--;
+      if (progress) {
+        progress.textContent = `PROSSIMA GIORNATA TRA ${countdown} SECONDI...`;
+      }
+      
+      if (countdown <= 0) {
+        clearInterval(pauseInterval);
+        tvCalendarioInPause = false;
+        tvCalendarioCurrentGiornata++;
+        startNewGiornata();
+      }
+    }, 1000);
+    
+    return;
+  }
+  
+  const match = giornata.partite[tvCalendarioCurrentIndex];
   
   // Formatta data
   const dateStr = match.date ? formatDateITA(match.date) : 'Data da definire';
+  const timeStr = match.time || '--:--';
+  const fieldStr = match.field ? `C.${match.field}` : '';
   
   // Determina cosa mostrare al centro
   let centerContent = '<span class="tv-match-vs">VS</span>';
@@ -5229,9 +5310,9 @@ function addNextMatch() {
   
   // Crea elemento della partita
   const matchDiv = document.createElement('div');
-  matchDiv.className = 'tv-match-display ' + match.tournamentClass;
+  matchDiv.className = 'tv-match-display ' + giornata.tournamentClass;
   matchDiv.innerHTML = `
-    <div class="tv-match-date">${match.tournament} - ${dateStr}</div>
+    <div class="tv-match-date">${dateStr} · ${timeStr}${fieldStr ? ' · ' + fieldStr : ''}</div>
     <div class="tv-match-teams">
       <div class="tv-match-team tv-match-team-home">${match.teamHome}</div>
       ${centerContent}
@@ -5252,10 +5333,6 @@ function addNextMatch() {
   tvCalendarioCurrentIndex++;
 }
 
-function showTVCalendarioMatch() {
-  // Funzione deprecata - ora usiamo addNextMatch
-}
-
 function exitTVCalendarioMode() {
   const overlay = document.getElementById('tvCalendarioOverlay');
   if (!overlay) return;
@@ -5269,6 +5346,8 @@ function exitTVCalendarioMode() {
   document.body.style.overflow = '';
   tvCalendarioMatches = [];
   tvCalendarioCurrentIndex = 0;
+  tvCalendarioCurrentGiornata = 0;
+  tvCalendarioInPause = false;
   
   // Ricarica il calendario dopo la chiusura
   renderAll();
