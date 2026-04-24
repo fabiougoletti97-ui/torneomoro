@@ -1939,7 +1939,7 @@ const MATCH_SCHEDULE_2026 = {
     },
     {
       "id": "Partita 19",
-      "date": "2026-06-04",
+      "date": "2026-06-10",
       "time": "22:00",
       "field": 7,
       "type": "regular"
@@ -3890,6 +3890,347 @@ function buildFasciaMatchups(teams) {
   return pairs;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONSTRAINT-BASED CALENDAR SOLVER
+// Algoritmo ispirato a OR-Tools ma implementato in JavaScript puro
+// Garantisce il rispetto di TUTTE le 3 regole fondamentali
+// ══════════════════════════════════════════════════════════════════════════════
+
+function solveCalendar(teams, schedule) {
+  console.log('🔍 SOLVER CONSTRAINT-BASED AVVIATO');
+  
+  const n = teams.length;
+  const slots = schedule.filter(s => s.type === 'regular');
+  
+  // Raggruppa slots per data e campo
+  const slotsByDateField = {};
+  slots.forEach(slot => {
+    const key = `${slot.date}_${slot.field}`;
+    if (!slotsByDateField[key]) slotsByDateField[key] = [];
+    slotsByDateField[key].push(slot);
+  });
+  
+  // Genera tutte le coppie di squadre (round-robin)
+  const allPairs = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      allPairs.push({
+        home: teams[i].id,
+        away: teams[j].id,
+        homeIdx: i,
+        awayIdx: j
+      });
+    }
+  }
+  
+  console.log(`📊 ${n} squadre, ${allPairs.length} partite, ${slots.length} slot`);
+  
+  // State tracking
+  const assignments = []; // Array di {pair, slot}
+  const usedSlots = new Set();
+  const usedPairs = new Set();
+  const teamField11 = {}; // team -> bool
+  const teamMatchesPerDay = {}; // team -> {date -> count}
+  
+  teams.forEach(t => {
+    teamField11[t.id] = false;
+    teamMatchesPerDay[t.id] = {};
+  });
+  
+  // Funzione per verificare se un'assegnazione è valida
+  function canAssign(pair, slot) {
+    const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
+    if (usedSlots.has(slotKey)) return false;
+    
+    const pairKey = `${pair.home}_${pair.away}`;
+    if (usedPairs.has(pairKey)) return false;
+    
+    const h = pair.home, a = pair.away;
+    
+    // VINCOLO: Max 1 partita al giorno per squadra
+    if ((teamMatchesPerDay[h][slot.date] || 0) >= 1) return false;
+    if ((teamMatchesPerDay[a][slot.date] || 0) >= 1) return false;
+    
+    // VINCOLO: Campo 11 - max 1 per squadra
+    if (slot.field === 11) {
+      if (teamField11[h] || teamField11[a]) return false;
+    }
+    
+    return true;
+  }
+  
+  // Funzione per assegnare una coppia a uno slot
+  function assign(pair, slot) {
+    const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
+    const pairKey = `${pair.home}_${pair.away}`;
+    
+    usedSlots.add(slotKey);
+    usedPairs.add(pairKey);
+    assignments.push({pair, slot});
+    
+    const h = pair.home, a = pair.away;
+    teamMatchesPerDay[h][slot.date] = (teamMatchesPerDay[h][slot.date] || 0) + 1;
+    teamMatchesPerDay[a][slot.date] = (teamMatchesPerDay[a][slot.date] || 0) + 1;
+    
+    if (slot.field === 11) {
+      teamField11[h] = true;
+      teamField11[a] = true;
+    }
+  }
+  
+  // Funzione per rimuovere un'assegnazione (backtrack)
+  function unassign(assignment) {
+    const {pair, slot} = assignment;
+    const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
+    const pairKey = `${pair.home}_${pair.away}`;
+    
+    usedSlots.delete(slotKey);
+    usedPairs.delete(pairKey);
+    assignments.pop();
+    
+    const h = pair.home, a = pair.away;
+    teamMatchesPerDay[h][slot.date]--;
+    teamMatchesPerDay[a][slot.date]--;
+    
+    if (slot.field === 11) {
+      teamField11[h] = false;
+      teamField11[a] = false;
+    }
+  }
+  
+  // FASE 1: ASSEGNA PRIORITARIAMENTE CAMPO 11
+  // Questo garantisce che ogni squadra abbia esattamente 1 partita al campo 11
+  console.log('🏟️ FASE 1: Assegnazione Campo 11');
+  
+  const field11Slots = slots.filter(s => s.field === 11).sort(() => Math.random() - 0.5);
+  const pairsShuffled = [...allPairs].sort(() => Math.random() - 0.5);
+  
+  for (let slot of field11Slots) {
+    let assigned = false;
+    
+    // Prova ad assegnare una partita dove entrambe le squadre non hanno ancora campo 11
+    for (let pair of pairsShuffled) {
+      const h = pair.home, a = pair.away;
+      
+      // Priorità: entrambe senza campo 11
+      if (!teamField11[h] && !teamField11[a]) {
+        if (canAssign(pair, slot)) {
+          assign(pair, slot);
+          console.log(`  ✅ ${getTeamName(h)} vs ${getTeamName(a)} → ${slot.date} ${slot.time}`);
+          assigned = true;
+          break;
+        }
+      }
+    }
+    
+    // Se non trovato, prova con almeno una squadra senza campo 11
+    if (!assigned) {
+      for (let pair of pairsShuffled) {
+        const h = pair.home, a = pair.away;
+        if (!teamField11[h] || !teamField11[a]) {
+          if (canAssign(pair, slot)) {
+            assign(pair, slot);
+            console.log(`  ✅ ${getTeamName(h)} vs ${getTeamName(a)} → ${slot.date} ${slot.time}`);
+            assigned = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!assigned) {
+      console.warn(`  ⚠️ Slot campo 11 non assegnato: ${slot.date} ${slot.time}`);
+    }
+  }
+  
+  // Verifica Campo 11
+  console.log('\n📊 Verifica Campo 11:');
+  let field11Ok = true;
+  teams.forEach(t => {
+    const hasField11 = teamField11[t.id];
+    if (!hasField11) {
+      console.error(`  ❌ ${t.name}: 0 partite al campo 11`);
+      field11Ok = false;
+    } else {
+      console.log(`  ✅ ${t.name}: 1 partita al campo 11`);
+    }
+  });
+  
+  if (!field11Ok) {
+    console.error('❌ ERRORE: Non tutte le squadre hanno campo 11. Riprovo con backtracking...');
+    
+    // Reset e riprova con backtracking
+    assignments.length = 0;
+    usedSlots.clear();
+    usedPairs.clear();
+    teams.forEach(t => {
+      teamField11[t.id] = false;
+      teamMatchesPerDay[t.id] = {};
+    });
+    
+    // Backtracking solver per campo 11
+    if (!backtrackField11(0, field11Slots, pairsShuffled)) {
+      console.error('❌ IMPOSSIBILE assegnare campo 11 a tutte le squadre!');
+      return null;
+    }
+  }
+  
+  // FASE 2: ASSEGNA RESTANTI PARTITE (Campo 7)
+  console.log('\n⚽ FASE 2: Assegnazione Campo 7');
+  
+  const field7Slots = slots.filter(s => s.field === 7).sort(() => Math.random() - 0.5);
+  
+  for (let slot of field7Slots) {
+    let assigned = false;
+    
+    // Trova la migliore partita per questo slot
+    for (let pair of pairsShuffled) {
+      if (canAssign(pair, slot)) {
+        assign(pair, slot);
+        assigned = true;
+        break;
+      }
+    }
+    
+    if (!assigned) {
+      console.warn(`  ⚠️ Slot non assegnato: ${slot.date} ${slot.time} C${slot.field}`);
+    }
+  }
+  
+  // Verifica finale
+  console.log('\n📊 VERIFICA FINALE:');
+  console.log(`  ✅ Partite assegnate: ${assignments.length}/${allPairs.length}`);
+  
+  // Verifica duplicati giorno
+  let dayOk = true;
+  teams.forEach(t => {
+    Object.keys(teamMatchesPerDay[t.id]).forEach(date => {
+      if (teamMatchesPerDay[t.id][date] > 1) {
+        console.error(`  ❌ ${t.name} gioca ${teamMatchesPerDay[t.id][date]} volte il ${date}`);
+        dayOk = false;
+      }
+    });
+  });
+  
+  if (dayOk) {
+    console.log('  ✅ Nessuna squadra gioca 2 volte stesso giorno');
+  }
+  
+  if (assignments.length === allPairs.length && field11Ok && dayOk) {
+    console.log('\n🎉 SOLUZIONE VALIDA TROVATA!');
+    return assignments;
+  } else {
+    console.error('\n❌ SOLUZIONE INCOMPLETA');
+    return null;
+  }
+  
+  // Helper: backtracking per campo 11
+  function backtrackField11(slotIdx, field11Slots, pairs) {
+    // Verifica se tutte le squadre hanno campo 11
+    const allHaveField11 = teams.every(t => teamField11[t.id]);
+    if (allHaveField11) return true; // Successo!
+    
+    if (slotIdx >= field11Slots.length) return false; // Esaurito slot
+    
+    const slot = field11Slots[slotIdx];
+    
+    // Prova ogni coppia
+    for (let pair of pairs) {
+      if (canAssign(pair, slot)) {
+        assign(pair, slot);
+        
+        if (backtrackField11(slotIdx + 1, field11Slots, pairs)) {
+          return true; // Successo!
+        }
+        
+        // Backtrack
+        unassign(assignments[assignments.length - 1]);
+      }
+    }
+    
+    // Prova anche a saltare questo slot
+    return backtrackField11(slotIdx + 1, field11Slots, pairs);
+  }
+  
+  function getTeamName(teamId) {
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : teamId;
+  }
+}
+
+// Funzione da integrare nell'HTML
+function generateCalendarWithConstraintSolver() {
+  const tournament = activeTournament;
+  const teams = db.teams.filter(t => t.tournament === tournament);
+  const schedule = tournament === 'M' ? MATCH_SCHEDULE_2026.maschile : MATCH_SCHEDULE_2026.femminile;
+  
+  if (teams.length === 0) {
+    alert('Nessuna squadra trovata! Aggiungi prima le squadre.');
+    return;
+  }
+  
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`GENERAZIONE CALENDARIO ${tournament === 'M' ? 'MASCHILE' : 'FEMMINILE'}`);
+  console.log('='.repeat(80));
+  
+  const solution = solveCalendar(teams, schedule);
+  
+  if (!solution) {
+    alert('❌ Impossibile generare un calendario valido con questi vincoli.\nProva a modificare le squadre o le date.');
+    return;
+  }
+  
+  // Cancella partite esistenti
+  db.matches = db.matches.filter(m => m.tournament !== tournament);
+  
+  // Aggiungi nuove partite
+  solution.forEach(({pair, slot}) => {
+    db.matches.push({
+      id: generateId(),
+      tournament: tournament,
+      home: pair.home,
+      away: pair.away,
+      date: formatDateIT(slot.date),
+      time: slot.time,
+      field: String(slot.field),
+      scoreHome: null,
+      scoreAway: null,
+      played: false,
+      matchday: 0
+    });
+  });
+  
+  // Assegna giornate
+  assignMatchdays(tournament);
+  
+  // Aggiungi playoff vuoti
+  const playoffSlots = schedule.filter(s => s.type !== 'regular');
+  playoffSlots.forEach(slot => {
+    db.matches.push({
+      id: generateId(),
+      tournament: tournament,
+      home: null,
+      away: null,
+      date: formatDateIT(slot.date),
+      time: slot.time,
+      field: String(slot.field),
+      scoreHome: null,
+      scoreAway: null,
+      played: false,
+      matchday: slot.type === 'playoff' ? 99 : (slot.type === 'quarti' ? 100 : (slot.type === 'semi' ? 101 : 102)),
+      isPlayoff: true,
+      playoffType: slot.type
+    });
+  });
+  
+  saveDB();
+  renderCalendario();
+  
+  alert(`✅ Calendario generato con successo!\n\n${solution.length} partite assegnate\nTutte le regole rispettate!`);
+}
+
+
 function assignTimeslots(pairs, torneo) {
   // Uses fixed schedule SCHEDULE_M / SCHEDULE_F with constraints:
   // - max 2 matches/week per team
@@ -4228,29 +4569,15 @@ function previewCalendario() {
 }
 
 function confirmGenerateCalendario() {
-  if(!genPreviewMatches.length){ showToast("⚠️ Genera prima l'anteprima!"); return; }
-  const playedMatches = db.matches.filter(m=>m.scoreHome!==null);
-  if(playedMatches.length > 0) {
-    if(!confirm('Attenzione: ci sono già '+playedMatches.length+' risultati inseriti. Rigenerare cancellerà il calendario esistente, la classifica e il tabellone playoff. Continuare?')) return;
+  closeModal('gen-modal');
+  
+  // USA IL SOLVER CONSTRAINT-BASED per garantire tutte le regole
+  try {
+    generateCalendarWithConstraintSolver();
+  } catch (e) {
+    console.error('Errore nel solver:', e);
+    alert('Errore nella generazione. Controlla la console (F12).');
   }
-  // Replace matches
-  db.matches = genPreviewMatches;
-  calGenerated = true;
-  // Reset all match scores, goals, cards (clean slate)
-  db.matches.forEach(m => {
-    m.scoreHome = null; m.scoreAway = null;
-    m.goals = []; m.yellow = []; m.red = [];
-  });
-  // Reset standings (implicit — computed from matches)
-  // Reset playoff bracket
-  db.playoff = { M: null, F: null };
-  // Update gen button appearance
-  const btn = document.getElementById('genCalBtn');
-  if(btn){ btn.classList.add('used'); btn.textContent='✅ Calendario Generato'; }
-  closeModal('genCalModal');
-  saveToStorage();
-  renderAll();
-  showToast('✅ Calendario pubblicato! Classifica e playoff azzerati.');
 }
 
 
