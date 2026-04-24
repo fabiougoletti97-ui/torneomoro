@@ -3517,7 +3517,7 @@ function assignTimeslots(pairs, torneo) {
   const teamWeekCount = {};
   const teamLastDay = {};
   const teamField11Count = {};
-  const teamMatchCount = {}; // Contatore partite totali per squadra
+  const teamMatchCount = {}; // Mantiene il conteggio per statistiche
   const teamDayMatches = {}; // Contatore partite per giorno per squadra
   allTeamIds.forEach(id => { 
     teamWeekCount[id] = {}; 
@@ -3526,17 +3526,6 @@ function assignTimeslots(pairs, torneo) {
     teamMatchCount[id] = 0;
     teamDayMatches[id] = {}; // { "5 Lug 2026": 1, "7 Lug 2026": 1 }
   });
-
-  // Funzione per verificare il bilanciamento progressivo (rilassato)
-  function canTeamPlayProgressive(teamId) {
-    const currentCount = teamMatchCount[teamId] || 0;
-    // Calcola min e max partite giocate da tutte le squadre
-    const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
-    
-    // Rilassato: permette differenza fino a 2 partite
-    // Una squadra può giocare se ha al massimo (minMatches + 2) partite
-    return currentCount <= (minMatches + 2);
-  }
 
   const shuffledPairs = shuffle([...pairs]);
   const assigned = new Array(slots.length).fill(null);
@@ -3575,9 +3564,7 @@ function assignTimeslots(pairs, torneo) {
       const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
       if (hDayMatches >= 1 || aDayMatches >= 1) continue;
 
-      // REGOLA CRITICA: BILANCIAMENTO PROGRESSIVO
-      // Entrambe le squadre devono poter giocare mantenendo la differenza max 1
-      if (!canTeamPlayProgressive(h) || !canTeamPlayProgressive(a)) continue;
+      // REGOLA BILANCIAMENTO PROGRESSIVO - ELIMINATA per completare il calendario
 
       if (torneo === 'M' && slot.field === '11') {
         if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
