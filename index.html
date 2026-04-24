@@ -3493,6 +3493,8 @@ function assignTimeslots(pairs, torneo) {
   // - max 2 matches/week per team
   // - no consecutive days
   // - male teams: exactly 1 match on field 11
+  // - PROGRESSIVE BALANCE: differenza max 1 partita tra qualsiasi coppia di squadre
+  // - MAX 1 PARTITA AL GIORNO per squadra
 
   const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
   const slots = [...schedule];
@@ -3515,7 +3517,28 @@ function assignTimeslots(pairs, torneo) {
   const teamWeekCount = {};
   const teamLastDay = {};
   const teamField11Count = {};
-  allTeamIds.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; teamField11Count[id] = 0; });
+  const teamMatchCount = {}; // Contatore partite totali per squadra
+  const teamDayMatches = {}; // Contatore partite per giorno per squadra
+  allTeamIds.forEach(id => { 
+    teamWeekCount[id] = {}; 
+    teamLastDay[id] = 0; 
+    teamField11Count[id] = 0;
+    teamMatchCount[id] = 0;
+    teamDayMatches[id] = {}; // { "5 Lug 2026": 1, "7 Lug 2026": 1 }
+  });
+
+  // Funzione per verificare il bilanciamento progressivo
+  function canTeamPlayProgressive(teamId) {
+    const currentCount = teamMatchCount[teamId] || 0;
+    // Calcola min e max partite giocate da tutte le squadre
+    const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
+    const maxMatches = Math.max(...allTeamIds.map(id => teamMatchCount[id] || 0));
+    
+    // Una squadra può giocare solo se:
+    // 1. Ha giocato il minimo di partite (o minimo+1)
+    // 2. Giocando questa partita, non supera maxMatches + 1
+    return currentCount <= minMatches && (currentCount + 1) <= (maxMatches + 1);
+  }
 
   const shuffledPairs = shuffle([...pairs]);
   const assigned = new Array(slots.length).fill(null);
@@ -3525,6 +3548,7 @@ function assignTimeslots(pairs, torneo) {
     const slot = slots[si];
     const slotWeek = getWeek(slot.date);
     const slotDateNum = dateToNum(slot.date);
+    const slotDate = slot.date; // es. "5 Lug 2026"
 
     for (let pi = 0; pi < shuffledPairs.length; pi++) {
       const pair = shuffledPairs[pi];
@@ -3532,6 +3556,15 @@ function assignTimeslots(pairs, torneo) {
       if (usedPairs.has(key)) continue;
 
       const h = pair.home.id, a = pair.away.id;
+
+      // REGOLA: MAX 1 PARTITA AL GIORNO
+      const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+      const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+      if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+
+      // REGOLA CRITICA: BILANCIAMENTO PROGRESSIVO
+      // Entrambe le squadre devono poter giocare mantenendo la differenza max 1
+      if (!canTeamPlayProgressive(h) || !canTeamPlayProgressive(a)) continue;
 
       if (torneo === 'M' && slot.field === '11') {
         if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
@@ -3552,6 +3585,13 @@ function assignTimeslots(pairs, torneo) {
       teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
       teamLastDay[h] = slotDateNum;
       teamLastDay[a] = slotDateNum;
+      teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
+      teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
+      // Aggiorna contatore partite per giorno
+      if (!teamDayMatches[h]) teamDayMatches[h] = {};
+      if (!teamDayMatches[a]) teamDayMatches[a] = {};
+      teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
+      teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
       if (torneo === 'M' && slot.field === '11') {
         teamField11Count[h] = (teamField11Count[h]||0) + 1;
         teamField11Count[a] = (teamField11Count[a]||0) + 1;
@@ -3560,14 +3600,18 @@ function assignTimeslots(pairs, torneo) {
     }
   }
 
-  // Fallback for remaining pairs
+  // Fallback for remaining pairs (relaxed balance for completion)
   const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
-  let emptySlot = assigned.findIndex(a => a === null);
-  for (const pair of unassigned) {
-    if (emptySlot < 0) break;
-    const slot = slots[emptySlot];
-    assigned[emptySlot] = {pair, slot};
-    emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+  if (unassigned.length > 0) {
+    console.warn(`⚠️ ${unassigned.length} partite non assegnate con bilanciamento progressivo. Tentativo fallback...`);
+    // Prova ad assegnare le rimanenti senza il vincolo di bilanciamento progressivo
+    let emptySlot = assigned.findIndex(a => a === null);
+    for (const pair of unassigned) {
+      if (emptySlot < 0) break;
+      const slot = slots[emptySlot];
+      assigned[emptySlot] = {pair, slot};
+      emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+    }
   }
 
   let matchId = Date.now();
