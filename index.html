@@ -3639,9 +3639,66 @@ function assignTimeslots(pairs, torneo) {
         break;
       }
     }
+  }
+  
+  // FALLBACK 2: RIEMPIMENTO FORZATO SLOT CAMPO 11
+  // Se ci sono ancora slot del campo 11 vuoti, riempili a TUTTI I COSTI
+  const stillUnassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
+  if (torneo === 'M' && stillUnassigned.length > 0) {
+    for (let si = 0; si < slots.length; si++) {
+      if (assigned[si] !== null) continue; // Già occupato
+      if (stillUnassigned.length === 0) break;
+      
+      const slot = slots[si];
+      
+      // Solo per slot campo 11 vuoti
+      if (slot.field === '11') {
+        const slotDate = slot.date;
+        
+        // Prova prima a rispettare almeno max 1/giorno
+        let found = false;
+        for (let pi = 0; pi < stillUnassigned.length; pi++) {
+          const pair = stillUnassigned[pi];
+          const h = pair.home.id, a = pair.away.id;
+          
+          // Prova a rispettare max 1/giorno
+          const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+          const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+          if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+          
+          // OK, assegna (anche se viola campo 11 max 1)
+          assigned[si] = {pair, slot};
+          usedPairs.add(pair.home.id + '_' + pair.away.id);
+          
+          if (!teamDayMatches[h]) teamDayMatches[h] = {};
+          if (!teamDayMatches[a]) teamDayMatches[a] = {};
+          teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
+          teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
+          
+          teamField11Count[h] = (teamField11Count[h]||0) + 1;
+          teamField11Count[a] = (teamField11Count[a]||0) + 1;
+          
+          console.warn(`⚠️ Campo 11 forzato: ${pair.home.name} vs ${pair.away.name} (una squadra gioca 2 volte sul campo 11)`);
+          
+          stillUnassigned.splice(pi, 1);
+          found = true;
+          break;
+        }
+        
+        // Se ancora non trovato, assegna SENZA verifiche
+        if (!found && stillUnassigned.length > 0) {
+          const pair = stillUnassigned[0];
+          assigned[si] = {pair, slot};
+          usedPairs.add(pair.home.id + '_' + pair.away.id);
+          
+          console.warn(`⚠️ Campo 11 forzato TOTALE: ${pair.home.name} vs ${pair.away.name}`);
+          stillUnassigned.shift();
+        }
+      }
+    }
     
-    if (unassigned.length > 0) {
-      console.error(`❌ ${unassigned.length} partite ancora non assegnate`);
+    if (stillUnassigned.length > 0) {
+      console.error(`❌ ${stillUnassigned.length} partite ancora non assegnate`);
     }
   }
 
