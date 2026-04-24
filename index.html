@@ -3534,10 +3534,10 @@ function assignTimeslots(pairs, torneo) {
     const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
     const maxMatches = Math.max(...allTeamIds.map(id => teamMatchCount[id] || 0));
     
-    // Una squadra può giocare solo se:
-    // 1. Ha giocato il minimo di partite (o minimo+1)
-    // 2. Giocando questa partita, non supera maxMatches + 1
-    return currentCount <= minMatches && (currentCount + 1) <= (maxMatches + 1);
+    // Una squadra può giocare se dopo aver giocato questa partita
+    // mantiene una differenza massima di 1 con le altre squadre
+    // In pratica: può giocare se ha (minMatches) o (minMatches + 1) partite
+    return currentCount <= (minMatches + 1);
   }
 
   const shuffledPairs = shuffle([...pairs]);
@@ -3630,12 +3630,9 @@ function assignTimeslots(pairs, torneo) {
         const hMatches = teamMatchCount[h] || 0;
         const aMatches = teamMatchCount[a] || 0;
         const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
-        const maxMatches = Math.max(...allTeamIds.map(id => teamMatchCount[id] || 0));
         
-        // Verifica che entrambe le squadre possano giocare mantenendo differenza max 1
-        const canHPlay = hMatches <= minMatches && (hMatches + 1) <= (maxMatches + 1);
-        const canAPlay = aMatches <= minMatches && (aMatches + 1) <= (maxMatches + 1);
-        if (!canHPlay || !canAPlay) continue;
+        // Entrambe le squadre devono avere al massimo (minMatches + 1) partite
+        if (hMatches > (minMatches + 1) || aMatches > (minMatches + 1)) continue;
         
         // REGOLA CRITICA 3: MAX 2 PARTITE A SETTIMANA
         if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
