@@ -3542,7 +3542,22 @@ function assignTimeslots(pairs, torneo) {
   const assigned = new Array(slots.length).fill(null);
   const usedPairs = new Set();
 
-  for (let si = 0; si < slots.length; si++) {
+  // PRIORITÀ: Riordina gli slot per processare PRIMA il campo 11
+  // Questo garantisce che gli slot del campo 11 vengano riempiti per primi
+  const slotIndices = slots.map((s, i) => i);
+  slotIndices.sort((a, b) => {
+    const slotA = slots[a];
+    const slotB = slots[b];
+    // Campo 11 viene prima (torneo M)
+    if (torneo === 'M') {
+      if (slotA.field === '11' && slotB.field !== '11') return -1;
+      if (slotA.field !== '11' && slotB.field === '11') return 1;
+    }
+    return 0; // Mantieni ordine originale per gli altri
+  });
+
+  for (let idx = 0; idx < slotIndices.length; idx++) {
+    const si = slotIndices[idx];
     const slot = slots[si];
     const slotWeek = getWeek(slot.date);
     const slotDateNum = dateToNum(slot.date);
