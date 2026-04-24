@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION 2.2 - CALENDARIO AGGIORNATO 2026-04-24 -->
+<!-- VERSION 2.4 - CALENDARIO AGGIORNATO CON DATE DA EXCEL - NUOVE REGOLE FASCE (1 vs F1, 3 vs F3) -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -1811,414 +1811,66 @@ body.admin-mode .delete-team-btn{display:block;}
 
 const MATCH_SCHEDULE_2026 = {
   "maschile": [
-    {
-      "id": "Partita 1",
-      "date": "2026-05-26",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 2",
-      "date": "2026-05-26",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 3",
-      "date": "2026-05-26",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 4",
-      "date": "2026-05-26",
-      "time": "20:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 5",
-      "date": "2026-05-27",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 6",
-      "date": "2026-05-27",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 7",
-      "date": "2026-05-27",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 8",
-      "date": "2026-05-27",
-      "time": "20:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 9",
-      "date": "2026-05-28",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 10",
-      "date": "2026-05-28",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 11",
-      "date": "2026-05-28",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 12",
-      "date": "2026-06-03",
-      "time": "20:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 13",
-      "date": "2026-06-03",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 14",
-      "date": "2026-06-03",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 15",
-      "date": "2026-06-03",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 16",
-      "date": "2026-05-28",
-      "time": "20:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 17",
-      "date": "2026-06-04",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 18",
-      "date": "2026-06-04",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 19",
-      "date": "2026-06-10",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 20",
-      "date": "2026-06-04",
-      "time": "20:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 21",
-      "date": "2026-06-04",
-      "time": "22:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 22",
-      "date": "2026-06-08",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 23",
-      "date": "2026-06-08",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 24",
-      "date": "2026-06-08",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 25",
-      "date": "2026-06-08",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 26",
-      "date": "2026-06-09",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 27",
-      "date": "2026-06-09",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 28",
-      "date": "2026-06-09",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 29",
-      "date": "2026-06-09",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 30",
-      "date": "2026-06-10",
-      "time": "20:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 31",
-      "date": "2026-06-10",
-      "time": "21:00",
-      "field": 7,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 32",
-      "date": "2026-06-10",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "PLAYOFF 1",
-      "date": "2026-06-15",
-      "time": "19:00",
-      "field": 7,
-      "type": "playoff"
-    },
-    {
-      "id": "PLAYOFF 2",
-      "date": "2026-06-15",
-      "time": "20:00",
-      "field": 7,
-      "type": "playoff"
-    },
-    {
-      "id": "PLAYOFF 3",
-      "date": "2026-06-15",
-      "time": "21:00",
-      "field": 7,
-      "type": "playoff"
-    },
-    {
-      "id": "PLAYOFF 4",
-      "date": "2026-06-15",
-      "time": "22:00",
-      "field": 7,
-      "type": "playoff"
-    },
-    {
-      "id": "QUARTO 1",
-      "date": "2026-06-17",
-      "time": "21:00",
-      "field": 7,
-      "type": "quarti"
-    },
-    {
-      "id": "QUARTO 2",
-      "date": "2026-06-17",
-      "time": "22:00",
-      "field": 7,
-      "type": "quarti"
-    },
-    {
-      "id": "QUARTO 3",
-      "date": "2026-06-18",
-      "time": "21:00",
-      "field": 7,
-      "type": "quarti"
-    },
-    {
-      "id": "QUARTO 4",
-      "date": "2026-06-18",
-      "time": "22:00",
-      "field": 7,
-      "type": "quarti"
-    },
-    {
-      "id": "SEMI 1",
-      "date": "2026-06-23",
-      "time": "21:00",
-      "field": 7,
-      "type": "semi"
-    },
-    {
-      "id": "SEMI 2",
-      "date": "2026-06-23",
-      "time": "22:00",
-      "field": 7,
-      "type": "semi"
-    },
-    {
-      "id": "FINALE",
-      "date": "2026-06-25",
-      "time": "21:45",
-      "field": 7,
-      "type": "finale"
-    }
+    {"id": "Partita 1","date": "2026-05-26","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 2","date": "2026-05-26","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 3","date": "2026-05-26","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 4","date": "2026-05-26","time": "20:00","field": 11,"type": "regular"},
+    {"id": "Partita 5","date": "2026-05-27","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 6","date": "2026-05-27","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 7","date": "2026-05-27","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 8","date": "2026-05-27","time": "20:00","field": 11,"type": "regular"},
+    {"id": "Partita 9","date": "2026-05-28","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 10","date": "2026-05-28","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 11","date": "2026-05-28","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 12","date": "2026-06-03","time": "20:00","field": 11,"type": "regular"},
+    {"id": "Partita 13","date": "2026-06-03","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 14","date": "2026-06-03","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 15","date": "2026-06-03","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 16","date": "2026-06-03","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 17","date": "2026-06-04","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 18","date": "2026-06-04","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 19","date": "2026-06-04","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 20","date": "2026-06-04","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 21","date": "2026-06-08","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 22","date": "2026-06-08","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 23","date": "2026-06-08","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 24","date": "2026-06-08","time": "20:00","field": 11,"type": "regular"},
+    {"id": "Partita 25","date": "2026-06-09","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 26","date": "2026-06-09","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 27","date": "2026-06-09","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 28","date": "2026-06-09","time": "20:00","field": 11,"type": "regular"},
+    {"id": "Partita 29","date": "2026-06-10","time": "20:00","field": 7,"type": "regular"},
+    {"id": "Partita 30","date": "2026-06-10","time": "21:00","field": 7,"type": "regular"},
+    {"id": "Partita 31","date": "2026-06-10","time": "22:00","field": 7,"type": "regular"},
+    {"id": "Partita 32","date": "2026-06-10","time": "21:00","field": 11,"type": "regular"},
+    {"id": "PLAYOFF 1","date": "2026-06-15","time": "19:00","field": 7,"type": "playoff"},
+    {"id": "PLAYOFF 2","date": "2026-06-15","time": "20:00","field": 7,"type": "playoff"},
+    {"id": "PLAYOFF 3","date": "2026-06-15","time": "21:00","field": 7,"type": "playoff"},
+    {"id": "PLAYOFF 4","date": "2026-06-15","time": "22:00","field": 7,"type": "playoff"},
+    {"id": "QUARTO 1","date": "2026-06-17","time": "21:00","field": 7,"type": "quarti"},
+    {"id": "QUARTO 2","date": "2026-06-17","time": "22:00","field": 7,"type": "quarti"},
+    {"id": "QUARTO 3","date": "2026-06-18","time": "21:00","field": 7,"type": "quarti"},
+    {"id": "QUARTO 4","date": "2026-06-18","time": "22:00","field": 7,"type": "quarti"},
+    {"id": "SEMI 1","date": "2026-06-23","time": "21:00","field": 7,"type": "semi"},
+    {"id": "SEMI 2","date": "2026-06-23","time": "22:00","field": 7,"type": "semi"},
+    {"id": "FINALE","date": "2026-06-25","time": "21:45","field": 7,"type": "finale"}
   ],
   "femminile": [
-    {
-      "id": "Partita 1",
-      "date": "2026-05-26",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 2",
-      "date": "2026-05-26",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 3",
-      "date": "2026-05-27",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 4",
-      "date": "2026-05-27",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 5",
-      "date": "2026-06-03",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 6",
-      "date": "2026-06-04",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 7",
-      "date": "2026-06-08",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 8",
-      "date": "2026-06-08",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 9",
-      "date": "2026-06-09",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 10",
-      "date": "2026-06-09",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 11",
-      "date": "2026-06-11",
-      "time": "21:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "Partita 12",
-      "date": "2026-06-11",
-      "time": "22:00",
-      "field": 11,
-      "type": "regular"
-    },
-    {
-      "id": "SEMI 1",
-      "date": "2026-06-17",
-      "time": "20:00",
-      "field": 7,
-      "type": "semi"
-    },
-    {
-      "id": "SEMI 2",
-      "date": "2026-06-18",
-      "time": "20:00",
-      "field": 7,
-      "type": "semi"
-    },
-    {
-      "id": "FINALE",
-      "date": "2026-06-25",
-      "time": "21:00",
-      "field": 7,
-      "type": "finale"
-    }
+    {"id": "Partita 1","date": "2026-05-26","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 2","date": "2026-05-26","time": "22:00","field": 11,"type": "regular"},
+    {"id": "Partita 3","date": "2026-05-27","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 4","date": "2026-05-27","time": "22:00","field": 11,"type": "regular"},
+    {"id": "Partita 5","date": "2026-06-03","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 6","date": "2026-06-04","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 7","date": "2026-06-08","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 8","date": "2026-06-08","time": "22:00","field": 11,"type": "regular"},
+    {"id": "Partita 9","date": "2026-06-09","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 10","date": "2026-06-09","time": "22:00","field": 11,"type": "regular"},
+    {"id": "Partita 11","date": "2026-06-11","time": "21:00","field": 11,"type": "regular"},
+    {"id": "Partita 12","date": "2026-06-11","time": "22:00","field": 11,"type": "regular"},
+    {"id": "SEMI 1","date": "2026-06-17","time": "20:00","field": 7,"type": "semi"},
+    {"id": "SEMI 2","date": "2026-06-18","time": "20:00","field": 7,"type": "semi"},
+    {"id": "FINALE","date": "2026-06-25","time": "21:00","field": 7,"type": "finale"}
   ]
 };
 
@@ -2242,14 +1894,14 @@ console.log('✅ Calendario 2026 caricato:', {
 let db = {
   teams: [
     // MASCHILE (16)
-    {id:1,fascia:1,name:'FC Fulmine',torneo:'M',emoji:'⚡',color:'#f5c518',players:[{num:1,name:'Luca Bianchi',role:'Portiere'},{num:7,name:'Marco Rossi',role:'Attaccante'},{num:10,name:'Andrea Verdi',role:'Centrocampista'},{num:4,name:'Simone Neri',role:'Difensore'},{num:11,name:'Davide Mazza',role:'Attaccante'},{num:3,name:'Filippo Grigi',role:'Difensore'},{num:8,name:'Lorenzo Bruni',role:'Centrocampista'}]},
+    {id:1,fascia:3,name:'FC Fulmine',torneo:'M',emoji:'⚡',color:'#f5c518',players:[{num:1,name:'Luca Bianchi',role:'Portiere'},{num:7,name:'Marco Rossi',role:'Attaccante'},{num:10,name:'Andrea Verdi',role:'Centrocampista'},{num:4,name:'Simone Neri',role:'Difensore'},{num:11,name:'Davide Mazza',role:'Attaccante'},{num:3,name:'Filippo Grigi',role:'Difensore'},{num:8,name:'Lorenzo Bruni',role:'Centrocampista'}]},
     {id:2,fascia:1,name:'Tigri FC',torneo:'M',emoji:'🐯',color:'#e03535',players:[{num:1,name:'Giulio Serra',role:'Portiere'},{num:9,name:'Matteo Conti',role:'Attaccante'},{num:5,name:'Riccardo Fanti',role:'Difensore'},{num:6,name:'Fabio Lungo',role:'Centrocampista'},{num:7,name:'Pietro Sala',role:'Attaccante'},{num:2,name:'Aldo Monti',role:'Difensore'}]},
     {id:3,fascia:1,name:'Aquile Verdi',torneo:'M',emoji:'🦅',color:'#22883b',players:[{num:1,name:'Carlo Pini',role:'Portiere'},{num:11,name:'Gianni Bosco',role:'Attaccante'},{num:4,name:'Nico Fiori',role:'Difensore'},{num:8,name:'Franco Rumi',role:'Centrocampista'},{num:9,name:'Diego Luca',role:'Attaccante'}]},
     {id:4,fascia:1,name:'Leoni Blu',torneo:'M',emoji:'🦁',color:'#3b8bd4',players:[{num:1,name:'Sergio Boni',role:'Portiere'},{num:7,name:'Ivan Ricci',role:'Attaccante'},{num:3,name:'Emilio Galli',role:'Difensore'},{num:10,name:'Claudio Mori',role:'Centrocampista'},{num:6,name:'Roberto Demi',role:'Attaccante'}]},
-    {id:5,fascia:2,name:'Fuoco SC',torneo:'M',emoji:'🔥',color:'#e07835',players:[{num:1,name:'Toni Marchi',role:'Portiere'},{num:9,name:'Luigi Corsi',role:'Attaccante'},{num:4,name:'Bruno Amati',role:'Difensore'},{num:7,name:'Angelo Fusco',role:'Attaccante'}]},
-    {id:6,fascia:2,name:'Stella Nera',torneo:'M',emoji:'⭐',color:'#9b59b6',players:[{num:1,name:'Max Olmi',role:'Portiere'},{num:11,name:'Luca Tardi',role:'Attaccante'},{num:5,name:'Sandro Doni',role:'Difensore'},{num:8,name:'Mirko Elmi',role:'Centrocampista'}]},
-    {id:7,fascia:2,name:'Tornado SC',torneo:'M',emoji:'🌪️',color:'#1abc9c',players:[{num:1,name:'Dino Palmi',role:'Portiere'},{num:10,name:'Marco Celsi',role:'Attaccante'},{num:6,name:'Remo Cassi',role:'Difensore'},{num:7,name:'Leo Tosi',role:'Centrocampista'}]},
-    {id:8,fascia:2,name:'Samurai FC',torneo:'M',emoji:'⚔️',color:'#e74c3c',players:[{num:1,name:'Vito Grandi',role:'Portiere'},{num:9,name:'Sami Corti',role:'Attaccante'},{num:4,name:'Emilio Salvi',role:'Difensore'}]},
+    {id:5,fascia:3,name:'Fuoco SC',torneo:'M',emoji:'🔥',color:'#e07835',players:[{num:1,name:'Toni Marchi',role:'Portiere'},{num:9,name:'Luigi Corsi',role:'Attaccante'},{num:4,name:'Bruno Amati',role:'Difensore'},{num:7,name:'Angelo Fusco',role:'Attaccante'}]},
+    {id:6,fascia:3,name:'Stella Nera',torneo:'M',emoji:'⭐',color:'#9b59b6',players:[{num:1,name:'Max Olmi',role:'Portiere'},{num:11,name:'Luca Tardi',role:'Attaccante'},{num:5,name:'Sandro Doni',role:'Difensore'},{num:8,name:'Mirko Elmi',role:'Centrocampista'}]},
+    {id:7,fascia:3,name:'Tornado SC',torneo:'M',emoji:'🌪️',color:'#1abc9c',players:[{num:1,name:'Dino Palmi',role:'Portiere'},{num:10,name:'Marco Celsi',role:'Attaccante'},{num:6,name:'Remo Cassi',role:'Difensore'},{num:7,name:'Leo Tosi',role:'Centrocampista'}]},
+    {id:8,fascia:3,name:'Samurai FC',torneo:'M',emoji:'⚔️',color:'#e74c3c',players:[{num:1,name:'Vito Grandi',role:'Portiere'},{num:9,name:'Sami Corti',role:'Attaccante'},{num:4,name:'Emilio Salvi',role:'Difensore'}]},
     {id:9,fascia:3,name:'Dragoni Rossi',torneo:'M',emoji:'🐉',color:'#c0392b',players:[{num:1,name:'Antonio Belli',role:'Portiere'},{num:9,name:'Sergio Gatti',role:'Attaccante'},{num:5,name:'Pino Lenti',role:'Difensore'}]},
     {id:10,fascia:3,name:'Pantere Nere',torneo:'M',emoji:'🐆',color:'#2c3e50',players:[{num:1,name:'Dario Fumi',role:'Portiere'},{num:11,name:'Ettore Cani',role:'Attaccante'},{num:3,name:'Silvio Rami',role:'Difensore'}]},
     {id:11,fascia:3,name:'Falchi FC',torneo:'M',emoji:'🦆',color:'#16a085',players:[{num:1,name:'Franco Palma',role:'Portiere'},{num:7,name:'Ugo Cervi',role:'Attaccante'},{num:4,name:'Ivo Salvi',role:'Difensore'}]},
@@ -2261,10 +1913,10 @@ let db = {
     // FEMMINILE (8)
     {id:17,fascia:1,name:'Le Leonesse',torneo:'F',emoji:'👑',color:'#d44fa0',players:[{num:1,name:'Sofia Bianchi',role:'Portiere'},{num:9,name:'Chiara Rossi',role:'Attaccante'},{num:5,name:'Elena Verdi',role:'Difensore'},{num:8,name:'Laura Neri',role:'Centrocampista'},{num:11,name:'Marta Gialli',role:'Attaccante'}]},
     {id:18,fascia:1,name:'Pink Panthers',torneo:'F',emoji:'🐆',color:'#ff69b4',players:[{num:1,name:'Anna Conti',role:'Portiere'},{num:7,name:'Sara Boni',role:'Attaccante'},{num:4,name:'Lisa Mori',role:'Difensore'},{num:10,name:'Claudia Galli',role:'Centrocampista'}]},
-    {id:19,fascia:2,name:'Aquile Rosa',torneo:'F',emoji:'🦅',color:'#e91e63',players:[{num:1,name:'Valeria Sala',role:'Portiere'},{num:9,name:'Giorgia Lenti',role:'Attaccante'},{num:3,name:'Monica Rami',role:'Difensore'},{num:7,name:'Federica Tosi',role:'Attaccante'}]},
-    {id:20,fascia:2,name:'Stelle Viola',torneo:'F',emoji:'⭐',color:'#9c27b0',players:[{num:1,name:'Carla Palmi',role:'Portiere'},{num:11,name:'Irene Ferri',role:'Attaccante'},{num:5,name:'Renata Cani',role:'Difensore'}]},
-    {id:21,fascia:2,name:'Furie Rosse',torneo:'F',emoji:'🔥',color:'#c0392b',players:[{num:1,name:'Bianca Celsi',role:'Portiere'},{num:9,name:'Noemi Cassi',role:'Attaccante'},{num:4,name:'Tatiana Palma',role:'Difensore'}]},
-    {id:22,fascia:2,name:'Cigni FC',torneo:'F',emoji:'🦢',color:'#ecf0f1',players:[{num:1,name:'Simona Amati',role:'Portiere'},{num:7,name:'Daniela Fusco',role:'Attaccante'},{num:6,name:'Roberta Porta',role:'Centrocampista'}]},
+    {id:19,fascia:3,name:'Aquile Rosa',torneo:'F',emoji:'🦅',color:'#e91e63',players:[{num:1,name:'Valeria Sala',role:'Portiere'},{num:9,name:'Giorgia Lenti',role:'Attaccante'},{num:3,name:'Monica Rami',role:'Difensore'},{num:7,name:'Federica Tosi',role:'Attaccante'}]},
+    {id:20,fascia:3,name:'Stelle Viola',torneo:'F',emoji:'⭐',color:'#9c27b0',players:[{num:1,name:'Carla Palmi',role:'Portiere'},{num:11,name:'Irene Ferri',role:'Attaccante'},{num:5,name:'Renata Cani',role:'Difensore'}]},
+    {id:21,fascia:3,name:'Furie Rosse',torneo:'F',emoji:'🔥',color:'#c0392b',players:[{num:1,name:'Bianca Celsi',role:'Portiere'},{num:9,name:'Noemi Cassi',role:'Attaccante'},{num:4,name:'Tatiana Palma',role:'Difensore'}]},
+    {id:22,fascia:3,name:'Cigni FC',torneo:'F',emoji:'🦢',color:'#ecf0f1',players:[{num:1,name:'Simona Amati',role:'Portiere'},{num:7,name:'Daniela Fusco',role:'Attaccante'},{num:6,name:'Roberta Porta',role:'Centrocampista'}]},
     {id:23,fascia:3,name:'Tigri Rosa',torneo:'F',emoji:'🐯',color:'#ff8f00',players:[{num:1,name:'Elisabetta Rumi',role:'Portiere'},{num:10,name:'Cristina Bosco',role:'Attaccante'},{num:3,name:'Silvia Fiori',role:'Difensore'}]},
     {id:24,fascia:3,name:'Volpi Dorate',torneo:'F',emoji:'🦊',color:'#f57c00',players:[{num:1,name:'Paola Grigi',role:'Portiere'},{num:9,name:'Lucia Bruni',role:'Attaccante'},{num:5,name:'Rita Serra',role:'Difensore'}]}
   ],
@@ -2583,6 +2235,23 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initFirebase);
 } else {
   initFirebase();
+}
+
+// Hide fascia selector when Femminile is selected
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    const torneoSelect = document.getElementById('nt-torneo');
+    const fasciaGroup = document.getElementById('nt-fascia-selector');
+    if (torneoSelect && fasciaGroup) {
+      torneoSelect.addEventListener('change', function() {
+        if (this.value === 'F') {
+          fasciaGroup.closest('.form-group').style.display = 'none';
+        } else {
+          fasciaGroup.closest('.form-group').style.display = 'block';
+        }
+      });
+    }
+  });
 }
 
 // ── SAVE ─────────────────────────────────────────────────────────────────
@@ -3725,16 +3394,16 @@ function updateGenStatus() {
   let warnings = [];
   // Only check fascia for Maschile
   const f1 = mTeams.filter(t=>t.fascia===1).length;
-  const f2 = mTeams.filter(t=>t.fascia===2).length;
+  
   const f3 = mTeams.filter(t=>t.fascia===3).length;
   if(f1 < 2) warnings.push(`Maschile: servono almeno 2 squadre di 1ª fascia (trovate: ${f1})`);
-  if(f2 < 2) warnings.push(`Maschile: servono almeno 2 squadre di 2ª fascia (trovate: ${f2})`);
+  
   if(f3 < 4) warnings.push(`Maschile: servono almeno 4 squadre di 3ª fascia (trovate: ${f3})`);
   if(fTeams.length < 2) warnings.push(`Femminile: servono almeno 2 squadre (trovate: ${fTeams.length})`);
   if(warnings.length) {
     box.innerHTML = '<div class="gen-warning">⚠️ ' + warnings.join('<br>') + '</div>';
   } else {
-    box.innerHTML = '<div class="gen-ok">✅ Squadre sufficienti. Maschile: fasce bilanciate. Femminile: accoppiamenti casuali (3 giornate). Configura le giornate e clicca Anteprima.</div>';
+    box.innerHTML = '<div class="gen-ok">✅ Squadre sufficienti. Maschile: 1 partita vs fascia 1, 3 partite vs fascia 3. Femminile: accoppiamenti casuali. Configura le giornate e clicca Anteprima.</div>';
   }
 }
 
@@ -3789,22 +3458,20 @@ function addMinutes(timeStr, mins) {
 }
 
 function buildFasciaMatchups(teams) {
-  // Rule: each team plays exactly 4 matches:
-  // 1 vs fascia1, 1 vs fascia2, 2 vs fascia3
+  // NUOVE REGOLE: ogni squadra gioca esattamente 4 partite:
+  // 1 vs fascia 1, 3 vs fascia 3
   const f1 = shuffle(teams.filter(t=>t.fascia===1));
-  const f2 = shuffle(teams.filter(t=>t.fascia===2));
   const f3 = shuffle(teams.filter(t=>t.fascia===3));
 
   const pairs = [];
-  const matchCount = {}; // teamId -> {f1:0, f2:0, f3:0, total:0}
-  teams.forEach(t => matchCount[t.id] = {f1:0, f2:0, f3:0, total:0});
+  const matchCount = {}; // teamId -> {f1:0, f3:0, total:0}
+  teams.forEach(t => matchCount[t.id] = {f1:0, f3:0, total:0});
 
   const pairSet = new Set();
   const addPair = (a, b, fasciaTag) => {
     const key = [Math.min(a.id,b.id), Math.max(a.id,b.id)].join('-');
     if(pairSet.has(key)) return false;
     pairSet.add(key);
-    // alternate home/away to balance
     const homeFirst = Math.random() > 0.5;
     pairs.push({home: homeFirst?a:b, away: homeFirst?b:a, fasciaTag});
     matchCount[a.id][fasciaTag]++;
@@ -3814,8 +3481,7 @@ function buildFasciaMatchups(teams) {
     return true;
   };
 
-  // Pass 1: f1 vs f1 (each f1 team needs 1 f1 match)
-  const usedF1F1 = new Set();
+  // Pass 1: Ogni squadra deve avere 1 partita vs fascia 1
   for(let i=0;i<f1.length;i++){
     for(let j=i+1;j<f1.length;j++){
       if(matchCount[f1[i].id].f1<1 && matchCount[f1[j].id].f1<1){
@@ -3824,19 +3490,17 @@ function buildFasciaMatchups(teams) {
       }
     }
   }
-  // f2 vs f1 — f2 teams need 1 f1 match, f1 teams need 1 f1 match total
-  const allF1Needy = teams.filter(t=>t.fascia!==1 && matchCount[t.id].f1<1);
+  
   f1.forEach(t1 => {
     if(matchCount[t1.id].f1 < 1) {
-      // find an f2 or f3 team that needs a f1 match
-      for(const tn of shuffle([...f2,...f3])) {
-        if(matchCount[tn.id].f1<1 && matchCount[t1.id].total<4 && matchCount[tn.id].total<4) {
-          if(addPair(t1, tn, 'f1')) break;
+      for(const t3 of shuffle(f3)) {
+        if(matchCount[t3.id].f1<1 && matchCount[t1.id].total<4 && matchCount[t3.id].total<4) {
+          if(addPair(t1, t3, 'f1')) break;
         }
       }
     }
   });
-  // ensure all teams have exactly 1 f1 match
+  
   teams.forEach(t => {
     if(matchCount[t.id].f1 < 1) {
       const partner = shuffle(f1).find(p => p.id!==t.id && matchCount[p.id].total<4 && matchCount[t.id].total<4 && !pairSet.has([Math.min(t.id,p.id),Math.max(t.id,p.id)].join('-')));
@@ -3844,40 +3508,9 @@ function buildFasciaMatchups(teams) {
     }
   });
 
-  // Pass 2: f2 matches
-  // f2 vs f2 (each f2 needs 1 f2 match)
-  for(let i=0;i<f2.length;i++){
-    for(let j=i+1;j<f2.length;j++){
-      if(matchCount[f2[i].id].f2<1 && matchCount[f2[j].id].f2<1 && matchCount[f2[i].id].total<4 && matchCount[f2[j].id].total<4){
-        addPair(f2[i],f2[j],'f2');
-        break;
-      }
-    }
-  }
-  // f1/f3 vs f2
+  // Pass 2: Ogni squadra deve avere 3 partite vs fascia 3
   teams.forEach(t => {
-    if(matchCount[t.id].f2 < 1) {
-      for(const p of shuffle(f2)) {
-        if(p.id!==t.id && matchCount[p.id].f2<1 && matchCount[p.id].total<4 && matchCount[t.id].total<4){
-          if(addPair(t, p, 'f2')) break;
-        }
-      }
-    }
-  });
-  // fallback: any f2 opponent
-  teams.forEach(t => {
-    if(matchCount[t.id].f2 < 1) {
-      for(const p of shuffle([...f2,...f1])) {
-        if(p.id!==t.id && matchCount[p.id].total<4 && matchCount[t.id].total<4){
-          if(addPair(t, p, 'f2')) break;
-        }
-      }
-    }
-  });
-
-  // Pass 3: f3 matches (each team needs 2 f3 matches)
-  teams.forEach(t => {
-    while(matchCount[t.id].f3 < 2 && matchCount[t.id].total < 4) {
+    while(matchCount[t.id].f3 < 3 && matchCount[t.id].total < 4) {
       const candidates = shuffle([...f3, ...teams]).filter(p =>
         p.id!==t.id && matchCount[p.id].total<4 && matchCount[t.id].total<4 &&
         !pairSet.has([Math.min(t.id,p.id),Math.max(t.id,p.id)].join('-'))
@@ -4568,285 +4201,15 @@ function previewCalendario() {
   document.getElementById('gen-confirm-btn').style.display = 'block';
 }
 
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SOLVER SEMPLIFICATO - SOLO 3 REGOLE FONDAMENTALI
-// Rimuove vincoli fasce per garantire soluzione
-// ══════════════════════════════════════════════════════════════════════════════
-
-function generateCalendarSimple() {
-  const tournament = activeTournament;
-  const teams = db.teams.filter(t => t.tournament === tournament);
-  const schedule = tournament === 'M' ? MATCH_SCHEDULE_2026.maschile : MATCH_SCHEDULE_2026.femminile;
-  
-  if (teams.length === 0) {
-    alert('❌ Nessuna squadra trovata! Aggiungi prima le squadre.');
-    return;
-  }
-  
-  console.log('\n' + '='.repeat(80));
-  console.log(`GENERAZIONE CALENDARIO ${tournament === 'M' ? 'MASCHILE' : 'FEMMINILE'} - VERSIONE SEMPLIFICATA`);
-  console.log('='.repeat(80));
-  console.log(`Squadre: ${teams.length}`);
-  
-  const n = teams.length;
-  const slots = schedule.filter(s => s.type === 'regular');
-  
-  console.log(`Slot disponibili: ${slots.length}`);
-  
-  // Genera tutte le coppie (round-robin)
-  const allPairs = [];
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      allPairs.push({
-        home: teams[i].id,
-        away: teams[j].id,
-        homeName: teams[i].name,
-        awayName: teams[j].name
-      });
-    }
-  }
-  
-  console.log(`Partite da assegnare: ${allPairs.length}`);
-  console.log(`\n🎯 REGOLE DA RISPETTARE:`);
-  console.log(`  1. Tutte le ${allPairs.length} partite devono essere inserite`);
-  console.log(`  2. Ogni squadra gioca ESATTAMENTE 1 partita al campo 11`);
-  console.log(`  3. Ogni squadra NON può giocare nella stessa data`);
-  
-  // State
-  const assignments = [];
-  const usedSlots = new Set();
-  const usedPairs = new Set();
-  const teamField11 = {};
-  const teamDatesUsed = {};
-  
-  teams.forEach(t => {
-    teamField11[t.id] = false;
-    teamDatesUsed[t.id] = new Set();
-  });
-  
-  // Shuffle per randomizzazione
-  const shuffledPairs = [...allPairs].sort(() => Math.random() - 0.5);
-  const shuffledSlots = [...slots].sort(() => Math.random() - 0.5);
-  
-  // FASE 1: CAMPO 11 (Priorità assoluta)
-  console.log(`\n🏟️  FASE 1: Assegnazione Campo 11`);
-  
-  const field11Slots = shuffledSlots.filter(s => s.field === 11);
-  console.log(`Slot campo 11 disponibili: ${field11Slots.length}`);
-  
-  let field11Assigned = 0;
-  
-  for (let slot of field11Slots) {
-    let assigned = false;
-    
-    // Prova tutte le coppie
-    for (let pair of shuffledPairs) {
-      const pairKey = `${pair.home}_${pair.away}`;
-      if (usedPairs.has(pairKey)) continue;
-      
-      const h = pair.home;
-      const a = pair.away;
-      
-      // Vincoli CAMPO 11
-      if (teamField11[h] || teamField11[a]) continue; // Già hanno campo 11
-      
-      // Vincolo DATA
-      if (teamDatesUsed[h].has(slot.date) || teamDatesUsed[a].has(slot.date)) continue;
-      
-      // ASSEGNA!
-      const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
-      usedSlots.add(slotKey);
-      usedPairs.add(pairKey);
-      assignments.push({pair, slot});
-      
-      teamField11[h] = true;
-      teamField11[a] = true;
-      teamDatesUsed[h].add(slot.date);
-      teamDatesUsed[a].add(slot.date);
-      
-      console.log(`  ✅ ${pair.homeName} vs ${pair.awayName} → ${slot.date} ${slot.time}`);
-      field11Assigned++;
-      assigned = true;
-      break;
-    }
-    
-    if (!assigned) {
-      console.warn(`  ⚠️  Slot ${slot.date} ${slot.time} non assegnato`);
-    }
-  }
-  
-  console.log(`\n📊 Campo 11 assegnato: ${field11Assigned}/${field11Slots.length}`);
-  
-  // Verifica campo 11
-  console.log(`\n📊 Verifica Campo 11 per squadra:`);
-  let allHaveField11 = true;
-  teams.forEach(t => {
-    const has = teamField11[t.id];
-    if (tournament === 'M') {
-      if (has) {
-        console.log(`  ✅ ${t.name}: 1 partita campo 11`);
-      } else {
-        console.error(`  ❌ ${t.name}: 0 partite campo 11`);
-        allHaveField11 = false;
-      }
-    }
-  });
-  
-  if (tournament === 'M' && !allHaveField11) {
-    console.error(`\n❌ ERRORE: Non tutte le squadre hanno campo 11!`);
-    console.log(`⚠️  Suggerimento: Verifica di avere esattamente ${field11Slots.length} squadre`);
-    alert(`❌ Errore: Non tutte le squadre hanno una partita al campo 11.\n\nVerifica di avere esattamente ${field11Slots.length} squadre nel torneo.`);
-    return;
-  }
-  
-  // FASE 2: CAMPO 7 (Restanti)
-  console.log(`\n⚽ FASE 2: Assegnazione Campo 7`);
-  
-  const field7Slots = shuffledSlots.filter(s => s.field === 7);
-  let field7Assigned = 0;
-  
-  for (let slot of field7Slots) {
-    let assigned = false;
-    
-    for (let pair of shuffledPairs) {
-      const pairKey = `${pair.home}_${pair.away}`;
-      if (usedPairs.has(pairKey)) continue;
-      
-      const h = pair.home;
-      const a = pair.away;
-      
-      // Vincolo DATA
-      if (teamDatesUsed[h].has(slot.date) || teamDatesUsed[a].has(slot.date)) continue;
-      
-      // ASSEGNA!
-      const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
-      usedSlots.add(slotKey);
-      usedPairs.add(pairKey);
-      assignments.push({pair, slot});
-      
-      teamDatesUsed[h].add(slot.date);
-      teamDatesUsed[a].add(slot.date);
-      
-      field7Assigned++;
-      assigned = true;
-      break;
-    }
-  }
-  
-  console.log(`Campo 7 assegnato: ${field7Assigned}/${field7Slots.length}`);
-  
-  // VERIFICA FINALE
-  console.log(`\n📊 VERIFICA FINALE:`);
-  console.log(`  Partite assegnate: ${assignments.length}/${allPairs.length}`);
-  
-  // Verifica date duplicate
-  let noDuplicates = true;
-  teams.forEach(t => {
-    const dates = Array.from(teamDatesUsed[t.id]);
-    const teamMatches = assignments.filter(a => a.pair.home === t.id || a.pair.away === t.id);
-    if (teamMatches.length !== dates.length) {
-      console.error(`  ❌ ${t.name}: ${teamMatches.length} partite su ${dates.length} date diverse`);
-      noDuplicates = false;
-    }
-  });
-  
-  if (noDuplicates) {
-    console.log(`  ✅ Nessuna squadra gioca 2 volte stesso giorno`);
-  }
-  
-  if (assignments.length !== allPairs.length) {
-    console.error(`\n❌ ERRORE: Solo ${assignments.length}/${allPairs.length} partite assegnate!`);
-    console.log(`\nPartite mancanti:`);
-    allPairs.forEach(p => {
-      const key = `${p.home}_${p.away}`;
-      if (!usedPairs.has(key)) {
-        console.log(`  • ${p.homeName} vs ${p.awayName}`);
-      }
-    });
-    alert(`❌ Errore: Solo ${assignments.length}/${allPairs.length} partite assegnate.\n\nRiprova o verifica lo schedule.`);
-    return;
-  }
-  
-  console.log(`\n🎉 SOLUZIONE COMPLETA TROVATA!`);
-  console.log(`   ✅ ${assignments.length} partite assegnate`);
-  console.log(`   ✅ Tutte le regole rispettate`);
-  
-  // PUBBLICA IL CALENDARIO
-  console.log(`\n📤 PUBBLICAZIONE CALENDARIO...`);
-  
-  // Cancella partite esistenti
-  db.matches = db.matches.filter(m => m.tournament !== tournament);
-  
-  // Aggiungi nuove partite
-  assignments.forEach(({pair, slot}) => {
-    db.matches.push({
-      id: 'match_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      tournament: tournament,
-      home: pair.home,
-      away: pair.away,
-      date: formatDateIT(slot.date),
-      time: slot.time,
-      field: String(slot.field),
-      scoreHome: null,
-      scoreAway: null,
-      played: false,
-      matchday: 0
-    });
-  });
-  
-  // Assegna giornate
-  const matches = db.matches.filter(m => m.tournament === tournament && !m.isPlayoff);
-  const byDate = {};
-  matches.forEach(m => {
-    if (!byDate[m.date]) byDate[m.date] = [];
-    byDate[m.date].push(m);
-  });
-  
-  const dates = Object.keys(byDate).sort();
-  dates.forEach((date, idx) => {
-    byDate[date].forEach(m => {
-      m.matchday = idx + 1;
-    });
-  });
-  
-  // Aggiungi playoff vuoti
-  const playoffSlots = schedule.filter(s => s.type !== 'regular');
-  playoffSlots.forEach(slot => {
-    db.matches.push({
-      id: 'match_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      tournament: tournament,
-      home: null,
-      away: null,
-      date: formatDateIT(slot.date),
-      time: slot.time,
-      field: String(slot.field),
-      scoreHome: null,
-      scoreAway: null,
-      played: false,
-      matchday: slot.type === 'playoff' ? 99 : (slot.type === 'quarti' ? 100 : (slot.type === 'semi' ? 101 : 102)),
-      isPlayoff: true,
-      playoffType: slot.type
-    });
-  });
-  
-  saveDB();
-  renderCalendario();
-  
-  console.log(`✅ Calendario pubblicato!`);
-  alert(`✅ Calendario generato con successo!\n\n${assignments.length} partite pubblicate\nTutte le regole rispettate!`);
-}
-
-
 function confirmGenerateCalendario() {
   closeModal('gen-modal');
   
-  // USA IL SOLVER SEMPLIFICATO (senza vincoli fasce)
+  // USA IL SOLVER CONSTRAINT-BASED per garantire tutte le regole
   try {
-    generateCalendarSimple();
+    generateCalendarWithConstraintSolver();
   } catch (e) {
-    console.error('❌ Errore nel solver:', e);
-    alert('❌ Errore nella generazione calendario.\n\nDettagli nella console (F12)');
+    console.error('Errore nel solver:', e);
+    alert('Errore nella generazione. Controlla la console (F12).');
   }
 }
 
