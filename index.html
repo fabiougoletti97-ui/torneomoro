@@ -3527,17 +3527,15 @@ function assignTimeslots(pairs, torneo) {
     teamDayMatches[id] = {}; // { "5 Lug 2026": 1, "7 Lug 2026": 1 }
   });
 
-  // Funzione per verificare il bilanciamento progressivo
+  // Funzione per verificare il bilanciamento progressivo (rilassato)
   function canTeamPlayProgressive(teamId) {
     const currentCount = teamMatchCount[teamId] || 0;
     // Calcola min e max partite giocate da tutte le squadre
     const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
-    const maxMatches = Math.max(...allTeamIds.map(id => teamMatchCount[id] || 0));
     
-    // Una squadra può giocare se dopo aver giocato questa partita
-    // mantiene una differenza massima di 1 con le altre squadre
-    // In pratica: può giocare se ha (minMatches) o (minMatches + 1) partite
-    return currentCount <= (minMatches + 1);
+    // Rilassato: permette differenza fino a 2 partite
+    // Una squadra può giocare se ha al massimo (minMatches + 2) partite
+    return currentCount <= (minMatches + 2);
   }
 
   const shuffledPairs = shuffle([...pairs]);
@@ -3625,14 +3623,14 @@ function assignTimeslots(pairs, torneo) {
         const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
         if (hDayMatches >= 1 || aDayMatches >= 1) continue;
         
-        // REGOLA CRITICA 2: BILANCIAMENTO PROGRESSIVO
+        // REGOLA: BILANCIAMENTO PROGRESSIVO (rilassato a max diff 2)
         // Ricalcola in tempo reale per il fallback
         const hMatches = teamMatchCount[h] || 0;
         const aMatches = teamMatchCount[a] || 0;
         const minMatches = Math.min(...allTeamIds.map(id => teamMatchCount[id] || 0));
         
-        // Entrambe le squadre devono avere al massimo (minMatches + 1) partite
-        if (hMatches > (minMatches + 1) || aMatches > (minMatches + 1)) continue;
+        // Entrambe le squadre devono avere al massimo (minMatches + 2) partite
+        if (hMatches > (minMatches + 2) || aMatches > (minMatches + 2)) continue;
         
         // REGOLA CRITICA 3: MAX 2 PARTITE A SETTIMANA
         if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
