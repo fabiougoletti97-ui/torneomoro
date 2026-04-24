@@ -3700,238 +3700,97 @@ function generateCalendarWithConstraintSolver() {
 
 
 function assignTimeslots(pairs, torneo) {
-  // Uses fixed schedule SCHEDULE_M / SCHEDULE_F with constraints:
-  // - max 2 matches/week per team
-  // - no consecutive days
-  // - male teams: exactly 1 match on field 11
-  // - PROGRESSIVE BALANCE: differenza max 1 partita tra qualsiasi coppia di squadre
-  // - MAX 1 PARTITA AL GIORNO per squadra
-
-  const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
-  const slots = [...schedule];
-
-  function getWeek(dateStr) {
-    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
-    const parts = dateStr.split(' ');
-    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
-    const jan1 = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  }
-  function dateToNum(dateStr) {
-    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
-    const parts = dateStr.split(' ');
-    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
-    return d.getTime();
-  }
-
+  // Usa gli slot fissi dal MATCH_SCHEDULE_2026
+  // SOLO 2 REGOLE per MASCHILE: max 1 partita/giorno, max 1 su campo 11
+  // SOLO 1 REGOLA per FEMMINILE: max 1 partita/giorno
+  
+  const schedule = torneo === 'M' ? MATCH_SCHEDULE_2026.maschile : MATCH_SCHEDULE_2026.femminile;
+  const slots = schedule.filter(s => s.type === 'regular');
+  
   const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
-  const teamWeekCount = {};
   const teamField11Count = {};
   const teamDayMatches = {};
-  allTeamIds.forEach(id => { 
-    teamWeekCount[id] = {}; 
+  
+  allTeamIds.forEach(id => {
     teamField11Count[id] = 0;
     teamDayMatches[id] = {};
   });
-
+  
   const shuffledPairs = shuffle([...pairs]);
-  const assigned = new Array(slots.length).fill(null);
+  const assigned = [];
   const usedPairs = new Set();
-
-  // PRIORITÀ: Riordina gli slot per processare PRIMA il campo 11
-  const slotIndices = slots.map((s, i) => i);
-  slotIndices.sort((a, b) => {
-    const slotA = slots[a];
-    const slotB = slots[b];
-    if (torneo === 'M') {
-      if (slotA.field === '11' && slotB.field !== '11') return -1;
-      if (slotA.field !== '11' && slotB.field === '11') return 1;
-    }
-    return 0;
-  });
-
-  // LOOP PRINCIPALE con le 4 regole essenziali
-  for (let idx = 0; idx < slotIndices.length; idx++) {
-    const si = slotIndices[idx];
-    const slot = slots[si];
-    const slotWeek = getWeek(slot.date);
-    const slotDate = slot.date;
-
-    for (let pi = 0; pi < shuffledPairs.length; pi++) {
-      const pair = shuffledPairs[pi];
-      const key = pair.home.id + '_' + pair.away.id;
-      if (usedPairs.has(key)) continue;
-
-      const h = pair.home.id, a = pair.away.id;
-
-      // REGOLA 1: SISTEMA A FASCE (già garantito dalle coppie)
+  const usedSlots = new Set();
+  
+  // Assegna ogni coppia al primo slot disponibile
+  for (const pair of shuffledPairs) {
+    const key = pair.home.id + '_' + pair.away.id;
+    if (usedPairs.has(key)) continue;
+    
+    let slotAssigned = false;
+    
+    for (const slot of slots) {
+      const slotKey = `${slot.date}_${slot.time}_${slot.field}`;
+      if (usedSlots.has(slotKey)) continue;
       
-      // REGOLA 2: CAMPO 11 MAX 1 VOLTA
-      if (torneo === 'M' && slot.field === '11') {
-        if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
-      }
-
-      // REGOLA 3: MAX 1 PARTITA AL GIORNO
-      const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
-      const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+      const h = pair.home.id;
+      const a = pair.away.id;
+      
+      // REGOLA 1: MAX 1 PARTITA AL GIORNO
+      const hDayMatches = (teamDayMatches[h] || {})[slot.date] || 0;
+      const aDayMatches = (teamDayMatches[a] || {})[slot.date] || 0;
       if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-
-      // REGOLA 4: MAX 2 PARTITE A SETTIMANA
-      if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
-      if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
-
-      // OK, assegna
-      assigned[si] = {pair, slot};
-      usedPairs.add(key);
       
-      if (!teamWeekCount[h]) teamWeekCount[h] = {};
-      if (!teamWeekCount[a]) teamWeekCount[a] = {};
-      teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
-      teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
+      // REGOLA 2 (solo maschile): MAX 1 SU CAMPO 11
+      if (torneo === 'M' && slot.field === 11) {
+        if ((teamField11Count[h] || 0) >= 1 || (teamField11Count[a] || 0) >= 1) continue;
+      }
+      
+      // Assegna!
+      assigned.push({
+        home: h,
+        away: a,
+        date: formatDateIT(slot.date),
+        time: slot.time,
+        field: slot.field,
+        giornata: 0,
+        fasciaTag: pair.fasciaTag || 'random'
+      });
+      
+      usedPairs.add(key);
+      usedSlots.add(slotKey);
       
       if (!teamDayMatches[h]) teamDayMatches[h] = {};
       if (!teamDayMatches[a]) teamDayMatches[a] = {};
-      teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
-      teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
+      teamDayMatches[h][slot.date] = (teamDayMatches[h][slot.date] || 0) + 1;
+      teamDayMatches[a][slot.date] = (teamDayMatches[a][slot.date] || 0) + 1;
       
-      if (torneo === 'M' && slot.field === '11') {
-        teamField11Count[h] = (teamField11Count[h]||0) + 1;
-        teamField11Count[a] = (teamField11Count[a]||0) + 1;
+      if (torneo === 'M' && slot.field === 11) {
+        teamField11Count[h] = (teamField11Count[h] || 0) + 1;
+        teamField11Count[a] = (teamField11Count[a] || 0) + 1;
       }
+      
+      slotAssigned = true;
       break;
     }
-  }
-
-  // FALLBACK SEMPLICE: Rilassa solo max 2/settimana
-  const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
-  if (unassigned.length > 0) {
-    console.warn(`⚠️ ${unassigned.length} partite non assegnate. Fallback: rilasso max 2/settimana...`);
     
-    for (let si = 0; si < slots.length; si++) {
-      if (assigned[si] !== null) continue;
-      if (unassigned.length === 0) break;
-      
-      const slot = slots[si];
-      const slotDate = slot.date;
-      
-      for (let pi = 0; pi < unassigned.length; pi++) {
-        const pair = unassigned[pi];
-        const h = pair.home.id, a = pair.away.id;
-        
-        // Mantieni solo le 3 regole critiche
-        
-        // CAMPO 11 MAX 1 VOLTA
-        if (torneo === 'M' && slot.field === '11') {
-          if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
-        }
-        
-        // MAX 1 PARTITA AL GIORNO
-        const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
-        const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
-        if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-        
-        // MAX 2/SETTIMANA RILASSATA (non verificata)
-        
-        // Assegna
-        assigned[si] = {pair, slot};
-        usedPairs.add(pair.home.id + '_' + pair.away.id);
-        
-        if (!teamDayMatches[h]) teamDayMatches[h] = {};
-        if (!teamDayMatches[a]) teamDayMatches[a] = {};
-        teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
-        teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
-        
-        if (torneo === 'M' && slot.field === '11') {
-          teamField11Count[h] = (teamField11Count[h]||0) + 1;
-          teamField11Count[a] = (teamField11Count[a]||0) + 1;
-        }
-        
-        unassigned.splice(pi, 1);
-        break;
-      }
+    if (!slotAssigned) {
+      console.warn('⚠️ Impossibile assegnare:', pair.home.name, 'vs', pair.away.name);
     }
   }
   
-  // FALLBACK 2: RIEMPIMENTO FORZATO SLOT CAMPO 11
-  // Se ci sono ancora slot del campo 11 vuoti, riempili a TUTTI I COSTI
-  const stillUnassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
-  if (torneo === 'M' && stillUnassigned.length > 0) {
-    for (let si = 0; si < slots.length; si++) {
-      if (assigned[si] !== null) continue; // Già occupato
-      if (stillUnassigned.length === 0) break;
-      
-      const slot = slots[si];
-      
-      // Solo per slot campo 11 vuoti
-      if (slot.field === '11') {
-        const slotDate = slot.date;
-        
-        // Prova prima a rispettare almeno max 1/giorno
-        let found = false;
-        for (let pi = 0; pi < stillUnassigned.length; pi++) {
-          const pair = stillUnassigned[pi];
-          const h = pair.home.id, a = pair.away.id;
-          
-          // Prova a rispettare max 1/giorno
-          const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
-          const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
-          if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-          
-          // OK, assegna (anche se viola campo 11 max 1)
-          assigned[si] = {pair, slot};
-          usedPairs.add(pair.home.id + '_' + pair.away.id);
-          
-          if (!teamDayMatches[h]) teamDayMatches[h] = {};
-          if (!teamDayMatches[a]) teamDayMatches[a] = {};
-          teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
-          teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
-          
-          teamField11Count[h] = (teamField11Count[h]||0) + 1;
-          teamField11Count[a] = (teamField11Count[a]||0) + 1;
-          
-          console.warn(`⚠️ Campo 11 forzato: ${pair.home.name} vs ${pair.away.name} (una squadra gioca 2 volte sul campo 11)`);
-          
-          stillUnassigned.splice(pi, 1);
-          found = true;
-          break;
-        }
-        
-        // Se ancora non trovato, assegna SENZA verifiche
-        if (!found && stillUnassigned.length > 0) {
-          const pair = stillUnassigned[0];
-          assigned[si] = {pair, slot};
-          usedPairs.add(pair.home.id + '_' + pair.away.id);
-          
-          console.warn(`⚠️ Campo 11 forzato TOTALE: ${pair.home.name} vs ${pair.away.name}`);
-          stillUnassigned.shift();
-        }
-      }
-    }
-    
-    if (stillUnassigned.length > 0) {
-      console.error(`❌ ${stillUnassigned.length} partite ancora non assegnate`);
-    }
-  }
-
-  let matchId = Date.now();
-  const scheduled = [];
-  assigned.forEach(a => {
-    if (!a) return;
-    scheduled.push({
-      id: torneo + '_m' + (matchId++),
-      torneo,
-      giornata: scheduled.length + 1,
-      home: a.pair.home.id,
-      away: a.pair.away.id,
-      fasciaTag: a.pair.fasciaTag,
-      scoreHome: null, scoreAway: null,
-      goals:[], yellow:[], red:[],
-      date: a.slot.date,
-      time: a.slot.time,
-      field: a.slot.field
+  console.log(`✅ Assegnate ${assigned.length}/${pairs.length} partite per ${torneo === 'M' ? 'Maschile' : 'Femminile'}`);
+  
+  // Verifica che le regole siano rispettate
+  if (torneo === 'M') {
+    allTeamIds.forEach(tid => {
+      const matchesOn11 = assigned.filter(m => (m.home === tid || m.away === tid) && m.field === 11).length;
+      const matchesOn7 = assigned.filter(m => (m.home === tid || m.away === tid) && m.field === 7).length;
+      const team = db.teams.find(t => t.id === tid);
+      console.log(`${team?.name}: ${matchesOn11} su C.11, ${matchesOn7} su C.7`);
     });
-  });
-  return scheduled;
+  }
+  
+  return assigned;
 }
 
 
