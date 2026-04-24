@@ -3515,16 +3515,12 @@ function assignTimeslots(pairs, torneo) {
 
   const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
   const teamWeekCount = {};
-  const teamLastDay = {};
   const teamField11Count = {};
-  const teamMatchCount = {}; // Mantiene il conteggio per statistiche
-  const teamDayMatches = {}; // Contatore partite per giorno per squadra
+  const teamDayMatches = {};
   allTeamIds.forEach(id => { 
     teamWeekCount[id] = {}; 
-    teamLastDay[id] = 0; 
     teamField11Count[id] = 0;
-    teamMatchCount[id] = 0;
-    teamDayMatches[id] = {}; // { "5 Lug 2026": 1, "7 Lug 2026": 1 }
+    teamDayMatches[id] = {};
   });
 
   const shuffledPairs = shuffle([...pairs]);
@@ -3532,25 +3528,23 @@ function assignTimeslots(pairs, torneo) {
   const usedPairs = new Set();
 
   // PRIORITÀ: Riordina gli slot per processare PRIMA il campo 11
-  // Questo garantisce che gli slot del campo 11 vengano riempiti per primi
   const slotIndices = slots.map((s, i) => i);
   slotIndices.sort((a, b) => {
     const slotA = slots[a];
     const slotB = slots[b];
-    // Campo 11 viene prima (torneo M)
     if (torneo === 'M') {
       if (slotA.field === '11' && slotB.field !== '11') return -1;
       if (slotA.field !== '11' && slotB.field === '11') return 1;
     }
-    return 0; // Mantieni ordine originale per gli altri
+    return 0;
   });
 
+  // LOOP PRINCIPALE con le 4 regole essenziali
   for (let idx = 0; idx < slotIndices.length; idx++) {
     const si = slotIndices[idx];
     const slot = slots[si];
     const slotWeek = getWeek(slot.date);
-    const slotDateNum = dateToNum(slot.date);
-    const slotDate = slot.date; // es. "5 Lug 2026"
+    const slotDate = slot.date;
 
     for (let pi = 0; pi < shuffledPairs.length; pi++) {
       const pair = shuffledPairs[pi];
@@ -3559,39 +3553,36 @@ function assignTimeslots(pairs, torneo) {
 
       const h = pair.home.id, a = pair.away.id;
 
-      // REGOLA: MAX 1 PARTITA AL GIORNO
-      const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
-      const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
-      if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-
-      // REGOLA BILANCIAMENTO PROGRESSIVO - ELIMINATA per completare il calendario
-
+      // REGOLA 1: SISTEMA A FASCE (già garantito dalle coppie)
+      
+      // REGOLA 2: CAMPO 11 MAX 1 VOLTA
       if (torneo === 'M' && slot.field === '11') {
         if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
       }
 
+      // REGOLA 3: MAX 1 PARTITA AL GIORNO
+      const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+      const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+      if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+
+      // REGOLA 4: MAX 2 PARTITE A SETTIMANA
       if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
       if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
 
-      const ONE_DAY = 86400000;
-      if (teamLastDay[h] && (slotDateNum - teamLastDay[h]) <= ONE_DAY) continue;
-      if (teamLastDay[a] && (slotDateNum - teamLastDay[a]) <= ONE_DAY) continue;
-
+      // OK, assegna
       assigned[si] = {pair, slot};
       usedPairs.add(key);
+      
       if (!teamWeekCount[h]) teamWeekCount[h] = {};
       if (!teamWeekCount[a]) teamWeekCount[a] = {};
       teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
       teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
-      teamLastDay[h] = slotDateNum;
-      teamLastDay[a] = slotDateNum;
-      teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
-      teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
-      // Aggiorna contatore partite per giorno
+      
       if (!teamDayMatches[h]) teamDayMatches[h] = {};
       if (!teamDayMatches[a]) teamDayMatches[a] = {};
       teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
       teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
+      
       if (torneo === 'M' && slot.field === '11') {
         teamField11Count[h] = (teamField11Count[h]||0) + 1;
         teamField11Count[a] = (teamField11Count[a]||0) + 1;
@@ -3600,12 +3591,11 @@ function assignTimeslots(pairs, torneo) {
     }
   }
 
-  // Fallback for remaining pairs (OBIETTIVO: Completare TUTTO il calendario)
+  // FALLBACK SEMPLICE: Rilassa solo max 2/settimana
   const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
   if (unassigned.length > 0) {
-    console.warn(`⚠️ ${unassigned.length} partite non assegnate nel primo passaggio. Tentativo fallback rilassato...`);
+    console.warn(`⚠️ ${unassigned.length} partite non assegnate. Fallback: rilasso max 2/settimana...`);
     
-    // PRIMO TENTATIVO: Con solo le regole più critiche
     for (let si = 0; si < slots.length; si++) {
       if (assigned[si] !== null) continue;
       if (unassigned.length === 0) break;
@@ -3617,40 +3607,28 @@ function assignTimeslots(pairs, torneo) {
         const pair = unassigned[pi];
         const h = pair.home.id, a = pair.away.id;
         
-        // SOLO REGOLE CRITICHE:
+        // Mantieni solo le 3 regole critiche
         
-        // 1. MAX 1 PARTITA AL GIORNO
-        const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
-        const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
-        if (hDayMatches >= 1 || aDayMatches >= 1) continue;
-        
-        // 2. CAMPO 11 MAX 1 VOLTA
+        // CAMPO 11 MAX 1 VOLTA
         if (torneo === 'M' && slot.field === '11') {
           if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
         }
         
-        // OK, assegna
+        // MAX 1 PARTITA AL GIORNO
+        const hDayMatches = (teamDayMatches[h]||{})[slotDate]||0;
+        const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
+        if (hDayMatches >= 1 || aDayMatches >= 1) continue;
+        
+        // MAX 2/SETTIMANA RILASSATA (non verificata)
+        
+        // Assegna
         assigned[si] = {pair, slot};
         usedPairs.add(pair.home.id + '_' + pair.away.id);
-        
-        const slotDateNum = dateToNum(slotDate);
-        const slotWeek = getWeek(slotDate);
         
         if (!teamDayMatches[h]) teamDayMatches[h] = {};
         if (!teamDayMatches[a]) teamDayMatches[a] = {};
         teamDayMatches[h][slotDate] = (teamDayMatches[h][slotDate]||0) + 1;
         teamDayMatches[a][slotDate] = (teamDayMatches[a][slotDate]||0) + 1;
-        
-        teamLastDay[h] = slotDateNum;
-        teamLastDay[a] = slotDateNum;
-        
-        teamMatchCount[h] = (teamMatchCount[h]||0) + 1;
-        teamMatchCount[a] = (teamMatchCount[a]||0) + 1;
-        
-        if (!teamWeekCount[h]) teamWeekCount[h] = {};
-        if (!teamWeekCount[a]) teamWeekCount[a] = {};
-        teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
-        teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
         
         if (torneo === 'M' && slot.field === '11') {
           teamField11Count[h] = (teamField11Count[h]||0) + 1;
@@ -3662,45 +3640,8 @@ function assignTimeslots(pairs, torneo) {
       }
     }
     
-    // SECONDO TENTATIVO: Se ancora ci sono partite non assegnate, rilassa anche max 1/giorno
     if (unassigned.length > 0) {
-      console.warn(`⚠️ Ancora ${unassigned.length} partite non assegnate. Tentativo finale con regole ultra-rilassate...`);
-      
-      for (let si = 0; si < slots.length; si++) {
-        if (assigned[si] !== null) continue;
-        if (unassigned.length === 0) break;
-        
-        const slot = slots[si];
-        
-        for (let pi = 0; pi < unassigned.length; pi++) {
-          const pair = unassigned[pi];
-          const h = pair.home.id, a = pair.away.id;
-          
-          // SOLO CAMPO 11 RISPETTATO
-          if (torneo === 'M' && slot.field === '11') {
-            if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
-          }
-          
-          // Assegna comunque
-          assigned[si] = {pair, slot};
-          usedPairs.add(pair.home.id + '_' + pair.away.id);
-          
-          if (torneo === 'M' && slot.field === '11') {
-            teamField11Count[h] = (teamField11Count[h]||0) + 1;
-            teamField11Count[a] = (teamField11Count[a]||0) + 1;
-          }
-          
-          unassigned.splice(pi, 1);
-          break;
-        }
-      }
-    }
-    
-    if (unassigned.length > 0) {
-      console.error(`❌ ${unassigned.length} partite ANCORA non assegnate dopo tutti i tentativi`);
-      console.log('Partite non assegnate:', unassigned.map(p => `${p.home.name} vs ${p.away.name}`));
-    } else {
-      console.log('✅ Calendario completato con successo!');
+      console.error(`❌ ${unassigned.length} partite ancora non assegnate`);
     }
   }
 
