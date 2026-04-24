@@ -594,7 +594,7 @@ body.admin-mode .edit-hint{display:inline;}
   justify-content:center;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:1.5rem;width:100%;}
 body.admin-mode .gen-cal-btn{display:flex;}
 .gen-cal-btn:hover{background:linear-gradient(135deg,rgba(245,197,24,0.22),rgba(62,207,94,0.15));border-color:var(--gold);}
-.gen-cal-btn.used{border-color:rgba(62,207,94,0.35);color:var(--accent);background:rgba(62,207,94,0.06);cursor:default;}
+.gen-cal-btn.used{border-color:rgba(245,197,24,0.35);color:var(--gold);background:rgba(245,197,24,0.06);}
 /* Time input in match row */
 .time-input{width:68px;padding:4px 6px;background:var(--dark);border:1px solid rgba(255,255,255,0.1);
   border-radius:3px;color:var(--white);font-family:'Oswald';font-size:0.8rem;outline:none;
@@ -3458,25 +3458,19 @@ function addMinutes(timeStr, mins) {
 }
 
 function buildFasciaMatchups(teams) {
-  // NUOVO ALGORITMO SEMPLIFICATO
-  // 16 squadre: 4 fascia 1, 12 fascia 3
-  // Ogni squadra gioca 4 partite totali
-  // Totale: 32 partite
+  // GARANTISCE ESATTAMENTE 32 PARTITE
+  // 16 squadre x 4 partite ciascuna = 64 slot / 2 = 32 partite
   
   const f1Teams = teams.filter(t => t.fascia === 1);
   const f3Teams = teams.filter(t => t.fascia === 3);
   
-  console.log(`F1: ${f1Teams.length}, F3: ${f3Teams.length}`);
-  
   const pairs = [];
   const matchCount = {};
   const vsF1Count = {};
-  const vsF3Count = {};
   
   teams.forEach(t => {
     matchCount[t.id] = 0;
     vsF1Count[t.id] = 0;
-    vsF3Count[t.id] = 0;
   });
   
   const pairSet = new Set();
@@ -3495,70 +3489,77 @@ function buildFasciaMatchups(teams) {
     matchCount[a.id]++;
     matchCount[b.id]++;
     
-    // Conta vs F1 o F3
     if (a.fascia === 1) vsF1Count[b.id]++;
     if (b.fascia === 1) vsF1Count[a.id]++;
-    if (a.fascia === 3) vsF3Count[b.id]++;
-    if (b.fascia === 3) vsF3Count[a.id]++;
     
     return true;
   };
   
-  // FASE 1: Ogni squadra gioca almeno 1 partita vs una squadra di F1
-  // F1 vs F1 (le 4 squadre di F1 giocano tra loro: 6 coppie possibili, ne usiamo 2)
+  // FASE 1: Ogni squadra deve avere almeno 1 vs F1
+  // F1 vs F1
   for (let i = 0; i < f1Teams.length; i++) {
     for (let j = i + 1; j < f1Teams.length; j++) {
-      if (vsF1Count[f1Teams[i].id] >= 1 && vsF1Count[f1Teams[j].id] >= 1) continue;
       if (matchCount[f1Teams[i].id] >= 4 || matchCount[f1Teams[j].id] >= 4) continue;
-      
       addPair(f1Teams[i], f1Teams[j], 'f1');
     }
   }
   
-  // F3 vs F1 (ogni squadra F3 deve giocare con una F1)
-  const shuffledF1 = shuffle([...f1Teams]);
+  // F3 vs F1 - distribuisci equamente
   const shuffledF3 = shuffle([...f3Teams]);
-  
   shuffledF3.forEach(t3 => {
     if (vsF1Count[t3.id] >= 1) return;
     
-    for (const t1 of shuffledF1) {
-      if (matchCount[t1.id] >= 4 || matchCount[t3.id] >= 4) continue;
-      if (vsF1Count[t3.id] >= 1) break;
-      
-      if (addPair(t1, t3, 'f1')) break;
+    // Trova F1 con meno partite
+    const availableF1 = f1Teams
+      .filter(t1 => matchCount[t1.id] < 4)
+      .sort((a, b) => matchCount[a.id] - matchCount[b.id]);
+    
+    if (availableF1.length > 0) {
+      addPair(availableF1[0], t3, 'f1');
     }
   });
   
-  // FASE 2: Completa con partite vs F3 fino a 4 partite per squadra
+  // FASE 2: Completa fino a raggiungere ESATTAMENTE 32 partite
   let attempts = 0;
-  while (attempts < 1000) {
+  while (pairs.length < 32 && attempts < 1000) {
     attempts++;
     
-    // Trova la squadra con meno partite
-    const needyTeam = shuffle(teams).find(t => matchCount[t.id] < 4);
-    if (!needyTeam) break;
+    // Trova squadre con meno partite
+    const sortedTeams = shuffle([...teams]).sort((a, b) => matchCount[a.id] - matchCount[b.id]);
     
-    // Trova un avversario valido
-    const opponents = shuffle(teams).filter(opp =>
-      opp.id !== needyTeam.id &&
-      matchCount[opp.id] < 4 &&
-      !pairSet.has([Math.min(needyTeam.id, opp.id), Math.max(needyTeam.id, opp.id)].join('-'))
-    );
-    
-    if (opponents.length === 0) {
-      console.warn('Nessun avversario disponibile per', needyTeam.name);
-      break;
+    let paired = false;
+    for (let i = 0; i < sortedTeams.length && !paired; i++) {
+      const t1 = sortedTeams[i];
+      if (matchCount[t1.id] >= 4) continue;
+      
+      for (let j = i + 1; j < sortedTeams.length; j++) {
+        const t2 = sortedTeams[j];
+        if (matchCount[t2.id] >= 4) continue;
+        
+        const key = [Math.min(t1.id, t2.id), Math.max(t1.id, t2.id)].join('-');
+        if (pairSet.has(key)) continue;
+        
+        addPair(t1, t2, 'f3');
+        paired = true;
+        break;
+      }
     }
     
-    addPair(needyTeam, opponents[0], 'f3');
+    if (!paired) break;
   }
   
-  // Report
-  console.log(`Coppie generate: ${pairs.length}/32`);
+  console.log(`✅ Partite generate: ${pairs.length}/32`);
+  
+  // Verifica
   teams.forEach(t => {
-    console.log(`${t.name}: ${matchCount[t.id]} partite (${vsF1Count[t.id]} vs F1, ${vsF3Count[t.id]} vs F3)`);
+    const total = matchCount[t.id];
+    const vsF1 = vsF1Count[t.id];
+    console.log(`${t.name}: ${total} partite (${vsF1} vs F1)`);
   });
+  
+  if (pairs.length !== 32) {
+    console.error('⚠️ ERRORE: Non sono state generate esattamente 32 partite!');
+  }
   
   return pairs;
 }
@@ -3660,6 +3661,26 @@ function solveCalendar(teams, schedule) {
   
   console.table(report);
   
+  // Report partite per data
+  console.log('
+📅 REPORT PARTITE PER DATA:');
+  const byDate = {};
+  assignments.forEach(a => {
+    if (!byDate[a.date]) byDate[a.date] = [];
+    byDate[a.date].push(a);
+  });
+  
+  Object.keys(byDate).sort().forEach(date => {
+    console.log(`
+${date} (${byDate[date].length} partite):`);
+    byDate[date].forEach(m => {
+      const h = teams.find(t => t.id === m.home);
+      const aw = teams.find(t => t.id === m.away);
+      console.log(`  ${m.time} - ${h?.name} vs ${aw?.name} [C.${m.field}]`);
+    });
+  });
+
+  
   return {
     success: assignments.length === pairs.length,
     matches: assignments,
@@ -3711,6 +3732,57 @@ function generateCalendarWithConstraintSolver() {
   
   // Assegna giornate
   assignMatchdays(tournament);
+  
+  // VERIFICA FINALE: controlla che ci siano esattamente 32 partite maschili
+  const maleMatches = db.matches.filter(m => m.tournament === 'M' && !m.isPlayoff);
+  if (maleMatches.length !== 32) {
+    console.error('⚠️ ERRORE: Generate solo', maleMatches.length, 'partite invece di 32!');
+    alert('⚠️ Errore: generate solo ' + maleMatches.length + ' partite su 32 richieste.
+
+Prova a rigenerare.');
+    return;
+  }
+  
+  console.log('✅ Verificato: 32 partite maschili generate correttamente');
+  // VERIFICA: Nessuna squadra gioca 2 volte lo stesso giorno
+  const violations = [];
+  const teamsByDate = {};
+  
+  db.matches.filter(m => !m.isPlayoff).forEach(match => {
+    if (!match.home || !match.away) return;
+    
+    const date = match.date;
+    if (!teamsByDate[date]) teamsByDate[date] = {};
+    
+    // Controlla home
+    if (teamsByDate[date][match.home]) {
+      const team = db.teams.find(t => t.id === match.home);
+      violations.push(`${team?.name || match.home} gioca 2 volte il ${date}`);
+    }
+    teamsByDate[date][match.home] = true;
+    
+    // Controlla away
+    if (teamsByDate[date][match.away]) {
+      const team = db.teams.find(t => t.id === match.away);
+      violations.push(`${team?.name || match.away} gioca 2 volte il ${date}`);
+    }
+    teamsByDate[date][match.away] = true;
+  });
+  
+  if (violations.length > 0) {
+    console.error('⚠️ VIOLAZIONI MAX 1 PARTITA/GIORNO:', violations);
+    alert('⚠️ ERRORE: Alcune squadre giocano 2 volte lo stesso giorno!
+
+' + violations.join('
+') + '
+
+Rigenera il calendario.');
+    return;
+  }
+  
+  console.log('✅ Verificato: Nessuna squadra gioca 2 volte lo stesso giorno');
+
+  
   
   // Aggiungi playoff vuoti
   const playoffSlots = schedule.filter(s => s.type !== 'regular');
