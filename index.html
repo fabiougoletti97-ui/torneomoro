@@ -3600,12 +3600,12 @@ function assignTimeslots(pairs, torneo) {
     }
   }
 
-  // Fallback for remaining pairs (mantenendo TUTTE le regole critiche)
+  // Fallback for remaining pairs (mantenendo regole critiche tranne giorni consecutivi)
   const unassigned = shuffledPairs.filter(p => !usedPairs.has(p.home.id + '_' + p.away.id));
   if (unassigned.length > 0) {
-    console.warn(`⚠️ ${unassigned.length} partite non assegnate nel primo passaggio. Tentativo fallback con regole complete...`);
+    console.warn(`⚠️ ${unassigned.length} partite non assegnate nel primo passaggio. Tentativo fallback...`);
     
-    // Prova ad assegnare le rimanenti MANTENENDO TUTTE le regole critiche
+    // Prova ad assegnare le rimanenti SENZA la regola giorni consecutivi
     for (let si = 0; si < slots.length; si++) {
       if (assigned[si] !== null) continue; // Slot già occupato
       if (unassigned.length === 0) break;
@@ -3615,7 +3615,7 @@ function assignTimeslots(pairs, torneo) {
       const slotDateNum = dateToNum(slotDate);
       const slotWeek = getWeek(slotDate);
       
-      // Trova una coppia che rispetta TUTTE le regole critiche
+      // Trova una coppia che rispetta le regole critiche (senza no-consecutivi)
       for (let pi = 0; pi < unassigned.length; pi++) {
         const pair = unassigned[pi];
         const h = pair.home.id, a = pair.away.id;
@@ -3625,12 +3625,7 @@ function assignTimeslots(pairs, torneo) {
         const aDayMatches = (teamDayMatches[a]||{})[slotDate]||0;
         if (hDayMatches >= 1 || aDayMatches >= 1) continue;
         
-        // REGOLA CRITICA 2: NO GIORNI CONSECUTIVI
-        const ONE_DAY = 86400000;
-        if (teamLastDay[h] && (slotDateNum - teamLastDay[h]) <= ONE_DAY) continue;
-        if (teamLastDay[a] && (slotDateNum - teamLastDay[a]) <= ONE_DAY) continue;
-        
-        // REGOLA CRITICA 3: BILANCIAMENTO PROGRESSIVO
+        // REGOLA CRITICA 2: BILANCIAMENTO PROGRESSIVO
         // Ricalcola in tempo reale per il fallback
         const hMatches = teamMatchCount[h] || 0;
         const aMatches = teamMatchCount[a] || 0;
@@ -3642,11 +3637,11 @@ function assignTimeslots(pairs, torneo) {
         const canAPlay = aMatches <= minMatches && (aMatches + 1) <= (maxMatches + 1);
         if (!canHPlay || !canAPlay) continue;
         
-        // REGOLA CRITICA 4: MAX 2 PARTITE A SETTIMANA
+        // REGOLA CRITICA 3: MAX 2 PARTITE A SETTIMANA
         if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
         if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
         
-        // REGOLA 5: CAMPO 11 (solo maschile, meno critica)
+        // REGOLA 4: CAMPO 11 (solo maschile)
         if (torneo === 'M' && slot.field === '11') {
           if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
         }
@@ -3683,7 +3678,7 @@ function assignTimeslots(pairs, torneo) {
     }
     
     if (unassigned.length > 0) {
-      console.error(`❌ ${unassigned.length} partite impossibili da assegnare rispettando TUTTE le regole critiche`);
+      console.error(`❌ ${unassigned.length} partite impossibili da assegnare rispettando le regole critiche`);
       console.log('Partite non assegnate:', unassigned.map(p => `${p.home.name} vs ${p.away.name}`));
     }
   }
