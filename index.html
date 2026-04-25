@@ -1902,10 +1902,16 @@ function genMatches() {
     return pairings;
   }
 
-  // ── Constraint Satisfaction Algorithm with Backtracking ──────────────────
+  // ── Constraint Satisfaction Algorithm with Two-Phase Approach ────────────
   function assignMaschileWithConstraints() {
-    const slots = [...SCHEDULE_M]; // 31 slots
-    const MAX_ATTEMPTS = 200; // Increased attempts for better chance
+    const slots = [...SCHEDULE_M]; // 32 slots
+    const MAX_ATTEMPTS = 200;
+    
+    // Separa gli slot per tipo di campo
+    const field11Slots = slots.filter(s => s.field === '11');
+    const field7Slots = slots.filter(s => s.field === '7');
+    
+    console.log(`📊 Slot disponibili: ${field11Slots.length} campo 11, ${field7Slots.length} campo 7`);
     
     // Track team state
     class TeamState {
@@ -1914,8 +1920,8 @@ function genMatches() {
         this.field11Count = 0;
         this.field7Count = 0;
         this.matchDates = [];
-        this.tier1Opponents = 0;  // Count of matches vs tier 1
-        this.tier2Opponents = 0;  // Count of matches vs tier 2
+        this.tier1Opponents = 0;
+        this.tier2Opponents = 0;
         this.consecutivePairs = 0;
       }
     }
@@ -1930,13 +1936,13 @@ function genMatches() {
       // Generate all possible pairings
       const allPairings = generateAllPairings(mTeams);
       
-      // Shuffle slots for randomization
-      const shuffledSlots = [...slots].sort(() => Math.random() - 0.5);
+      // ═══════════════════════════════════════════════════════════════════
+      // FASE 1: Assegna PRIMA tutte le partite su campo 11
+      // ═══════════════════════════════════════════════════════════════════
+      const shuffledField11Slots = [...field11Slots].sort(() => Math.random() - 0.5);
+      let field11Success = true;
       
-      let success = true;
-      
-      for (const slot of shuffledSlots) {
-        // Shuffle pairings for this slot
+      for (const slot of shuffledField11Slots) {
         const shuffledPairings = [...allPairings].sort(() => Math.random() - 0.5);
         let assigned = false;
         
@@ -1944,37 +1950,30 @@ function genMatches() {
           const {home, away} = pairing;
           const pairKey = `${Math.min(home,away)}_${Math.max(home,away)}`;
           
-          // Check if pairing already used (no duplicates)
           if (usedPairings.has(pairKey)) continue;
           
           const hState = teamStates[home];
           const aState = teamStates[away];
           
-          // CONSTRAINT 1: max 4 matches per team
+          // VINCOLO CRITICO: Nessuna delle due squadre deve aver già giocato su campo 11
+          if (hState.field11Count >= 1 || aState.field11Count >= 1) continue;
+          
+          // CONSTRAINT: max 4 matches per team
           if (hState.matchCount >= 4 || aState.matchCount >= 4) continue;
           
-          // CONSTRAINT 2,3: field distribution
-          if (slot.field === '11') {
-            if (hState.field11Count >= 1 || aState.field11Count >= 1) continue;
-          } else {
-            if (hState.field7Count >= 3 || aState.field7Count >= 3) continue;
-          }
-          
-          // CONSTRAINT 4: no more than 1 match per day
+          // CONSTRAINT: no more than 1 match per day
           if (hState.matchDates.includes(slot.date) || aState.matchDates.includes(slot.date)) continue;
           
-          // CONSTRAINT 6: max 2 matches vs tier 1 teams (1-4)
+          // CONSTRAINT: max 2 matches vs tier 1 and tier 2
           const homeTier = getTier(home);
           const awayTier = getTier(away);
           
           if (homeTier === 1 && aState.tier1Opponents >= 2) continue;
           if (awayTier === 1 && hState.tier1Opponents >= 2) continue;
-          
-          // CONSTRAINT 7: max 2 matches vs tier 2 teams (5-8)
           if (homeTier === 2 && aState.tier2Opponents >= 2) continue;
           if (awayTier === 2 && hState.tier2Opponents >= 2) continue;
           
-          // CONSTRAINT 8: max ONE pair of consecutive days
+          // CONSTRAINT: max ONE pair of consecutive days
           let hConsecViolation = false;
           let aConsecViolation = false;
           
@@ -1998,23 +1997,17 @@ function genMatches() {
           
           if (hConsecViolation || aConsecViolation) continue;
           
-          // ✅ All constraints satisfied! Assign this pairing
+          // ✅ All constraints satisfied! Assign to campo 11
           assignments.push({home, away, slot});
           usedPairings.add(pairKey);
           
           // Update states
           hState.matchCount++;
           aState.matchCount++;
+          hState.field11Count++;
+          aState.field11Count++;
           hState.matchDates.push(slot.date);
           aState.matchDates.push(slot.date);
-          
-          if (slot.field === '11') {
-            hState.field11Count++;
-            aState.field11Count++;
-          } else {
-            hState.field7Count++;
-            aState.field7Count++;
-          }
           
           // Update tier opponent counts
           if (homeTier === 1) aState.tier1Opponents++;
@@ -2045,50 +2038,223 @@ function genMatches() {
         }
         
         if (!assigned) {
-          success = false;
+          field11Success = false;
           break;
         }
       }
       
-      // Validate final result
-      if (success) {
-        let valid = true;
-        for (const id of mTeams) {
-          const state = teamStates[id];
-          // Each team must have exactly 4 matches, 1 on field 11, 3 on field 7
-          if (state.matchCount !== 4 || state.field11Count !== 1 || state.field7Count !== 3) {
-            valid = false;
-            break;
+      if (!field11Success) {
+        // Non siamo riusciti ad assegnare tutte le partite su campo 11
+        continue; // Riprova
+      }
+      
+      // Verifica che TUTTE le 16 squadre abbiano esattamente 1 partita su campo 11
+      let allTeamsHaveField11 = true;
+      for (const id of mTeams) {
+        if (teamStates[id].field11Count !== 1) {
+          allTeamsHaveField11 = false;
+          break;
+        }
+      }
+      
+      if (!allTeamsHaveField11) {
+        continue; // Riprova
+      }
+      
+      // ═══════════════════════════════════════════════════════════════════
+      // FASE 2: Assegna le partite su campo 7
+      // ═══════════════════════════════════════════════════════════════════
+      const shuffledField7Slots = [...field7Slots].sort(() => Math.random() - 0.5);
+      let field7Success = true;
+      
+      for (const slot of shuffledField7Slots) {
+        const shuffledPairings = [...allPairings].sort(() => Math.random() - 0.5);
+        let assigned = false;
+        
+        for (const pairing of shuffledPairings) {
+          const {home, away} = pairing;
+          const pairKey = `${Math.min(home,away)}_${Math.max(home,away)}`;
+          
+          if (usedPairings.has(pairKey)) continue;
+          
+          const hState = teamStates[home];
+          const aState = teamStates[away];
+          
+          // CONSTRAINT: max 4 matches per team
+          if (hState.matchCount >= 4 || aState.matchCount >= 4) continue;
+          
+          // CONSTRAINT: max 3 matches on field 7
+          if (hState.field7Count >= 3 || aState.field7Count >= 3) continue;
+          
+          // CONSTRAINT: no more than 1 match per day
+          if (hState.matchDates.includes(slot.date) || aState.matchDates.includes(slot.date)) continue;
+          
+          // CONSTRAINT: max 2 matches vs tier 1 and tier 2
+          const homeTier = getTier(home);
+          const awayTier = getTier(away);
+          
+          if (homeTier === 1 && aState.tier1Opponents >= 2) continue;
+          if (awayTier === 1 && hState.tier1Opponents >= 2) continue;
+          if (homeTier === 2 && aState.tier2Opponents >= 2) continue;
+          if (awayTier === 2 && hState.tier2Opponents >= 2) continue;
+          
+          // CONSTRAINT: max ONE pair of consecutive days
+          let hConsecViolation = false;
+          let aConsecViolation = false;
+          
+          for (const prevDate of hState.matchDates) {
+            if (areConsecutive(prevDate, slot.date)) {
+              if (hState.consecutivePairs >= 1) {
+                hConsecViolation = true;
+                break;
+              }
+            }
           }
-          // Check tier constraints
-          if (state.tier1Opponents > 2 || state.tier2Opponents > 2) {
-            valid = false;
-            break;
+          
+          for (const prevDate of aState.matchDates) {
+            if (areConsecutive(prevDate, slot.date)) {
+              if (aState.consecutivePairs >= 1) {
+                aConsecViolation = true;
+                break;
+              }
+            }
+          }
+          
+          if (hConsecViolation || aConsecViolation) continue;
+          
+          // ✅ All constraints satisfied! Assign to campo 7
+          assignments.push({home, away, slot});
+          usedPairings.add(pairKey);
+          
+          // Update states
+          hState.matchCount++;
+          aState.matchCount++;
+          hState.field7Count++;
+          aState.field7Count++;
+          hState.matchDates.push(slot.date);
+          aState.matchDates.push(slot.date);
+          
+          // Update tier opponent counts
+          if (homeTier === 1) aState.tier1Opponents++;
+          if (awayTier === 1) hState.tier1Opponents++;
+          if (homeTier === 2) aState.tier2Opponents++;
+          if (awayTier === 2) hState.tier2Opponents++;
+          
+          // Check for consecutive pair creation
+          let hHasConsec = false;
+          let aHasConsec = false;
+          for (const prevDate of hState.matchDates) {
+            if (prevDate !== slot.date && areConsecutive(prevDate, slot.date)) {
+              hHasConsec = true;
+              break;
+            }
+          }
+          for (const prevDate of aState.matchDates) {
+            if (prevDate !== slot.date && areConsecutive(prevDate, slot.date)) {
+              aHasConsec = true;
+              break;
+            }
+          }
+          if (hHasConsec) hState.consecutivePairs++;
+          if (aHasConsec) aState.consecutivePairs++;
+          
+          assigned = true;
+          break;
+        }
+        
+        if (!assigned) {
+          field7Success = false;
+          break;
+        }
+      }
+      
+      if (!field7Success) {
+        continue; // Riprova
+      }
+      
+      // ═══════════════════════════════════════════════════════════════════
+      // VALIDAZIONE FINALE COMPLETA
+      // ═══════════════════════════════════════════════════════════════════
+      let valid = true;
+      for (const id of mTeams) {
+        const state = teamStates[id];
+        // Each team must have exactly 4 matches, 1 on field 11, 3 on field 7
+        if (state.matchCount !== 4 || state.field11Count !== 1 || state.field7Count !== 3) {
+          valid = false;
+          break;
+        }
+        // Check tier constraints
+        if (state.tier1Opponents > 2 || state.tier2Opponents > 2) {
+          valid = false;
+          break;
+        }
+      }
+      
+      if (valid) {
+        // Build match objects
+        let matchId = Date.now();
+        const matches = [];
+        let matchNum = 1;
+        assignments.forEach(a => {
+          matches.push({
+            id: 'M_m' + (matchId++),
+            torneo: 'M',
+            giornata: matchNum++,
+            home: a.home,
+            away: a.away,
+            date: a.slot.date,
+            time: a.slot.time,
+            field: a.slot.field,
+            scoreHome: null, scoreAway: null,
+            goals:[], yellow:[], red:[]
+          });
+        });
+        
+        console.log('✅ Calendario maschile generato al tentativo', attempt + 1);
+        
+        // ── VALIDAZIONE DETTAGLIATA CAMPO 11 ──────────────────────────
+        const field11Validation = {};
+        mTeams.forEach(id => field11Validation[id] = 0);
+        
+        assignments.forEach(a => {
+          if (a.slot.field === '11') {
+            field11Validation[a.home]++;
+            field11Validation[a.away]++;
+          }
+        });
+        
+        let validationOK = true;
+        const violations = [];
+        for (const id of mTeams) {
+          if (field11Validation[id] !== 1) {
+            validationOK = false;
+            const team = db.teams.find(t => t.id === id);
+            violations.push(`Squadra ${id} (${team?.name}): ${field11Validation[id]} partite su campo 11`);
           }
         }
         
-        if (valid) {
-          // Build match objects
-          let matchId = Date.now();
-          const matches = [];
-          let matchNum = 1;
-          assignments.forEach(a => {
-            matches.push({
-              id: 'M_m' + (matchId++),
-              torneo: 'M',
-              giornata: matchNum++,
-              home: a.home,
-              away: a.away,
-              date: a.slot.date,
-              time: a.slot.time,
-              field: a.slot.field,
-              scoreHome: null, scoreAway: null,
-              goals:[], yellow:[], red:[]
-            });
-          });
-          console.log('✅ Calendario maschile generato al tentativo', attempt + 1);
-          return matches;
+        if (!validationOK) {
+          console.error('❌ VALIDAZIONE CAMPO 11 FALLITA:');
+          violations.forEach(v => console.error('  - ' + v));
+          continue; // Riprova con un altro tentativo
         }
+        
+        console.log('✅ VALIDAZIONE CAMPO 11 OK: tutte le 16 squadre giocano esattamente 1 partita su campo 11');
+        
+        // Log dettagliato per ogni squadra
+        console.log('📋 Dettaglio partite campo 11:');
+        mTeams.forEach(id => {
+          const team = db.teams.find(t => t.id === id);
+          const field11Match = assignments.find(a => a.slot.field === '11' && (a.home === id || a.away === id));
+          if (field11Match) {
+            const opponent = field11Match.home === id ? field11Match.away : field11Match.home;
+            const oppTeam = db.teams.find(t => t.id === opponent);
+            console.log(`  ${team?.emoji} ${team?.name} vs ${oppTeam?.emoji} ${oppTeam?.name} - ${field11Match.slot.date}`);
+          }
+        });
+        // ──────────────────────────────────────────────────────────────
+        
+        return matches;
       }
     }
     
@@ -3381,15 +3547,14 @@ const SCHEDULE_M = [
   {date:'28 Mag 2026', time:'20:00', field:'7'},
   {date:'28 Mag 2026', time:'21:00', field:'7'},
   {date:'28 Mag 2026', time:'22:00', field:'7'},
+  {date:'28 Mag 2026', time:'20:00', field:'11'},
   {date:'3 Giu 2026',  time:'20:00', field:'7'},
   {date:'3 Giu 2026',  time:'21:00', field:'7'},
   {date:'3 Giu 2026',  time:'22:00', field:'7'},
-  {date:'3 Giu 2026',  time:'20:00', field:'11'},
   {date:'3 Giu 2026',  time:'22:00', field:'11'},
   {date:'4 Giu 2026',  time:'20:00', field:'7'},
   {date:'4 Giu 2026',  time:'21:00', field:'7'},
   {date:'4 Giu 2026',  time:'22:00', field:'7'},
-  {date:'4 Giu 2026',  time:'20:00', field:'11'},
   {date:'4 Giu 2026',  time:'22:00', field:'11'},
   {date:'8 Giu 2026',  time:'20:00', field:'7'},
   {date:'8 Giu 2026',  time:'21:00', field:'7'},
@@ -3402,6 +3567,7 @@ const SCHEDULE_M = [
   {date:'10 Giu 2026', time:'20:00', field:'7'},
   {date:'10 Giu 2026', time:'21:00', field:'7'},
   {date:'10 Giu 2026', time:'22:00', field:'7'},
+  {date:'10 Giu 2026', time:'20:00', field:'11'},
 ];
 const SCHEDULE_F = [
   {date:'26 Mag 2026', time:'20:00', field:'11'},
