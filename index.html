@@ -1667,9 +1667,11 @@ body.admin-mode .delete-team-btn{display:block;}
     <div class="modal-title">🎲 Genera Calendario Automatico</div>
     <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">
       L'algoritmo assegna le partite agli slot fissi del calendario ufficiale rispettando i vincoli:
-      <strong style="color:var(--white);">max 2 partite/settimana</strong> per squadra,
-      <strong style="color:var(--white);">no giorni consecutivi</strong> e
-      <strong style="color:var(--white);">1 partita su Campo 11</strong> per ogni squadra maschile.
+      <strong style="color:var(--white);">4 partite per squadra</strong>,
+      <strong style="color:var(--white);">1 partita su Campo 11</strong>,
+      <strong style="color:var(--white);">max 1 partita/giorno</strong>,
+      <strong style="color:var(--white);">max 2 vs Fascia 1 e 2</strong>,
+      <strong style="color:var(--white);">max 1 coppia giorni consecutivi</strong>.
     </p>
     <div style="background:rgba(59,139,212,0.08);border:1px solid rgba(59,139,212,0.25);border-radius:6px;padding:0.8rem 1rem;margin-bottom:1.2rem;font-size:0.78rem;color:rgba(255,255,255,0.7);">
       📅 <strong style="color:#7ec8f7;">Maschile:</strong> 32 partite · 26 Mag → 10 Giu 2026 · Campi 7 e 11<br>
@@ -1837,154 +1839,279 @@ let db = {
 
 // Generate matches
 function genMatches() {
-  // Uses fixed schedule from Excel (SCHEDULE_M / SCHEDULE_F)
-  // Constraints: max 2 matches/week per team, no consecutive days,
-  //              each male team plays exactly 1 match on field 11.
+  // ═════════════════════════════════════════════════════════════════════════════
+  // VINCOLI IMPLEMENTATI (v4.0 - Sistema Fasce Completo):
+  // 1. Ogni squadra: esattamente 4 partite totali
+  // 2. Ogni squadra: esattamente 1 partita su campo 11
+  // 3. Ogni squadra: esattamente 3 partite su campo 7
+  // 4. Una squadra NON può giocare più di 1 partita nello stesso giorno
+  // 5. FASCE:
+  //    - Fascia 1 (teste di serie): squadre 1-4
+  //    - Fascia 2: squadre 5-8
+  //    - Fascia 3: squadre 9-16
+  // 6. Ogni squadra può giocare MAX 2 partite vs fascia 1 (squadre 1-4)
+  // 7. Ogni squadra può giocare MAX 2 partite vs fascia 2 (squadre 5-8)
+  // 8. Max UNA coppia di giorni consecutivi per squadra
+  // 9. No duplicati partite
+  // ═════════════════════════════════════════════════════════════════════════════
 
   const mTeams = db.teams.filter(t=>t.torneo==='M').map(t=>t.id);
   const fTeams = db.teams.filter(t=>t.torneo==='F').map(t=>t.id);
+  
+  // Definizione fasce
+  const tier1 = new Set([1, 2, 3, 4]);      // Teste di serie
+  const tier2 = new Set([5, 6, 7, 8]);      // Seconda fascia
+  const tier3 = new Set([9, 10, 11, 12, 13, 14, 15, 16]); // Terza fascia
 
-  // ── Round-robin pair generation ──────────────────────────────────────────
-  function generatePairs(ids) {
-    const pool = [...ids];
-    if (pool.length % 2 !== 0) pool.push(null);
-    const N = pool.length;
-    const allPairs = [];
-    for (let r = 0; r < N-1; r++) {
-      for (let i = 0; i < N/2; i++) {
-        const h = pool[i], a = pool[N-1-i];
-        if (h !== null && a !== null) allPairs.push({home:h, away:a, round:r});
-      }
-      pool.splice(1, 0, pool.pop());
-    }
-    return allPairs;
-  }
-
-  // ── Get ISO week number ───────────────────────────────────────────────────
-  function getWeek(dateStr) {
-    // dateStr: "26 Mag 2026"
+  // ── Parse date string to Date object ──────────────────────────────────────
+  function parseDate(dateStr) {
     const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
     const parts = dateStr.split(' ');
-    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
-    const jan1 = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
   }
 
-  // ── Parse date to comparable number ──────────────────────────────────────
+  // ── Get date as comparable number ────────────────────────────────────────
   function dateToNum(dateStr) {
-    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
-    const parts = dateStr.split(' ');
-    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
-    return d.getTime();
+    return parseDate(dateStr).getTime();
   }
 
-  // ── Assign pairs to fixed schedule slots (Maschile) ──────────────────────
-  function assignMaschile(pairs) {
-    const slots = [...SCHEDULE_M]; // 32 slots
-    const teamWeekCount = {};      // teamId -> {week -> count}
-    const teamLastDay = {};        // teamId -> last dateNum played
-    const teamField11Count = {};   // teamId -> count of field-11 matches
-    mTeams.forEach(id => {
-      teamWeekCount[id] = {};
-      teamLastDay[id] = 0;
-      teamField11Count[id] = 0;
-    });
+  // ── Check if two dates are consecutive (differ by exactly 1 day) ─────────
+  function areConsecutive(date1Str, date2Str) {
+    const d1 = parseDate(date1Str);
+    const d2 = parseDate(date2Str);
+    const diff = Math.abs(d1 - d2);
+    return diff === 86400000; // exactly 1 day in milliseconds
+  }
 
-    // Shuffle pairs for randomness, but keep field-11 constraint in mind
-    const shuffled = [...pairs].sort(() => Math.random() - 0.5);
-    const assigned = new Array(slots.length).fill(null);
-    const usedPairs = new Set();
+  // ── Get tier for a team ──────────────────────────────────────────────────
+  function getTier(teamId) {
+    if (tier1.has(teamId)) return 1;
+    if (tier2.has(teamId)) return 2;
+    return 3;
+  }
 
-    // First pass: assign pairs to slots respecting all constraints
-    // We try slot-by-slot and pick best valid pair
-    for (let si = 0; si < slots.length; si++) {
-      const slot = slots[si];
-      const slotWeek = getWeek(slot.date);
-      const slotDateNum = dateToNum(slot.date);
+  // ── Generate all possible pairings for given teams ──────────────────────
+  function generateAllPairings(teamIds) {
+    const pairings = [];
+    for (let i = 0; i < teamIds.length; i++) {
+      for (let j = i + 1; j < teamIds.length; j++) {
+        pairings.push({home: teamIds[i], away: teamIds[j]});
+        pairings.push({home: teamIds[j], away: teamIds[i]});
+      }
+    }
+    return pairings;
+  }
 
-      // Find a valid pair for this slot
-      for (let pi = 0; pi < shuffled.length; pi++) {
-        const pair = shuffled[pi];
-        const key = pair.home + '_' + pair.away;
-        if (usedPairs.has(key)) continue;
-
-        const h = pair.home, a = pair.away;
-
-        // Field 11 constraint: if this slot is field 11,
-        // skip if either team already has a field-11 match
-        if (slot.field === '11') {
-          if ((teamField11Count[h]||0) >= 1 || (teamField11Count[a]||0) >= 1) continue;
-        }
-        // If field 7: skip if both teams already have a field-11 match
-        // (don't force; we'll handle at end)
-
-        // Max 2/week constraint
-        const hWeekMatches = (teamWeekCount[h]||{})[slotWeek]||0;
-        const aWeekMatches = (teamWeekCount[a]||{})[slotWeek]||0;
-        if (hWeekMatches >= 2 || aWeekMatches >= 2) continue;
-
-        // No consecutive days
-        const hLast = teamLastDay[h]||0;
-        const aLast = teamLastDay[a]||0;
-        const ONE_DAY = 86400000;
-        if (hLast && (slotDateNum - hLast) <= ONE_DAY) continue;
-        if (aLast && (slotDateNum - aLast) <= ONE_DAY) continue;
-
-        // Valid! Assign
-        assigned[si] = {home:h, away:a, slot};
-        usedPairs.add(key);
-        if (!teamWeekCount[h]) teamWeekCount[h] = {};
-        if (!teamWeekCount[a]) teamWeekCount[a] = {};
-        teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
-        teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
-        teamLastDay[h] = slotDateNum;
-        teamLastDay[a] = slotDateNum;
-        if (slot.field === '11') {
-          teamField11Count[h] = (teamField11Count[h]||0) + 1;
-          teamField11Count[a] = (teamField11Count[a]||0) + 1;
-        }
-        break;
+  // ── Constraint Satisfaction Algorithm with Backtracking ──────────────────
+  function assignMaschileWithConstraints() {
+    const slots = [...SCHEDULE_M]; // 31 slots
+    const MAX_ATTEMPTS = 200; // Increased attempts for better chance
+    
+    // Track team state
+    class TeamState {
+      constructor() {
+        this.matchCount = 0;
+        this.field11Count = 0;
+        this.field7Count = 0;
+        this.matchDates = [];
+        this.tier1Opponents = 0;  // Count of matches vs tier 1
+        this.tier2Opponents = 0;  // Count of matches vs tier 2
+        this.consecutivePairs = 0;
       }
     }
 
-    // Second pass: assign remaining unassigned pairs to empty slots (relaxed)
-    const unassigned = shuffled.filter(p => !usedPairs.has(p.home + '_' + p.away));
-    let emptySlot = assigned.findIndex(a => a === null);
-    for (const pair of unassigned) {
-      if (emptySlot < 0) break;
-      const slot = slots[emptySlot];
-      assigned[emptySlot] = {home: pair.home, away: pair.away, slot};
-      emptySlot = assigned.findIndex((a, i) => i > emptySlot && a === null);
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const teamStates = {};
+      mTeams.forEach(id => teamStates[id] = new TeamState());
+      
+      const assignments = [];
+      const usedPairings = new Set();
+      
+      // Generate all possible pairings
+      const allPairings = generateAllPairings(mTeams);
+      
+      // Shuffle slots for randomization
+      const shuffledSlots = [...slots].sort(() => Math.random() - 0.5);
+      
+      let success = true;
+      
+      for (const slot of shuffledSlots) {
+        // Shuffle pairings for this slot
+        const shuffledPairings = [...allPairings].sort(() => Math.random() - 0.5);
+        let assigned = false;
+        
+        for (const pairing of shuffledPairings) {
+          const {home, away} = pairing;
+          const pairKey = `${Math.min(home,away)}_${Math.max(home,away)}`;
+          
+          // Check if pairing already used (no duplicates)
+          if (usedPairings.has(pairKey)) continue;
+          
+          const hState = teamStates[home];
+          const aState = teamStates[away];
+          
+          // CONSTRAINT 1: max 4 matches per team
+          if (hState.matchCount >= 4 || aState.matchCount >= 4) continue;
+          
+          // CONSTRAINT 2,3: field distribution
+          if (slot.field === '11') {
+            if (hState.field11Count >= 1 || aState.field11Count >= 1) continue;
+          } else {
+            if (hState.field7Count >= 3 || aState.field7Count >= 3) continue;
+          }
+          
+          // CONSTRAINT 4: no more than 1 match per day
+          if (hState.matchDates.includes(slot.date) || aState.matchDates.includes(slot.date)) continue;
+          
+          // CONSTRAINT 6: max 2 matches vs tier 1 teams (1-4)
+          const homeTier = getTier(home);
+          const awayTier = getTier(away);
+          
+          if (homeTier === 1 && aState.tier1Opponents >= 2) continue;
+          if (awayTier === 1 && hState.tier1Opponents >= 2) continue;
+          
+          // CONSTRAINT 7: max 2 matches vs tier 2 teams (5-8)
+          if (homeTier === 2 && aState.tier2Opponents >= 2) continue;
+          if (awayTier === 2 && hState.tier2Opponents >= 2) continue;
+          
+          // CONSTRAINT 8: max ONE pair of consecutive days
+          let hConsecViolation = false;
+          let aConsecViolation = false;
+          
+          for (const prevDate of hState.matchDates) {
+            if (areConsecutive(prevDate, slot.date)) {
+              if (hState.consecutivePairs >= 1) {
+                hConsecViolation = true;
+                break;
+              }
+            }
+          }
+          
+          for (const prevDate of aState.matchDates) {
+            if (areConsecutive(prevDate, slot.date)) {
+              if (aState.consecutivePairs >= 1) {
+                aConsecViolation = true;
+                break;
+              }
+            }
+          }
+          
+          if (hConsecViolation || aConsecViolation) continue;
+          
+          // ✅ All constraints satisfied! Assign this pairing
+          assignments.push({home, away, slot});
+          usedPairings.add(pairKey);
+          
+          // Update states
+          hState.matchCount++;
+          aState.matchCount++;
+          hState.matchDates.push(slot.date);
+          aState.matchDates.push(slot.date);
+          
+          if (slot.field === '11') {
+            hState.field11Count++;
+            aState.field11Count++;
+          } else {
+            hState.field7Count++;
+            aState.field7Count++;
+          }
+          
+          // Update tier opponent counts
+          if (homeTier === 1) aState.tier1Opponents++;
+          if (awayTier === 1) hState.tier1Opponents++;
+          if (homeTier === 2) aState.tier2Opponents++;
+          if (awayTier === 2) hState.tier2Opponents++;
+          
+          // Check for consecutive pair creation
+          let hHasConsec = false;
+          let aHasConsec = false;
+          for (const prevDate of hState.matchDates) {
+            if (prevDate !== slot.date && areConsecutive(prevDate, slot.date)) {
+              hHasConsec = true;
+              break;
+            }
+          }
+          for (const prevDate of aState.matchDates) {
+            if (prevDate !== slot.date && areConsecutive(prevDate, slot.date)) {
+              aHasConsec = true;
+              break;
+            }
+          }
+          if (hHasConsec) hState.consecutivePairs++;
+          if (aHasConsec) aState.consecutivePairs++;
+          
+          assigned = true;
+          break;
+        }
+        
+        if (!assigned) {
+          success = false;
+          break;
+        }
+      }
+      
+      // Validate final result
+      if (success) {
+        let valid = true;
+        for (const id of mTeams) {
+          const state = teamStates[id];
+          // Each team must have exactly 4 matches, 1 on field 11, 3 on field 7
+          if (state.matchCount !== 4 || state.field11Count !== 1 || state.field7Count !== 3) {
+            valid = false;
+            break;
+          }
+          // Check tier constraints
+          if (state.tier1Opponents > 2 || state.tier2Opponents > 2) {
+            valid = false;
+            break;
+          }
+        }
+        
+        if (valid) {
+          // Build match objects
+          let matchId = Date.now();
+          const matches = [];
+          let matchNum = 1;
+          assignments.forEach(a => {
+            matches.push({
+              id: 'M_m' + (matchId++),
+              torneo: 'M',
+              giornata: matchNum++,
+              home: a.home,
+              away: a.away,
+              date: a.slot.date,
+              time: a.slot.time,
+              field: a.slot.field,
+              scoreHome: null, scoreAway: null,
+              goals:[], yellow:[], red:[]
+            });
+          });
+          console.log('✅ Calendario maschile generato al tentativo', attempt + 1);
+          return matches;
+        }
+      }
     }
-
-    // Build match objects
-    let matchId = Date.now();
-    const matches = [];
-    let matchNum = 1;
-    assigned.forEach(a => {
-      if (!a) return;
-      matches.push({
-        id: 'M_m' + (matchId++),
-        torneo: 'M',
-        giornata: matchNum++,
-        home: a.home,
-        away: a.away,
-        date: a.slot.date,
-        time: a.slot.time,
-        field: a.slot.field,
-        scoreHome: null, scoreAway: null,
-        goals:[], yellow:[], red:[]
-      });
-    });
-    return matches;
+    
+    // Failed to generate valid schedule
+    console.error('❌ Failed to generate valid schedule after', MAX_ATTEMPTS, 'attempts');
+    throw new Error('No valid schedule found with current constraints');
   }
 
   // ── Assign pairs to fixed schedule slots (Femminile) ────────────────────
+  // Femminile mantiene vincoli più semplici
   function assignFemminile(pairs) {
     const slots = [...SCHEDULE_F]; // 12 slots
     const teamWeekCount = {};
     const teamLastDay = {};
     fTeams.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
+
+    function getWeek(dateStr) {
+      const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
+      const parts = dateStr.split(' ');
+      const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
+      const jan1 = new Date(d.getFullYear(), 0, 1);
+      return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    }
 
     const shuffled = [...pairs].sort(() => Math.random() - 0.5);
     const assigned = new Array(slots.length).fill(null);
@@ -2054,9 +2181,36 @@ function genMatches() {
     return matches;
   }
 
-  const mPairs = generatePairs(mTeams);
-  const fPairs = generatePairs(fTeams);
-  db.matches = [...assignMaschile(mPairs), ...assignFemminile(fPairs)];
+  // ── Generate round-robin pairs (for Femminile) ──────────────────────────
+  function generatePairs(ids) {
+    const pool = [...ids];
+    if (pool.length % 2 !== 0) pool.push(null);
+    const N = pool.length;
+    const allPairs = [];
+    for (let r = 0; r < N-1; r++) {
+      for (let i = 0; i < N/2; i++) {
+        const h = pool[i], a = pool[N-1-i];
+        if (h !== null && a !== null) allPairs.push({home:h, away:a, round:r});
+      }
+      pool.splice(1, 0, pool.pop());
+    }
+    return allPairs;
+  }
+
+  // ── Main execution ───────────────────────────────────────────────────────
+  try {
+    console.log('🔄 Generazione calendario in corso...');
+    const mMatches = assignMaschileWithConstraints();
+    const fPairs = generatePairs(fTeams);
+    const fMatches = assignFemminile(fPairs);
+    db.matches = [...mMatches, ...fMatches];
+    console.log('✅ Calendario generato con successo!');
+    console.log('📊 Statistiche: ' + mMatches.length + ' partite maschili, ' + fMatches.length + ' partite femminili');
+  } catch(error) {
+    console.error('❌ Errore generazione calendario:', error.message);
+    alert('⚠️ ' + error.message + '\n\nRiprova cliccando nuovamente "Genera Calendario".');
+    throw error;
+  }
 }
 
 
