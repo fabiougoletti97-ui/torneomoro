@@ -1087,14 +1087,18 @@ body.admin-mode .delete-team-btn{display:block;}
 @keyframes slideOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
 .tv-date-header{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:#fff;text-align:center;margin-bottom:3rem;text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);letter-spacing:4px;animation:glow 2s ease-in-out infinite alternate;}
 @keyframes glow{from{text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);}to{text-shadow:0 0 60px rgba(59,139,212,1),0 0 30px rgba(59,139,212,0.8),0 0 80px rgba(59,139,212,0.6);}}
-.tv-matches-container{width:100%;max-width:1200px;display:grid;grid-template-columns:1fr 1fr;gap:2rem;padding:0 2rem;}
+.tv-matches-container{width:100%;max-width:900px;display:flex;flex-direction:column;gap:1.5rem;padding:0 2rem;max-height:70vh;overflow-y:auto;}
+.tv-matches-container::-webkit-scrollbar{width:8px;}
+.tv-matches-container::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:10px;}
+.tv-matches-container::-webkit-scrollbar-thumb{background:rgba(59,139,212,0.5);border-radius:10px;}
+.tv-matches-container::-webkit-scrollbar-thumb:hover{background:rgba(59,139,212,0.8);}
 .tv-match-card{background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%);border:2px solid rgba(255,255,255,0.1);border-radius:16px;padding:2rem;backdrop-filter:blur(20px);opacity:0;transform:translateX(-50px);animation:matchSlideIn 0.6s ease forwards;position:relative;overflow:hidden;}
 .tv-match-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);animation:shine 3s ease-in-out infinite;}
 @keyframes shine{0%,100%{left:-100%;}50%{left:100%;}}
 @keyframes matchSlideIn{to{opacity:1;transform:translateX(0);}}
 .tv-match-time{font-family:'Oswald',sans-serif;font-size:1.2rem;color:rgba(255,255,255,0.6);margin-bottom:0.8rem;letter-spacing:2px;}
 .tv-match-teams{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1rem;}
-.tv-team{font-family:'Oswald',sans-serif;font-size:1.8rem;color:#fff;font-weight:600;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tv-team{font-family:'Oswald',sans-serif;font-size:1.8rem;color:#fff;font-weight:600;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;}
 .tv-vs{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:rgba(255,255,255,0.4);font-weight:bold;}
 .tv-match-field{font-family:'Oswald',sans-serif;font-size:1.1rem;color:var(--blue);text-align:center;padding:0.5rem 1rem;background:rgba(59,139,212,0.15);border-radius:8px;border:1px solid rgba(59,139,212,0.3);}
 .tv-match-field.field-11{color:var(--gold);background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.3);}
@@ -4375,7 +4379,8 @@ let tvModeData = {
   currentSlideIndex: 0,
   slides: [],
   interval: null,
-  isAnimating: false
+  isAnimating: false,
+  keyboardHandler: null
 };
 
 function startTVMode() {
@@ -4392,6 +4397,19 @@ function startTVMode() {
   
   // Hide modal
   closeModal('genCalModal');
+  
+  // Setup keyboard controls
+  tvModeData.keyboardHandler = function(e) {
+    if (e.key === 'Escape') {
+      exitTVMode();
+    } else if (e.key === 'ArrowRight' && !tvModeData.isAnimating) {
+      showTVSlide(tvModeData.currentSlideIndex + 1);
+    } else if (e.key === 'ArrowLeft' && !tvModeData.isAnimating && tvModeData.currentSlideIndex > 0) {
+      showTVSlide(tvModeData.currentSlideIndex - 1);
+    }
+  };
+  
+  document.addEventListener('keydown', tvModeData.keyboardHandler);
   
   // Start presentation
   showTVSlide(0);
@@ -4463,10 +4481,27 @@ function showTVSlide(index) {
 
 function animateTVMatches(matches, slideIndex) {
   const matchesContainer = document.getElementById(`tv-matches-${slideIndex}`);
+  
+  // Ordina le partite: M campo 7, M campo 11, F
+  const sortedMatches = [...matches].sort((a, b) => {
+    // Maschile prima di Femminile
+    if (a.torneo !== b.torneo) {
+      return a.torneo === 'M' ? -1 : 1;
+    }
+    // Se entrambi maschili: campo 7 prima di campo 11
+    if (a.torneo === 'M' && b.torneo === 'M') {
+      if (a.field !== b.field) {
+        return a.field === '7' ? -1 : 1;
+      }
+    }
+    // Ordina per orario
+    return (a.time || '').localeCompare(b.time || '');
+  });
+  
   let currentMatchIndex = 0;
   
   function showNextMatch() {
-    if (currentMatchIndex >= matches.length) {
+    if (currentMatchIndex >= sortedMatches.length) {
       // All matches shown, wait 20 seconds then move to next slide
       tvModeData.isAnimating = false;
       setTimeout(() => {
@@ -4475,9 +4510,13 @@ function animateTVMatches(matches, slideIndex) {
       return;
     }
     
-    const match = matches[currentMatchIndex];
+    const match = sortedMatches[currentMatchIndex];
     const homeTeam = getTeam(match.home);
     const awayTeam = getTeam(match.away);
+    
+    // Get team logos
+    const homeLogo = homeTeam ? getTeamLogo(homeTeam.id) : '';
+    const awayLogo = awayTeam ? getTeamLogo(awayTeam.id) : '';
     
     const matchCard = document.createElement('div');
     matchCard.className = 'tv-match-card';
@@ -4490,9 +4529,15 @@ function animateTVMatches(matches, slideIndex) {
       <div class="tv-torneo-badge ${match.torneo}">${torneoLabel}</div>
       <div class="tv-match-time">${match.time || 'Orario da definire'}</div>
       <div class="tv-match-teams">
-        <div class="tv-team">${homeTeam ? (homeTeam.emoji + ' ' + homeTeam.name) : '?'}</div>
+        <div class="tv-team">
+          <img src="${homeLogo}" style="width:40px;height:40px;object-fit:contain;margin-right:12px;vertical-align:middle;">
+          <span>${homeTeam ? homeTeam.name : '?'}</span>
+        </div>
         <div class="tv-vs">VS</div>
-        <div class="tv-team">${awayTeam ? (awayTeam.emoji + ' ' + awayTeam.name) : '?'}</div>
+        <div class="tv-team">
+          <span>${awayTeam ? awayTeam.name : '?'}</span>
+          <img src="${awayLogo}" style="width:40px;height:40px;object-fit:contain;margin-left:12px;vertical-align:middle;">
+        </div>
       </div>
       <div class="tv-match-field ${fieldClass}">
         🏟️ CAMPO ${match.field || '?'}
@@ -4583,6 +4628,12 @@ function exitTVMode() {
     clearInterval(tvModeData.interval);
   }
   
+  // Remove keyboard listener
+  if (tvModeData.keyboardHandler) {
+    document.removeEventListener('keydown', tvModeData.keyboardHandler);
+    tvModeData.keyboardHandler = null;
+  }
+  
   // Hide overlay
   document.getElementById('tv-mode-overlay').style.display = 'none';
   
@@ -4591,26 +4642,13 @@ function exitTVMode() {
     currentSlideIndex: 0,
     slides: [],
     interval: null,
-    isAnimating: false
+    isAnimating: false,
+    keyboardHandler: null
   };
   
   // Show toast
   showToast('📺 Presentazione TV terminata');
 }
-
-// Keyboard shortcuts for TV mode
-document.addEventListener('keydown', function(e) {
-  const tvOverlay = document.getElementById('tv-mode-overlay');
-  if (tvOverlay.style.display === 'block') {
-    if (e.key === 'Escape') {
-      exitTVMode();
-    } else if (e.key === 'ArrowRight' && !tvModeData.isAnimating) {
-      showTVSlide(tvModeData.currentSlideIndex + 1);
-    } else if (e.key === 'ArrowLeft' && !tvModeData.isAnimating && tvModeData.currentSlideIndex > 0) {
-      showTVSlide(tvModeData.currentSlideIndex - 1);
-    }
-  }
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // END TV MODE FUNCTIONS
