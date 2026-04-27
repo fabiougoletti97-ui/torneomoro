@@ -4482,6 +4482,9 @@ function showTVSlide(index) {
 function animateTVMatches(matches, slideIndex) {
   const matchesContainer = document.getElementById(`tv-matches-${slideIndex}`);
   
+  // Logo di default (cerchio grigio)
+  const defaultLogo = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4=';
+  
   // Ordina le partite: M campo 7, M campo 11, F
   const sortedMatches = [...matches].sort((a, b) => {
     // Maschile prima di Femminile
@@ -4514,9 +4517,9 @@ function animateTVMatches(matches, slideIndex) {
     const homeTeam = getTeam(match.home);
     const awayTeam = getTeam(match.away);
     
-    // Get team logos directly from team object
-    const homeLogo = homeTeam && homeTeam.logo ? homeTeam.logo : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="%23ccc"/></svg>';
-    const awayLogo = awayTeam && awayTeam.logo ? awayTeam.logo : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="%23ccc"/></svg>';
+    // Get team logos directly from team object, use default if missing
+    const homeLogo = (homeTeam && homeTeam.logo) ? homeTeam.logo : defaultLogo;
+    const awayLogo = (awayTeam && awayTeam.logo) ? awayTeam.logo : defaultLogo;
     
     const matchCard = document.createElement('div');
     matchCard.className = 'tv-match-card';
@@ -4530,13 +4533,13 @@ function animateTVMatches(matches, slideIndex) {
       <div class="tv-match-time">${match.time || 'Orario da definire'}</div>
       <div class="tv-match-teams">
         <div class="tv-team">
-          <img src="${homeLogo}" style="width:40px;height:40px;object-fit:contain;margin-right:12px;vertical-align:middle;">
+          <img src="${homeLogo}" style="width:40px;height:40px;object-fit:contain;margin-right:12px;vertical-align:middle;" onerror="this.src='${defaultLogo}'">
           <span>${homeTeam ? homeTeam.name : '?'}</span>
         </div>
         <div class="tv-vs">VS</div>
         <div class="tv-team">
           <span>${awayTeam ? awayTeam.name : '?'}</span>
-          <img src="${awayLogo}" style="width:40px;height:40px;object-fit:contain;margin-left:12px;vertical-align:middle;">
+          <img src="${awayLogo}" style="width:40px;height:40px;object-fit:contain;margin-left:12px;vertical-align:middle;" onerror="this.src='${defaultLogo}'">
         </div>
       </div>
       <div class="tv-match-field ${fieldClass}">
