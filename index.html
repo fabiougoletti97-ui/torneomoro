@@ -3547,11 +3547,11 @@ const SCHEDULE_M = [
   {date:'28 Mag 2026', time:'20:00', field:'7'},
   {date:'28 Mag 2026', time:'21:00', field:'7'},
   {date:'28 Mag 2026', time:'22:00', field:'7'},
-  {date:'28 Mag 2026', time:'20:00', field:'11'},
   {date:'3 Giu 2026',  time:'20:00', field:'7'},
   {date:'3 Giu 2026',  time:'21:00', field:'7'},
   {date:'3 Giu 2026',  time:'22:00', field:'7'},
   {date:'3 Giu 2026',  time:'22:00', field:'11'},
+  {date:'4 Giu 2026',  time:'20:00', field:'11'},
   {date:'4 Giu 2026',  time:'20:00', field:'7'},
   {date:'4 Giu 2026',  time:'21:00', field:'7'},
   {date:'4 Giu 2026',  time:'22:00', field:'7'},
@@ -3828,7 +3828,7 @@ function assignTimeslots(pairs, torneo) {
 
   // MASCHILE: Algoritmo a due fasi
   const schedule = SCHEDULE_M;
-  const MAX_ATTEMPTS = 200;
+  const MAX_ATTEMPTS = 500;
   
   const field11Slots = schedule.filter(s => s.field === '11');
   const field7Slots = schedule.filter(s => s.field === '7');
