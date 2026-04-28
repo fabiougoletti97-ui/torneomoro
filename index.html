@@ -4478,7 +4478,6 @@ function showTVSlide(index) {
   console.log('📄 Mostro slide', index + 1, 'di', tvModeData.slides.length);
   
   tvModeData.currentSlideIndex = index;
-  tvModeData.isAnimating = true;
   
   const slide = tvModeData.slides[index];
   const container = document.getElementById('tv-slide-container');
@@ -4510,6 +4509,9 @@ function animateTVMatches(matches, slideIndex) {
   // Logo di default (cerchio grigio)
   const defaultLogo = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4=';
   
+  console.log('🎬 Inizio animazione partite, isAnimating = true');
+  tvModeData.isAnimating = true;
+  
   // Ordina le partite: M campo 7, M campo 11, F
   const sortedMatches = [...matches].sort((a, b) => {
     // Maschile prima di Femminile
@@ -4531,8 +4533,11 @@ function animateTVMatches(matches, slideIndex) {
   function showNextMatch() {
     if (currentMatchIndex >= sortedMatches.length) {
       // All matches shown, wait 20 seconds then move to next slide
+      console.log('✅ Tutte le partite mostrate, isAnimating = false');
       tvModeData.isAnimating = false;
+      console.log('⏳ Attendo 20 secondi prima della slide successiva...');
       setTimeout(() => {
+        console.log('⏰ 20 secondi trascorsi, mostro slide successiva');
         showTVSlide(slideIndex + 1);
       }, 20000); // 20 seconds
       return;
@@ -4574,6 +4579,8 @@ function animateTVMatches(matches, slideIndex) {
     
     matchesContainer.appendChild(matchCard);
     currentMatchIndex++;
+    
+    console.log('⚽ Partita', currentMatchIndex, 'di', sortedMatches.length, 'aggiunta');
     
     // Show next match after 2 seconds
     setTimeout(showNextMatch, 2000);
