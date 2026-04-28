@@ -4396,7 +4396,12 @@ let tvModeData = {
 };
 
 function startTVMode() {
-  if (!genPreviewMatches.length) {
+  console.log('🎬 startTVMode chiamato');
+  console.log('📦 genPreviewMatches:', genPreviewMatches);
+  console.log('📊 Numero partite:', genPreviewMatches ? genPreviewMatches.length : 0);
+  
+  if (!genPreviewMatches || !genPreviewMatches.length) {
+    console.error('❌ genPreviewMatches vuoto o undefined!');
     showToast("⚠️ Genera prima l'anteprima!");
     return;
   }
@@ -4404,12 +4409,24 @@ function startTVMode() {
   console.log('🎬 TV Mode: Avvio...');
   
   // Prepare slides data
-  prepareTVSlides();
-  
-  console.log('📊 TV Mode: Slide preparate:', tvModeData.slides.length);
+  try {
+    prepareTVSlides();
+    console.log('📊 TV Mode: Slide preparate:', tvModeData.slides.length);
+  } catch(err) {
+    console.error('❌ Errore in prepareTVSlides:', err);
+    showToast('❌ Errore nella preparazione delle slide');
+    return;
+  }
   
   // Show TV mode overlay
-  document.getElementById('tv-mode-overlay').style.display = 'block';
+  const overlay = document.getElementById('tv-mode-overlay');
+  if (!overlay) {
+    console.error('❌ tv-mode-overlay non trovato!');
+    showToast('❌ Errore: overlay non trovato');
+    return;
+  }
+  overlay.style.display = 'block';
+  console.log('✅ Overlay mostrato');
   
   // Hide modal
   closeModal('genCalModal');
@@ -4442,7 +4459,13 @@ function startTVMode() {
   console.log('✅ Event listener aggiunto');
   
   // Start presentation
-  showTVSlide(0);
+  try {
+    showTVSlide(0);
+    console.log('✅ Prima slide mostrata');
+  } catch(err) {
+    console.error('❌ Errore in showTVSlide:', err);
+    showToast('❌ Errore nella visualizzazione della slide');
+  }
 }
 
 function prepareTVSlides() {
@@ -5843,17 +5866,20 @@ function tvStartProgress() {
 
 function tvShowSlide(idx, immediate) {
   document.querySelectorAll('.tv-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  
   const slides = document.querySelectorAll('.tv-slide');
+  
+  // Prima: rimuovi tutte le slide attive
   slides.forEach(s => {
-    if (s.classList.contains('active')) {
-      s.classList.add('exit');
-      setTimeout(() => s.classList.remove('active', 'exit'), 700);
-    }
+    s.classList.remove('active', 'exit');
   });
+  
+  // Poi: attiva solo la slide corretta
   setTimeout(() => {
-    slides.forEach(s => { if (!s.classList.contains('exit')) s.classList.remove('active'); });
     const target = document.getElementById('tvSlide' + idx);
-    if (target) target.classList.add('active');
+    if (target) {
+      target.classList.add('active');
+    }
     tvCurrentSlide = idx;
     tvRenderSlide(idx);
   }, immediate ? 0 : 50);
