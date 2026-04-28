@@ -229,14 +229,29 @@ body.admin-mode .admin-only-block{display:block;}
   padding:1.2rem;gap:10px;transition:all 0.25s;position:relative;
   overflow:hidden;
 }
-.sponsor-card.main-card{width:200px;height:120px;border-color:rgba(255,255,255,0.15);}
-.sponsor-card.gold-card{width:150px;height:95px;border-color:rgba(245,197,24,0.15);}
-.sponsor-card.silver-card{width:120px;height:80px;border-color:rgba(158,158,158,0.12);}
+.sponsor-card.main-card{width:220px;height:140px;border-color:rgba(255,255,255,0.15);}
+.sponsor-card.sponsor-card{width:160px;height:110px;border-color:rgba(245,197,24,0.12);}
 .sponsor-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.2);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
 .sponsor-card.main-card:hover{box-shadow:0 8px 24px rgba(255,255,255,0.06);}
-.sponsor-card.gold-card:hover{box-shadow:0 8px 20px rgba(245,197,24,0.08);}
-.sponsor-card.silver-card:hover{box-shadow:0 6px 16px rgba(158,158,158,0.06);}
-.sponsor-logo{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;mix-blend-mode:screen;}
+/* Cornice uniforme per tutti i loghi */
+.sponsor-logo-frame{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;
+  padding:12px;
+  box-sizing:border-box;
+}
+.sponsor-logo{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  display:block;
+}
 .sponsor-name{font-family:'Oswald';font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;}
 /* Admin remove button */
 .sponsor-remove-btn{
@@ -1667,13 +1682,9 @@ body.admin-mode .delete-team-btn{display:block;}
           <span class="fascia-badge" style="background:rgba(255,255,255,0.08);border:2px solid #fff;color:#fff;font-family:Oswald;font-size:0.8rem;display:flex;align-items:center;justify-content:center;">⭐</span>
           <div class="fascia-opt-text"><strong>Main Sponsor</strong><span>Logo in homepage + sezione sponsor</span></div>
         </div>
-        <div class="fascia-opt" data-val="gold" onclick="selectSponsorTier(this)">
-          <span class="fascia-badge fascia-1">Au</span>
-          <div class="fascia-opt-text"><strong>Gold Sponsor</strong><span>Sezione sponsor — card grande</span></div>
-        </div>
-        <div class="fascia-opt" data-val="silver" onclick="selectSponsorTier(this)">
-          <span class="fascia-badge fascia-2">Ag</span>
-          <div class="fascia-opt-text"><strong>Silver Sponsor</strong><span>Sezione sponsor — card compatta</span></div>
+        <div class="fascia-opt" data-val="sponsor" onclick="selectSponsorTier(this)">
+          <span class="fascia-badge fascia-2">🤝</span>
+          <div class="fascia-opt-text"><strong>Sponsor</strong><span>Sezione sponsor standard</span></div>
         </div>
       </div>
       <input type="hidden" id="sp-tier" value="main"/>
@@ -4380,7 +4391,8 @@ let tvModeData = {
   slides: [],
   interval: null,
   isAnimating: false,
-  keyboardHandler: null
+  keyboardHandler: null,
+  activeTimeouts: []
 };
 
 function startTVMode() {
@@ -4468,6 +4480,16 @@ function prepareTVSlides() {
 function showTVSlide(index) {
   console.log('📄 showTVSlide chiamato con index:', index);
   
+  // Cancella tutti i timeout attivi per evitare sovrapposizioni
+  if (tvModeData.activeTimeouts && tvModeData.activeTimeouts.length > 0) {
+    console.log('🧹 Cancello', tvModeData.activeTimeouts.length, 'timeout attivi');
+    tvModeData.activeTimeouts.forEach(timeout => clearTimeout(timeout));
+    tvModeData.activeTimeouts = [];
+  }
+  
+  // Reset isAnimating quando cambi slide manualmente
+  tvModeData.isAnimating = false;
+  
   if (index >= tvModeData.slides.length) {
     console.log('📊 Fine slide, mostro riepilogo');
     // Show summary
@@ -4536,10 +4558,11 @@ function animateTVMatches(matches, slideIndex) {
       console.log('✅ Tutte le partite mostrate, isAnimating = false');
       tvModeData.isAnimating = false;
       console.log('⏳ Attendo 20 secondi prima della slide successiva...');
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.log('⏰ 20 secondi trascorsi, mostro slide successiva');
         showTVSlide(slideIndex + 1);
       }, 20000); // 20 seconds
+      tvModeData.activeTimeouts.push(timeout);
       return;
     }
     
@@ -4583,7 +4606,8 @@ function animateTVMatches(matches, slideIndex) {
     console.log('⚽ Partita', currentMatchIndex, 'di', sortedMatches.length, 'aggiunta');
     
     // Show next match after 2 seconds
-    setTimeout(showNextMatch, 2000);
+    const timeout = setTimeout(showNextMatch, 2000);
+    tvModeData.activeTimeouts.push(timeout);
   }
   
   // Start animation
@@ -4660,6 +4684,12 @@ function updateTVProgress() {
 function exitTVMode() {
   console.log('🚪 Exit TV Mode chiamato');
   
+  // Clear all active timeouts
+  if (tvModeData.activeTimeouts && tvModeData.activeTimeouts.length > 0) {
+    console.log('🧹 Cancello', tvModeData.activeTimeouts.length, 'timeout attivi');
+    tvModeData.activeTimeouts.forEach(timeout => clearTimeout(timeout));
+  }
+  
   // Clear any intervals
   if (tvModeData.interval) {
     clearInterval(tvModeData.interval);
@@ -4683,7 +4713,8 @@ function exitTVMode() {
     slides: [],
     interval: null,
     isAnimating: false,
-    keyboardHandler: null
+    keyboardHandler: null,
+    activeTimeouts: []
   };
   
   console.log('✅ TV Mode chiuso completamente');
@@ -5253,15 +5284,14 @@ function renderSponsors() {
 
   const tiers = [
     { key:'main',   label:'Main Sponsor',   icon:'⭐', sub:'Official Partner' },
-    { key:'gold',   label:'Gold Sponsor',   icon:'🥇', sub:'Gold Partner' },
-    { key:'silver', label:'Silver Sponsor', icon:'🥈', sub:'Silver Partner' }
+    { key:'sponsor', label:'Sponsor',       icon:'🤝', sub:'Partner' }
   ];
 
   let out = '';
   tiers.forEach(tier => {
-    const sponsors = db.sponsors.filter(s => s.tier === tier.key);
+    const sponsors = db.sponsors.filter(s => s.tier === tier.key || (tier.key === 'sponsor' && (s.tier === 'gold' || s.tier === 'silver')));
     if (!sponsors.length && !isAdmin) return;
-    const cardSize = tier.key==='main'?'main-card':tier.key==='gold'?'gold-card':'silver-card';
+    const cardSize = tier.key==='main'?'main-card':'sponsor-card';
 
     out += `<div class="sponsor-tier">
       <div class="sponsor-tier-header ${tier.key}" style="display:flex;align-items:center;justify-content:space-between;">
@@ -5284,10 +5314,12 @@ function renderSponsors() {
       sponsors.forEach(s => {
         out += `<div class="sponsor-card ${cardSize}" style="position:relative;">
           ${isAdmin ? `<button class="sponsor-remove-btn" onclick="removeSponsor(${s.id})">✕</button>` : ''}
-          ${s.logo
-            ? `<img class="sponsor-logo" src="${s.logo}" alt="${s.name}" style="mix-blend-mode:screen;">`
-            : `<span style="font-family:'Oswald';font-size:0.88rem;color:var(--muted);text-align:center;padding:0 8px;">${s.name}</span>`
-          }
+          <div class="sponsor-logo-frame">
+            ${s.logo
+              ? `<img class="sponsor-logo" src="${s.logo}" alt="${s.name}">`
+              : `<span style="font-family:'Oswald';font-size:0.88rem;color:var(--muted);text-align:center;padding:0 8px;">${s.name}</span>`
+            }
+          </div>
           ${s.logo ? `<div class="sponsor-name">${s.name}</div>` : ''}
         </div>`;
       });
@@ -5848,7 +5880,6 @@ function tvRenderStandings(torneo, containerId) {
     if (torneo === 'F') return i <= 3 ? 'tv-zona-q' : 'tv-zona-e';
     if (i <= 3) return 'tv-zona-q'; if (i <= 11) return 'tv-zona-p'; return 'tv-zona-e';
   }
-  const posIcons = ['🥇','🥈','🥉'];
 
   // Compact table: #, Squadra, G (giocate), Pts, DR
   let t = '<table class="tv-standings-table tv-compact">'
@@ -5860,7 +5891,7 @@ function tvRenderStandings(torneo, containerId) {
     const logo = team && team.logo ? '<img src="' + team.logo + '" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:3px;">' : '';
     const dr = r.GF - r.GA;
     t += '<tr class="' + getZone(i) + '">'
-       + '<td style="font-size:1.1rem;">' + (posIcons[i] || (i+1)) + '</td>'
+       + '<td style="font-size:1.3rem;font-weight:700;">' + (i + 1) + '</td>'
        + '<td style="font-size:1.25rem;">' + logo + r.name + '</td>'
        + '<td>' + r.G + '</td>'
        + '<td style="color:' + (dr > 0 ? '#3ecf5e' : dr < 0 ? 'var(--red)' : 'var(--muted)') + '">' + (dr > 0 ? '+' : '') + dr + '</td>'
