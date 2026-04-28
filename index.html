@@ -4389,8 +4389,12 @@ function startTVMode() {
     return;
   }
   
+  console.log('🎬 TV Mode: Avvio...');
+  
   // Prepare slides data
   prepareTVSlides();
+  
+  console.log('📊 TV Mode: Slide preparate:', tvModeData.slides.length);
   
   // Show TV mode overlay
   document.getElementById('tv-mode-overlay').style.display = 'block';
@@ -4400,16 +4404,30 @@ function startTVMode() {
   
   // Setup keyboard controls
   tvModeData.keyboardHandler = function(e) {
+    console.log('⌨️ Tasto premuto:', e.key, 'isAnimating:', tvModeData.isAnimating);
+    
     if (e.key === 'Escape') {
+      console.log('🚪 ESC - Uscita TV Mode');
       exitTVMode();
-    } else if (e.key === 'ArrowRight' && !tvModeData.isAnimating) {
-      showTVSlide(tvModeData.currentSlideIndex + 1);
-    } else if (e.key === 'ArrowLeft' && !tvModeData.isAnimating && tvModeData.currentSlideIndex > 0) {
-      showTVSlide(tvModeData.currentSlideIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      if (!tvModeData.isAnimating) {
+        console.log('➡️ Freccia destra - Slide successiva');
+        showTVSlide(tvModeData.currentSlideIndex + 1);
+      } else {
+        console.log('⏸️ Animazione in corso, attendere...');
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (!tvModeData.isAnimating && tvModeData.currentSlideIndex > 0) {
+        console.log('⬅️ Freccia sinistra - Slide precedente');
+        showTVSlide(tvModeData.currentSlideIndex - 1);
+      } else {
+        console.log('⏸️ Impossibile tornare indietro');
+      }
     }
   };
   
   document.addEventListener('keydown', tvModeData.keyboardHandler);
+  console.log('✅ Event listener aggiunto');
   
   // Start presentation
   showTVSlide(0);
@@ -4448,17 +4466,24 @@ function prepareTVSlides() {
 }
 
 function showTVSlide(index) {
+  console.log('📄 showTVSlide chiamato con index:', index);
+  
   if (index >= tvModeData.slides.length) {
+    console.log('📊 Fine slide, mostro riepilogo');
     // Show summary
     showTVSummary();
     return;
   }
+  
+  console.log('📄 Mostro slide', index + 1, 'di', tvModeData.slides.length);
   
   tvModeData.currentSlideIndex = index;
   tvModeData.isAnimating = true;
   
   const slide = tvModeData.slides[index];
   const container = document.getElementById('tv-slide-container');
+  
+  console.log('📅 Data:', slide.date, '- Partite:', slide.matches.length);
   
   // Create slide HTML
   const slideHTML = `
@@ -4626,19 +4651,24 @@ function updateTVProgress() {
 }
 
 function exitTVMode() {
+  console.log('🚪 Exit TV Mode chiamato');
+  
   // Clear any intervals
   if (tvModeData.interval) {
     clearInterval(tvModeData.interval);
+    console.log('⏹️ Interval cancellato');
   }
   
   // Remove keyboard listener
   if (tvModeData.keyboardHandler) {
     document.removeEventListener('keydown', tvModeData.keyboardHandler);
     tvModeData.keyboardHandler = null;
+    console.log('⌨️ Event listener rimosso');
   }
   
   // Hide overlay
   document.getElementById('tv-mode-overlay').style.display = 'none';
+  console.log('📺 Overlay nascosto');
   
   // Reset data
   tvModeData = {
@@ -4648,6 +4678,8 @@ function exitTVMode() {
     isAnimating: false,
     keyboardHandler: null
   };
+  
+  console.log('✅ TV Mode chiuso completamente');
   
   // Show toast
   showToast('📺 Presentazione TV terminata');
