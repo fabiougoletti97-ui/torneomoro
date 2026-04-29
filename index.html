@@ -1099,10 +1099,10 @@ body.admin-mode .ig-export-bar{display:flex;}
 .delete-team-btn:hover{background:rgba(224,53,53,0.18);}
 body.admin-mode .delete-team-btn{display:block;}
 
-/* ═══ TV MODE STYLES ═══ */
-.tv-slide{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;animation:slideIn 0.8s ease forwards;}
-@keyframes slideIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
-@keyframes slideOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
+/* ═══ TV MODE CALENDARIO STYLES ═══ */
+.tv-calendar-slide{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;animation:tvCalSlideIn 0.8s ease forwards;}
+@keyframes tvCalSlideIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes tvCalSlideOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
 .tv-date-header{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:#fff;text-align:center;margin-bottom:3rem;text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);letter-spacing:4px;animation:glow 2s ease-in-out infinite alternate;}
 @keyframes glow{from{text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);}to{text-shadow:0 0 60px rgba(59,139,212,1),0 0 30px rgba(59,139,212,0.8),0 0 80px rgba(59,139,212,0.6);}}
 .tv-matches-container{width:100%;max-width:900px;display:flex;flex-direction:column;gap:1.5rem;padding:0 2rem;max-height:70vh;overflow-y:auto;}
@@ -4534,7 +4534,7 @@ function showTVSlide(index) {
   
   // Create slide HTML
   const slideHTML = `
-    <div class="tv-slide">
+    <div class="tv-calendar-slide">
       <div class="tv-date-header">${slide.date.toUpperCase()}</div>
       <div class="tv-matches-container" id="tv-matches-${index}">
         <!-- Matches will be animated in -->
@@ -5885,25 +5885,32 @@ function tvShowSlide(idx, immediate) {
     tvRenderSlide(idx);
   } else {
     // Cambio animato: exit -> rimuovi -> mostra nuovo
-    slides.forEach(s => {
-      if (s.classList.contains('active') && s !== target) {
-        s.classList.add('exit');
-        s.classList.remove('active');
-        // Dopo la transizione, rimuovi exit e nascondi
-        setTimeout(() => {
-          s.classList.remove('exit');
-        }, 750);
-      }
-    });
+    const oldSlide = slides.find(s => s.classList.contains('active') && s !== target);
     
-    // Mostra il target dopo un breve delay
-    setTimeout(() => {
+    if (oldSlide) {
+      // Aggiungi exit alla vecchia slide
+      oldSlide.classList.add('exit');
+      oldSlide.classList.remove('active');
+      
+      // Dopo l'animazione exit, rimuovi exit e poi mostra la nuova
+      setTimeout(() => {
+        oldSlide.classList.remove('exit');
+        
+        // Ora mostra la nuova slide
+        if (target) {
+          target.classList.add('active');
+        }
+        tvCurrentSlide = idx;
+        tvRenderSlide(idx);
+      }, 750);
+    } else {
+      // Nessuna slide attiva, mostra subito
       if (target) {
         target.classList.add('active');
       }
       tvCurrentSlide = idx;
       tvRenderSlide(idx);
-    }, 50);
+    }
   }
 }
 
