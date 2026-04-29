@@ -5884,33 +5884,33 @@ function tvShowSlide(idx, immediate) {
     tvCurrentSlide = idx;
     tvRenderSlide(idx);
   } else {
-    // Cambio animato: exit -> rimuovi -> mostra nuovo
-    const oldSlide = slides.find(s => s.classList.contains('active') && s !== target);
-    
-    if (oldSlide) {
-      // Aggiungi exit alla vecchia slide
-      oldSlide.classList.add('exit');
-      oldSlide.classList.remove('active');
-      
-      // Dopo l'animazione exit, rimuovi exit e poi mostra la nuova
-      setTimeout(() => {
-        oldSlide.classList.remove('exit');
-        
-        // Ora mostra la nuova slide
-        if (target) {
-          target.classList.add('active');
-        }
-        tvCurrentSlide = idx;
-        tvRenderSlide(idx);
-      }, 750);
-    } else {
-      // Nessuna slide attiva, mostra subito
-      if (target) {
-        target.classList.add('active');
+    // Cambio animato: PRIMA rimuovi tutte le slide attive
+    slides.forEach(s => {
+      if (s !== target && s.classList.contains('active')) {
+        s.classList.add('exit');
+        s.classList.remove('active');
       }
+    });
+    
+    // DOPO 750ms (fine animazione exit): pulisci exit e mostra nuova slide
+    setTimeout(() => {
+      // Pulisci tutte le classi exit
+      slides.forEach(s => {
+        s.classList.remove('exit');
+      });
+      
+      // Assicurati che SOLO il target sia attivo
+      slides.forEach(s => {
+        if (s === target) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+      
       tvCurrentSlide = idx;
       tvRenderSlide(idx);
-    }
+    }, 750);
   }
 }
 
