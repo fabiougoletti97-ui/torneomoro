@@ -1060,12 +1060,31 @@ body.admin-mode .ig-export-bar{display:flex;}
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: 24px 32px; gap: 14px;
+  position: relative;
 }
-.tv-sponsor-card.tv-main { width: 320px; height: 180px; border-color: rgba(245,197,24,0.2); }
-.tv-sponsor-card.tv-gold { width: 240px; height: 150px; border-color: rgba(245,197,24,0.12); }
-.tv-sponsor-card.tv-silver { width: 180px; height: 120px; }
-.tv-sponsor-card img { max-width: 100%; max-height: 100px; object-fit: contain; mix-blend-mode: screen; }
-.tv-sponsor-name { font-size: 1.2rem; color: rgba(255,255,255,0.7); letter-spacing: 2px; }
+.tv-sponsor-card.tv-main { 
+  width: 320px; height: 180px; 
+  border-color: rgba(245,197,24,0.2); 
+}
+.tv-sponsor-card.tv-sponsor { 
+  width: 240px; height: 150px; 
+  border-color: rgba(245,197,24,0.12); 
+}
+/* Cornice uniforme per loghi sponsor TV */
+.tv-sponsor-logo {
+  max-width: 100%; 
+  max-height: 100px; 
+  object-fit: contain;
+  padding: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+.tv-sponsor-name { 
+  font-size: 1.2rem; 
+  color: rgba(255,255,255,0.7); 
+  letter-spacing: 2px; 
+}
 .tv-sponsor-tier-label {
   font-size: 0.85rem; letter-spacing: 3px; color: rgba(245,197,24,0.5);
   margin-bottom: 16px; width: 100%; text-align: center;
@@ -1908,6 +1927,82 @@ let db = {
     {id:24,fascia:3,name:'Volpi Dorate',torneo:'F',emoji:'🦊',color:'#f57c00',players:[{num:1,name:'Paola Grigi',role:'Portiere'},{num:9,name:'Lucia Bruni',role:'Attaccante'},{num:5,name:'Rita Serra',role:'Difensore'}]}
   ],
   matches: []
+};
+
+// ─── SCHEDULES ────────────────────────────────────────────────────────────
+const SCHEDULE_M = [
+  {date:'26 Mag 2026', time:'20:00', field:'7'},
+  {date:'26 Mag 2026', time:'21:00', field:'7'},
+  {date:'26 Mag 2026', time:'22:00', field:'7'},
+  {date:'26 Mag 2026', time:'20:00', field:'11'},
+  {date:'27 Mag 2026', time:'20:00', field:'7'},
+  {date:'27 Mag 2026', time:'21:00', field:'7'},
+  {date:'27 Mag 2026', time:'22:00', field:'7'},
+  {date:'27 Mag 2026', time:'20:00', field:'11'},
+  {date:'28 Mag 2026', time:'20:00', field:'7'},
+  {date:'28 Mag 2026', time:'21:00', field:'7'},
+  {date:'28 Mag 2026', time:'22:00', field:'7'},
+  {date:'3 Giu 2026',  time:'20:00', field:'7'},
+  {date:'3 Giu 2026',  time:'21:00', field:'7'},
+  {date:'3 Giu 2026',  time:'22:00', field:'7'},
+  {date:'3 Giu 2026',  time:'22:00', field:'11'},
+  {date:'4 Giu 2026',  time:'20:00', field:'11'},
+  {date:'4 Giu 2026',  time:'20:00', field:'7'},
+  {date:'4 Giu 2026',  time:'21:00', field:'7'},
+  {date:'4 Giu 2026',  time:'22:00', field:'7'},
+  {date:'4 Giu 2026',  time:'22:00', field:'11'},
+  {date:'8 Giu 2026',  time:'20:00', field:'7'},
+  {date:'8 Giu 2026',  time:'21:00', field:'7'},
+  {date:'8 Giu 2026',  time:'22:00', field:'7'},
+  {date:'8 Giu 2026',  time:'20:00', field:'11'},
+  {date:'9 Giu 2026',  time:'20:00', field:'7'},
+  {date:'9 Giu 2026',  time:'21:00', field:'7'},
+  {date:'9 Giu 2026',  time:'22:00', field:'7'},
+  {date:'9 Giu 2026',  time:'20:00', field:'11'},
+  {date:'10 Giu 2026', time:'20:00', field:'7'},
+  {date:'10 Giu 2026', time:'21:00', field:'7'},
+  {date:'10 Giu 2026', time:'22:00', field:'7'},
+  {date:'10 Giu 2026', time:'20:00', field:'11'},
+];
+const SCHEDULE_F = [
+  {date:'26 Mag 2026', time:'20:00', field:'11'},
+  {date:'26 Mag 2026', time:'21:00', field:'11'},
+  {date:'27 Mag 2026', time:'22:00', field:'11'},
+  {date:'27 Mag 2026', time:'20:00', field:'11'},
+  {date:'3 Giu 2026',  time:'21:00', field:'11'},
+  {date:'4 Giu 2026',  time:'21:00', field:'11'},
+  {date:'8 Giu 2026',  time:'21:00', field:'11'},
+  {date:'8 Giu 2026',  time:'22:00', field:'11'},
+  {date:'9 Giu 2026',  time:'21:00', field:'11'},
+  {date:'9 Giu 2026',  time:'22:00', field:'11'},
+  {date:'11 Giu 2026', time:'21:00', field:'11'},
+  {date:'11 Giu 2026', time:'22:00', field:'11'},
+];
+const SCHEDULE_M_PLAYOFF = {
+  ottavi: [
+    {date:'15 Giu 2026', time:'19:00', field:'7'},
+    {date:'15 Giu 2026', time:'20:00', field:'7'},
+    {date:'15 Giu 2026', time:'21:00', field:'7'},
+    {date:'15 Giu 2026', time:'22:00', field:'7'},
+  ],
+  quarti: [
+    {date:'17 Giu 2026', time:'21:00', field:'7'},
+    {date:'17 Giu 2026', time:'22:00', field:'7'},
+    {date:'18 Giu 2026', time:'21:00', field:'7'},
+    {date:'18 Giu 2026', time:'22:00', field:'7'},
+  ],
+  semi: [
+    {date:'23 Giu 2026', time:'21:00', field:'7'},
+    {date:'23 Giu 2026', time:'22:00', field:'7'},
+  ],
+  finale: [{date:'25 Giu 2026', time:'21:45', field:'7'}],
+};
+const SCHEDULE_F_PLAYOFF = {
+  semi: [
+    {date:'17 Giu 2026', time:'20:00', field:'7'},
+    {date:'18 Giu 2026', time:'20:00', field:'7'},
+  ],
+  finale: [{date:'25 Giu 2026', time:'21:00', field:'7'}],
 };
 
 // Generate matches
@@ -3608,83 +3703,6 @@ function drawEventLine(ctx, text, x, y, align, maxW, color) {
 // ─── GENERA CALENDARIO ALGORITHM ──────────────────────────────────────────
 // ── CALENDARIO FISSO DA EXCEL ─────────────────────────────────────────────
 // 32 slot Maschile + 12 slot Femminile + fasi finali
-const SCHEDULE_M = [
-  {date:'26 Mag 2026', time:'20:00', field:'7'},
-  {date:'26 Mag 2026', time:'21:00', field:'7'},
-  {date:'26 Mag 2026', time:'22:00', field:'7'},
-  {date:'26 Mag 2026', time:'20:00', field:'11'},
-  {date:'27 Mag 2026', time:'20:00', field:'7'},
-  {date:'27 Mag 2026', time:'21:00', field:'7'},
-  {date:'27 Mag 2026', time:'22:00', field:'7'},
-  {date:'27 Mag 2026', time:'20:00', field:'11'},
-  {date:'28 Mag 2026', time:'20:00', field:'7'},
-  {date:'28 Mag 2026', time:'21:00', field:'7'},
-  {date:'28 Mag 2026', time:'22:00', field:'7'},
-  {date:'3 Giu 2026',  time:'20:00', field:'7'},
-  {date:'3 Giu 2026',  time:'21:00', field:'7'},
-  {date:'3 Giu 2026',  time:'22:00', field:'7'},
-  {date:'3 Giu 2026',  time:'22:00', field:'11'},
-  {date:'4 Giu 2026',  time:'20:00', field:'11'},
-  {date:'4 Giu 2026',  time:'20:00', field:'7'},
-  {date:'4 Giu 2026',  time:'21:00', field:'7'},
-  {date:'4 Giu 2026',  time:'22:00', field:'7'},
-  {date:'4 Giu 2026',  time:'22:00', field:'11'},
-  {date:'8 Giu 2026',  time:'20:00', field:'7'},
-  {date:'8 Giu 2026',  time:'21:00', field:'7'},
-  {date:'8 Giu 2026',  time:'22:00', field:'7'},
-  {date:'8 Giu 2026',  time:'20:00', field:'11'},
-  {date:'9 Giu 2026',  time:'20:00', field:'7'},
-  {date:'9 Giu 2026',  time:'21:00', field:'7'},
-  {date:'9 Giu 2026',  time:'22:00', field:'7'},
-  {date:'9 Giu 2026',  time:'20:00', field:'11'},
-  {date:'10 Giu 2026', time:'20:00', field:'7'},
-  {date:'10 Giu 2026', time:'21:00', field:'7'},
-  {date:'10 Giu 2026', time:'22:00', field:'7'},
-  {date:'10 Giu 2026', time:'20:00', field:'11'},
-];
-const SCHEDULE_F = [
-  {date:'26 Mag 2026', time:'20:00', field:'11'},
-  {date:'26 Mag 2026', time:'21:00', field:'11'},
-  {date:'27 Mag 2026', time:'22:00', field:'11'},
-  {date:'27 Mag 2026', time:'20:00', field:'11'},
-  {date:'3 Giu 2026',  time:'21:00', field:'11'},
-  {date:'4 Giu 2026',  time:'21:00', field:'11'},
-  {date:'8 Giu 2026',  time:'21:00', field:'11'},
-  {date:'8 Giu 2026',  time:'22:00', field:'11'},
-  {date:'9 Giu 2026',  time:'21:00', field:'11'},
-  {date:'9 Giu 2026',  time:'22:00', field:'11'},
-  {date:'11 Giu 2026', time:'21:00', field:'11'},
-  {date:'11 Giu 2026', time:'22:00', field:'11'},
-];
-// Fasi finali maschile
-const SCHEDULE_M_PLAYOFF = {
-  ottavi: [
-    {date:'15 Giu 2026', time:'19:00', field:'7'},
-    {date:'15 Giu 2026', time:'20:00', field:'7'},
-    {date:'15 Giu 2026', time:'21:00', field:'7'},
-    {date:'15 Giu 2026', time:'22:00', field:'7'},
-  ],
-  quarti: [
-    {date:'17 Giu 2026', time:'21:00', field:'7'},
-    {date:'17 Giu 2026', time:'22:00', field:'7'},
-    {date:'18 Giu 2026', time:'21:00', field:'7'},
-    {date:'18 Giu 2026', time:'22:00', field:'7'},
-  ],
-  semi: [
-    {date:'23 Giu 2026', time:'21:00', field:'7'},
-    {date:'23 Giu 2026', time:'22:00', field:'7'},
-  ],
-  finale: [{date:'25 Giu 2026', time:'21:45', field:'7'}],
-};
-// Fasi finali femminile
-const SCHEDULE_F_PLAYOFF = {
-  semi: [
-    {date:'17 Giu 2026', time:'20:00', field:'7'},
-    {date:'18 Giu 2026', time:'20:00', field:'7'},
-  ],
-  finale: [{date:'25 Giu 2026', time:'21:00', field:'7'}],
-};
-
 let genDays = [
   {date:'26 Mag 2026', startTime:'20:00'},
   {date:'27 Mag 2026', startTime:'20:00'},
@@ -6093,19 +6111,31 @@ function tvRenderSponsors() {
   const cont = document.getElementById('tvSponsorContent');
   if (!cont) return;
   if (!db.sponsors || !db.sponsors.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.5rem;padding:40px;text-align:center;">Nessuno sponsor registrato.</p>'; return; }
-  const tiers = [{key:'main',label:'MAIN SPONSOR',cls:'tv-main'},{key:'gold',label:'GOLD PARTNER',cls:'tv-gold'},{key:'silver',label:'SILVER PARTNER',cls:'tv-silver'}];
+  
+  const tiers = [
+    {key:'main', label:'MAIN SPONSOR', cls:'tv-main'},
+    {key:'sponsor', label:'SPONSOR', cls:'tv-sponsor'}
+  ];
+  
   let html = '<div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:24px;justify-content:center;">';
+  
   tiers.forEach(tier => {
-    const sponsors = db.sponsors.filter(s => s.tier === tier.key);
+    // Per la categoria "sponsor", includi anche gold e silver (retrocompatibilità)
+    const sponsors = tier.key === 'sponsor' 
+      ? db.sponsors.filter(s => s.tier === 'sponsor' || s.tier === 'gold' || s.tier === 'silver')
+      : db.sponsors.filter(s => s.tier === tier.key);
+    
     if (!sponsors.length) return;
+    
     html += '<div><div class="tv-sponsor-tier-label">' + tier.label + '</div><div class="tv-sponsor-grid">';
     sponsors.forEach(s => {
       html += '<div class="tv-sponsor-card ' + tier.cls + '">'
-            + (s.logo ? '<img src="' + s.logo + '" alt="' + s.name + '">' : '')
+            + (s.logo ? '<img src="' + s.logo + '" alt="' + s.name + '" class="tv-sponsor-logo">' : '')
             + '<div class="tv-sponsor-name">' + s.name + '</div></div>';
     });
     html += '</div></div>';
   });
+  
   cont.innerHTML = html + '</div>';
 }
 
