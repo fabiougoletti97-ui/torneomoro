@@ -912,7 +912,8 @@ body.admin-mode .ig-export-bar{display:flex;}
 }
 .tv-slide {
   position: absolute; inset: 0;
-  display: flex; flex-direction: column;
+  display: none;
+  flex-direction: column;
   padding: 0 50px 50px;
   opacity: 0; transform: translateX(60px);
   transition: opacity 0.7s cubic-bezier(.4,0,.2,1),
@@ -920,10 +921,12 @@ body.admin-mode .ig-export-bar{display:flex;}
   pointer-events: none;
 }
 .tv-slide.active {
+  display: flex;
   opacity: 1; transform: translateX(0);
   pointer-events: all;
 }
 .tv-slide.exit {
+  display: flex;
   opacity: 0; transform: translateX(-60px);
 }
 
@@ -5868,21 +5871,40 @@ function tvShowSlide(idx, immediate) {
   document.querySelectorAll('.tv-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
   
   const slides = document.querySelectorAll('.tv-slide');
+  const target = document.getElementById('tvSlide' + idx);
   
-  // Prima: rimuovi tutte le slide attive
-  slides.forEach(s => {
-    s.classList.remove('active', 'exit');
-  });
-  
-  // Poi: attiva solo la slide corretta
-  setTimeout(() => {
-    const target = document.getElementById('tvSlide' + idx);
+  if (immediate) {
+    // Cambio immediato: nasconde tutto e mostra subito il target
+    slides.forEach(s => {
+      s.classList.remove('active', 'exit');
+    });
     if (target) {
       target.classList.add('active');
     }
     tvCurrentSlide = idx;
     tvRenderSlide(idx);
-  }, immediate ? 0 : 50);
+  } else {
+    // Cambio animato: exit -> rimuovi -> mostra nuovo
+    slides.forEach(s => {
+      if (s.classList.contains('active') && s !== target) {
+        s.classList.add('exit');
+        s.classList.remove('active');
+        // Dopo la transizione, rimuovi exit e nascondi
+        setTimeout(() => {
+          s.classList.remove('exit');
+        }, 750);
+      }
+    });
+    
+    // Mostra il target dopo un breve delay
+    setTimeout(() => {
+      if (target) {
+        target.classList.add('active');
+      }
+      tvCurrentSlide = idx;
+      tvRenderSlide(idx);
+    }, 50);
+  }
 }
 
 function tvRenderAll() { for (let i = 0; i < TV_SLIDES; i++) tvRenderSlide(i); }
