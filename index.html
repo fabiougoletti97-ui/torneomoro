@@ -1636,16 +1636,38 @@ body.admin-mode .delete-team-btn{display:block;}
 </div>
 
 <div class="modal-overlay" id="addPlayerModal">
-  <div class="modal">
+  <div class="modal" style="max-width: 600px;">
     <button class="modal-close" onclick="closeModal('addPlayerModal')">✕</button>
-    <div class="modal-title">👤 Aggiungi Calciatore</div>
+    <div class="modal-title">👥 Gestione Calciatori</div>
     <input type="hidden" id="ap-team-id"/>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Nome e Cognome</label><input class="form-input" id="ap-name" placeholder="es. Marco Rossi"/></div>
-      <div class="form-group"><label class="form-label">N° Maglia</label><input class="form-input" id="ap-num" type="number" placeholder="7" min="1" max="99"/></div>
+    
+    <!-- Lista giocatori -->
+    <div style="max-height:400px;overflow-y:auto;margin-bottom:1rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:1rem;background:rgba(0,0,0,0.2);">
+      <div id="players-list-container"></div>
     </div>
-    <div class="form-group"><label class="form-label">Ruolo</label><select class="form-select" id="ap-role"><option>Portiere</option><option>Difensore</option><option>Centrocampista</option><option>Attaccante</option></select></div>
-    <button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="addPlayer()">Aggiungi</button>
+    
+    <!-- Aggiungi nuovo -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;">
+      <div class="form-row">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">Nome e Cognome</label>
+          <input class="form-input" id="ap-name" placeholder="es. Marco Rossi"/>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Ruolo</label>
+          <select class="form-select" id="ap-role">
+            <option>Portiere</option>
+            <option>Difensore</option>
+            <option>Centrocampista</option>
+            <option>Attaccante</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="addPlayer()">+ Aggiungi Calciatore</button>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;text-align:center;">
+        Massimo 18 giocatori per squadra
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2843,7 +2865,90 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openAddTeamModal(){openModal('addTeamModal');}
-function openAddPlayerModal(tid){document.getElementById('ap-team-id').value=tid;openModal('addPlayerModal');}
+function openAddPlayerModal(tid) {
+  document.getElementById('ap-team-id').value = tid;
+  document.getElementById('ap-name').value = '';
+  document.getElementById('ap-role').value = 'Portiere';
+  renderPlayersList(tid);
+  openModal('addPlayerModal');
+}
+
+function renderPlayersList(tid) {
+  const team = getTeam(tid);
+  const container = document.getElementById('players-list-container');
+  
+  if (!team || !team.players || team.players.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:2rem;font-size:0.9rem;">Nessun giocatore. Aggiungi il primo!</div>';
+    return;
+  }
+  
+  let html = '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+  
+  team.players.forEach((player, index) => {
+    const num = index + 1; // Numerazione automatica da 1
+    html += `
+      <div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-family:'Bebas Neue';font-size:1.5rem;color:var(--gold);min-width:30px;text-align:center;">${num}</div>
+        <input 
+          value="${player.name}" 
+          onchange="updatePlayerName(${tid}, ${index}, this.value)"
+          style="flex:2;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:0.4rem 0.6rem;color:#fff;font-family:Oswald;font-size:0.9rem;"
+          placeholder="Nome giocatore"
+        />
+        <select 
+          onchange="updatePlayerRole(${tid}, ${index}, this.value)"
+          style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:0.4rem;color:#fff;font-family:Oswald;font-size:0.85rem;">
+          <option ${player.role === 'Portiere' ? 'selected' : ''}>Portiere</option>
+          <option ${player.role === 'Difensore' ? 'selected' : ''}>Difensore</option>
+          <option ${player.role === 'Centrocampista' ? 'selected' : ''}>Centrocampista</option>
+          <option ${player.role === 'Attaccante' ? 'selected' : ''}>Attaccante</option>
+        </select>
+        <button 
+          onclick="removePlayerByIndex(${tid}, ${index})"
+          style="background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:4px;color:var(--red);padding:0.3rem 0.6rem;cursor:pointer;font-size:0.85rem;min-width:60px;"
+        >Rimuovi</button>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function updatePlayerName(tid, index, newName) {
+  const team = getTeam(tid);
+  if (team && team.players[index]) {
+    team.players[index].name = newName.trim();
+    saveToStorage();
+    renderTeams();
+    showToast('✏️ Nome aggiornato');
+  }
+}
+
+function updatePlayerRole(tid, index, newRole) {
+  const team = getTeam(tid);
+  if (team && team.players[index]) {
+    team.players[index].role = newRole;
+    saveToStorage();
+    renderTeams();
+    showToast('✏️ Ruolo aggiornato');
+  }
+}
+
+function removePlayerByIndex(tid, index) {
+  const team = getTeam(tid);
+  if (team && team.players[index]) {
+    const playerName = team.players[index].name;
+    if (confirm(`Rimuovere ${playerName}?`)) {
+      team.players.splice(index, 1);
+      // Ricalcola automaticamente i numeri (sono basati sull'indice)
+      renderPlayersList(tid);
+      saveToStorage();
+      renderTeams();
+      showToast('🗑️ Giocatore rimosso');
+    }
+  }
+}
 function scrollTo(sel){document.querySelector(sel)?.scrollIntoView({behavior:'smooth'});}
 
 // ─── TEAMS ─────────────────────────────────────────────────────────────────
@@ -2892,12 +2997,12 @@ function renderTeams() {
         ${isAdmin ? `<button onclick="deleteTeam(${team.id})" class="delete-team-btn">🗑️ Elimina Squadra</button>` : ''}
         <div class="team-card-players">
           ${team.players.map((p,pi)=>`<div class="player-row">
-            <span class="player-num">${p.num}</span>
+            <span class="player-num">${pi + 1}</span>
             <span style="flex:1">${p.name}</span>
             <span class="player-role">${p.role}</span>
-            ${isAdmin ? `<button onclick="removePlayer(${team.id},'${p.name.replace(/'/g,"\\'")}')" style="display:none;background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:3px;color:var(--red);font-size:0.65rem;padding:1px 6px;cursor:pointer;margin-left:4px;" class="rm-player-btn">✕</button>` : ''}
+            ${isAdmin ? `<button onclick="removePlayerByIndex(${team.id},${pi})" style="display:none;background:rgba(224,53,53,0.15);border:1px solid rgba(224,53,53,0.3);border-radius:3px;color:var(--red);font-size:0.65rem;padding:1px 6px;cursor:pointer;margin-left:4px;" class="rm-player-btn">✕</button>` : ''}
           </div>`).join('')}
-          <button class="add-player-btn" onclick="openAddPlayerModal(${team.id})">+ Aggiungi Calciatore</button>
+          <button class="add-player-btn" onclick="openAddPlayerModal(${team.id})">+ Gestisci Calciatori</button>
         </div>
       </div>`;
     grid.appendChild(div);
@@ -2941,16 +3046,39 @@ function addTeam(){
   renderTeams();updateStats();saveToStorage();showToast('✅ Squadra aggiunta!');
 }
 
-function addPlayer(){
-  const tid=parseInt(document.getElementById('ap-team-id').value);
-  const name=document.getElementById('ap-name').value.trim();
-  const num=parseInt(document.getElementById('ap-num').value)||99;
-  const role=document.getElementById('ap-role').value;
-  if(!name){alert('Inserisci il nome!');return;}
-  const team=getTeam(tid);
-  if(team)team.players.push({num,name,role});
-  closeModal('addPlayerModal');
-  renderTeams();updateStats();saveToStorage();showToast('👤 Calciatore aggiunto!');
+function addPlayer() {
+  const tid = parseInt(document.getElementById('ap-team-id').value);
+  const name = document.getElementById('ap-name').value.trim();
+  const role = document.getElementById('ap-role').value;
+  
+  if (!name) {
+    alert('Inserisci il nome!');
+    return;
+  }
+  
+  const team = getTeam(tid);
+  if (!team) return;
+  
+  // Limite massimo 18 giocatori
+  if (team.players && team.players.length >= 18) {
+    alert('⚠️ Massimo 18 giocatori per squadra!');
+    return;
+  }
+  
+  // Il numero viene assegnato automaticamente (indice + 1)
+  // Non serve salvare 'num' nell'oggetto player
+  team.players.push({name, role});
+  
+  // Pulisci i campi
+  document.getElementById('ap-name').value = '';
+  document.getElementById('ap-role').value = 'Portiere';
+  
+  // Aggiorna la lista
+  renderPlayersList(tid);
+  renderTeams();
+  updateStats();
+  saveToStorage();
+  showToast('👤 Calciatore aggiunto!');
 }
 
 // ─── CALENDARIO ────────────────────────────────────────────────────────────
@@ -3120,7 +3248,7 @@ function buildEventRow(type, side, team, ev, idx) {
   row.dataset.side = side;
   const players = team ? team.players : [];
   const icon = type==='goals'?'⚽':type==='yellow'?'🟨':'🟥';
-  const playerOptions = players.map(p=>`<option value="${p.name}" ${ev&&ev.player===p.name?'selected':''}>${p.num}. ${p.name}</option>`).join('');
+  const playerOptions = players.map((p,pi)=>`<option value="${p.name}" ${ev&&ev.player===p.name?'selected':''}>${pi+1}. ${p.name}</option>`).join('');
   const goalNumInput = type==='goals' ? `<input class="md-event-num" type="number" min="1" max="10" value="${ev?ev.goals:1}" placeholder="Gol" data-field="goals">` : '';
   row.innerHTML=`
     <span class="md-event-icon">${icon}</span>
@@ -4426,6 +4554,54 @@ function startTVMode() {
     showToast("⚠️ Genera prima l'anteprima!");
     return;
   }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SALVA AUTOMATICAMENTE IL CALENDARIO
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('💾 Salvataggio automatico calendario...');
+  
+  const playedMatches = db.matches.filter(m => m.scoreHome !== null);
+  
+  // Se ci sono partite già giocate, chiedi conferma
+  if (playedMatches.length > 0) {
+    if (!confirm('⚠️ Attenzione: ci sono già ' + playedMatches.length + ' risultati inseriti.\n\nAvviando la presentazione TV, il calendario verrà automaticamente salvato e sostituirà quello esistente (classifica e playoff azzerati).\n\nContinuare?')) {
+      return;
+    }
+  }
+  
+  // Salva il calendario
+  db.matches = genPreviewMatches;
+  calGenerated = true;
+  
+  // Reset all match scores, goals, cards (clean slate)
+  db.matches.forEach(m => {
+    m.scoreHome = null;
+    m.scoreAway = null;
+    m.goals = [];
+    m.yellow = [];
+    m.red = [];
+  });
+  
+  // Reset playoff bracket
+  db.playoff = { M: null, F: null };
+  
+  // Update gen button appearance
+  const btn = document.getElementById('genCalBtn');
+  if (btn) {
+    btn.classList.add('used');
+    btn.textContent = '✅ Calendario Generato';
+  }
+  
+  // Salva nel localStorage
+  saveToStorage();
+  renderAll();
+  
+  console.log('✅ Calendario salvato automaticamente!');
+  showToast('✅ Calendario salvato! Avvio presentazione...');
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AVVIA LA PRESENTAZIONE TV
+  // ═══════════════════════════════════════════════════════════════════════════
   
   console.log('🎬 TV Mode: Avvio...');
   
