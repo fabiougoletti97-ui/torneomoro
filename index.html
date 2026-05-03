@@ -1162,12 +1162,13 @@ body.admin-mode .delete-team-btn{display:block;}
   <span class="admin-label" style="font-family:'Oswald';font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">🔐 Modalità Admin attiva</span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <span id="storage-indicator" style="font-size:0.68rem;color:var(--accent);font-family:'Oswald';letter-spacing:1px;opacity:0;transition:opacity 0.4s;">💾 Salvato</span>
-    <button class="admin-bar-btn" onclick="exportData()" title="Scarica backup dati JSON">📤 Esporta</button>
-    <label class="admin-bar-btn" style="cursor:pointer;" title="Carica backup dati JSON">
-      📥 Importa
+    <span id="backup-info" style="font-size:0.65rem;color:var(--muted);font-family:'Oswald';letter-spacing:0.5px;"></span>
+    <button class="admin-bar-btn" onclick="exportData()" title="Scarica backup completo in formato JSON">📤 Esporta Backup</button>
+    <label class="admin-bar-btn" style="cursor:pointer;" title="Carica backup da file JSON">
+      📥 Importa Backup
       <input type="file" accept=".json" onchange="importData(this)" style="display:none;">
     </label>
-    <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="Cancella tutti i dati e ripristina">🗑 Reset</button>
+    <button class="admin-bar-btn" onclick="resetStorage()" style="border-color:rgba(224,53,53,0.4);color:var(--red);" title="ATTENZIONE: Cancella tutti i dati e ripristina">🗑 Reset Completo</button>
     <button class="admin-bar-btn" id="tvModeBtn" onclick="enterTVMode()" style="border-color:rgba(59,139,212,0.5);color:#7ec8f7;letter-spacing:1px;" title="Modalità visualizzazione TV 65 pollici">📺 TV Mode</button>
     <button class="admin-bar-btn" onclick="exitAdmin()">Esci</button>
   </div>
@@ -2844,6 +2845,7 @@ function activateAdmin() {
   if(btn) { btn.textContent = 'Accedi'; btn.disabled = false; }
   renderAll();
   syncMobileAdmin();
+  updateBackupInfo(); // Mostra info ultimo backup
   showToast('🔐 Modalità admin attiva');
 }
 function exitAdmin() {
@@ -2857,6 +2859,35 @@ function exitAdmin() {
   }
   renderAll();
   syncMobileAdmin(); showToast('🔒 Modalità admin disattivata');
+}
+
+function updateBackupInfo() {
+  const info = document.getElementById('backup-info');
+  if (!info) return;
+  
+  const lastBackup = localStorage.getItem('torneoMoro_lastBackup');
+  if (lastBackup) {
+    const date = new Date(lastBackup);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+    
+    let timeAgo = '';
+    if (diffDays > 0) {
+      timeAgo = `${diffDays}g fa`;
+    } else if (diffHours > 0) {
+      timeAgo = `${diffHours}h fa`;
+    } else {
+      timeAgo = 'poco fa';
+    }
+    
+    info.textContent = `📦 Ultimo backup: ${timeAgo}`;
+    info.style.opacity = '1';
+  } else {
+    info.textContent = '⚠️ Nessun backup';
+    info.style.opacity = '0.7';
+  }
 }
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
@@ -3109,12 +3140,12 @@ function renderCalendario(){
       row.style.flexDirection = 'column';
       row.style.gap = '0.5rem';
       
-      // Orario e campo VISIBILI al centro, UNA VOLTA SOLA
+      // Orario e campo VISIBILI al centro, UNA VOLTA SOLA - DIMENSIONI UNIFORMI
       const fieldName = m.field === '11' ? 'CAMPO 11' : m.field === '7' ? 'CAMPO 7' : 'CAMPO ?';
       const matchHeader = `
         <div style="display:flex;align-items:center;justify-content:center;gap:1rem;padding:0.4rem 0.8rem;background:rgba(59,139,212,0.05);border-radius:6px;flex-wrap:wrap;">
-          <span style="font-family:Oswald;font-size:1.1rem;font-weight:600;color:#7ec8f7;letter-spacing:1px;">🕐 ${m.time||'--:--'}</span>
-          <span style="display:inline-block;background:rgba(245,197,24,0.25);color:var(--gold);font-family:Oswald;font-size:1rem;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:5px;border:2px solid rgba(245,197,24,0.5);">🏟️ ${fieldName}</span>
+          <span style="font-family:Oswald;font-size:1rem;font-weight:600;color:#7ec8f7;letter-spacing:1px;">🕐 ${m.time||'--:--'}</span>
+          <span style="display:inline-block;background:rgba(245,197,24,0.25);color:var(--gold);font-family:Oswald;font-size:1rem;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:5px;border:2px solid rgba(245,197,24,0.5);">${fieldName}</span>
         </div>
       `;
       
@@ -5591,10 +5622,18 @@ function renderHomeSponsor() {
 
 // ─── EXPORT / IMPORT DATA ─────────────────────────────────────────────────
 function exportData() {
+  const now = new Date();
   const payload = {
-    _version: 1,
-    _date: new Date().toISOString(),
-    _label: 'Torneo Moro Chiozza — Backup dati',
+    _version: 2,
+    _date: now.toISOString(),
+    _dateFormatted: now.toLocaleString('it-IT'),
+    _label: 'Torneo Moro Chiozza — Backup Completo',
+    _stats: {
+      totalTeams: db.teams.length,
+      totalMatches: db.matches.length,
+      playedMatches: db.matches.filter(m => m.scoreHome !== null).length,
+      totalSponsors: (db.sponsors || []).length
+    },
     teams: db.teams,
     matches: db.matches,
     calGenerated: calGenerated,
@@ -5606,11 +5645,17 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const date = new Date().toISOString().slice(0,10);
-  a.download = 'TorneoMoro_backup_' + date + '.json';
+  const date = now.toISOString().slice(0,10);
+  const time = now.toTimeString().slice(0,5).replace(':','');
+  a.download = `TorneoMoro_backup_${date}_${time}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('📤 Backup esportato!');
+  
+  // Salva info ultimo backup in localStorage
+  localStorage.setItem('torneoMoro_lastBackup', now.toISOString());
+  
+  showToast('📤 Backup esportato con successo!');
+  updateBackupInfo();
 }
 
 function importData(input) {
