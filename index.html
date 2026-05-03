@@ -1122,6 +1122,7 @@ body.admin-mode .delete-team-btn{display:block;}
 .tv-calendar-slide{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;animation:tvCalSlideIn 0.8s ease forwards;}
 @keyframes tvCalSlideIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
 @keyframes tvCalSlideOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.1);opacity:0.8;}}
 .tv-date-header{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:#fff;text-align:center;margin-bottom:3rem;text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);letter-spacing:4px;animation:glow 2s ease-in-out infinite alternate;}
 @keyframes glow{from{text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);}to{text-shadow:0 0 60px rgba(59,139,212,1),0 0 30px rgba(59,139,212,0.8),0 0 80px rgba(59,139,212,0.6);}}
 .tv-matches-container{width:100%;max-width:900px;display:flex;flex-direction:column;gap:1.5rem;padding:0 2rem;max-height:70vh;overflow-y:auto;}
@@ -4665,6 +4666,15 @@ function startTVMode() {
   overlay.style.display = 'block';
   console.log('✅ Overlay mostrato');
   
+  // Avvia musica di sottofondo
+  if (!tvModeData.backgroundMusic) {
+    tvModeData.backgroundMusic = new Audio('https://www.bensound.com/bensound-music/bensound-epic.mp3');
+    tvModeData.backgroundMusic.loop = true;
+    tvModeData.backgroundMusic.volume = 0.3; // Volume al 30%
+  }
+  tvModeData.backgroundMusic.play().catch(e => console.log('🔇 Audio bloccato dal browser:', e));
+  console.log('🎵 Musica avviata');
+  
   // Hide modal
   closeModal('genCalModal');
   
@@ -4728,12 +4738,21 @@ function prepareTVSlides() {
     return parseDateStr(a) - parseDateStr(b);
   });
   
-  // Create slides
-  tvModeData.slides = sortedDates.map(date => ({
+  // Create countdown slides (5, 4, 3, 2, 1)
+  const countdownSlides = [5, 4, 3, 2, 1].map(num => ({
+    type: 'countdown',
+    number: num
+  }));
+  
+  // Create calendar slides
+  const calendarSlides = sortedDates.map(date => ({
+    type: 'calendar',
     date: date,
     matches: matchesByDate[date].sort((a, b) => (a.time || '').localeCompare(b.time || ''))
   }));
   
+  // Combine: countdown first, then calendar
+  tvModeData.slides = [...countdownSlides, ...calendarSlides];
   tvModeData.currentSlideIndex = 0;
 }
 
@@ -4752,7 +4771,6 @@ function showTVSlide(index) {
   
   if (index >= tvModeData.slides.length) {
     console.log('📊 Fine slide, mostro riepilogo');
-    // Show summary
     showTVSummary();
     return;
   }
@@ -4764,25 +4782,60 @@ function showTVSlide(index) {
   const slide = tvModeData.slides[index];
   const container = document.getElementById('tv-slide-container');
   
+  // COUNTDOWN SLIDE
+  if (slide.type === 'countdown') {
+    console.log('⏱️ Countdown:', slide.number);
+    const slideHTML = `
+      <div class="tv-calendar-slide" style="justify-content:center;">
+        <div style="font-family:'Bebas Neue';font-size:20rem;color:#fff;text-shadow:0 0 100px rgba(245,197,24,0.8);animation:pulse 1s ease-in-out infinite;">
+          ${slide.number}
+        </div>
+      </div>
+    `;
+    container.innerHTML = slideHTML;
+    
+    // Auto-avanza dopo 1 secondo
+    const timeout = setTimeout(() => {
+      showTVSlide(index + 1);
+    }, 1000);
+    tvModeData.activeTimeouts.push(timeout);
+    return;
+  }
+  
+  // CALENDAR SLIDE con layout a DUE COLONNE
   console.log('📅 Data:', slide.date, '- Partite:', slide.matches.length);
   
-  // Create slide HTML
+  // Separa partite per campo
+  const campo7Matches = slide.matches.filter(m => m.field === '7');
+  const campo11Matches = slide.matches.filter(m => m.field === '11');
+  
   const slideHTML = `
     <div class="tv-calendar-slide">
       <div class="tv-date-header">${slide.date.toUpperCase()}</div>
-      <div class="tv-matches-container" id="tv-matches-${index}">
-        <!-- Matches will be animated in -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;width:100%;max-width:1400px;padding:0 2rem;">
+        <!-- Colonna CAMPO 7 -->
+        <div>
+          <div style="font-family:Oswald;font-size:1.5rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:1.5rem;letter-spacing:2px;border-bottom:2px solid rgba(59,139,212,0.5);padding-bottom:0.5rem;">
+            CAMPO 7
+          </div>
+          <div id="tv-matches-campo7-${index}"></div>
+        </div>
+        <!-- Colonna CAMPO 11 -->
+        <div>
+          <div style="font-family:Oswald;font-size:1.5rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:1.5rem;letter-spacing:2px;border-bottom:2px solid rgba(245,197,24,0.5);padding-bottom:0.5rem;">
+            CAMPO 11
+          </div>
+          <div id="tv-matches-campo11-${index}"></div>
+        </div>
       </div>
     </div>
   `;
   
   container.innerHTML = slideHTML;
-  
-  // Update progress indicators
   updateTVProgress();
   
-  // Animate matches one by one
-  animateTVMatches(slide.matches, index);
+  // Anima le partite in entrambe le colonne
+  animateTVMatchesTwoColumns(campo7Matches, campo11Matches, index);
 }
 
 function animateTVMatches(matches, slideIndex) {
@@ -4874,6 +4927,92 @@ function animateTVMatches(matches, slideIndex) {
   showNextMatch();
 }
 
+function animateTVMatchesTwoColumns(campo7Matches, campo11Matches, slideIndex) {
+  const campo7Container = document.getElementById(`tv-matches-campo7-${slideIndex}`);
+  const campo11Container = document.getElementById(`tv-matches-campo11-${slideIndex}`);
+  
+  const defaultLogo = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4=';
+  
+  console.log('🎬 Animazione due colonne - Campo 7:', campo7Matches.length, 'Campo 11:', campo11Matches.length);
+  tvModeData.isAnimating = true;
+  
+  let campo7Index = 0;
+  let campo11Index = 0;
+  
+  function showNextMatchPair() {
+    const allDone = (campo7Index >= campo7Matches.length) && (campo11Index >= campo11Matches.length);
+    
+    if (allDone) {
+      console.log('✅ Tutte le partite mostrate');
+      tvModeData.isAnimating = false;
+      const timeout = setTimeout(() => {
+        showTVSlide(slideIndex + 1);
+      }, 15000); // 15 secondi
+      tvModeData.activeTimeouts.push(timeout);
+      return;
+    }
+    
+    // Mostra partita campo 7
+    if (campo7Index < campo7Matches.length) {
+      const match = campo7Matches[campo7Index];
+      const card = createMatchCard(match, defaultLogo);
+      campo7Container.appendChild(card);
+      campo7Index++;
+    }
+    
+    // Mostra partita campo 11
+    if (campo11Index < campo11Matches.length) {
+      const match = campo11Matches[campo11Index];
+      const card = createMatchCard(match, defaultLogo);
+      campo11Container.appendChild(card);
+      campo11Index++;
+    }
+    
+    // Continua dopo 1.5 secondi
+    const timeout = setTimeout(showNextMatchPair, 1500);
+    tvModeData.activeTimeouts.push(timeout);
+  }
+  
+  function createMatchCard(match, defaultLogo) {
+    const homeTeam = getTeam(match.home);
+    const awayTeam = getTeam(match.away);
+    const homeLogo = (homeTeam && homeTeam.logo) ? homeTeam.logo : defaultLogo;
+    const awayLogo = (awayTeam && awayTeam.logo) ? awayTeam.logo : defaultLogo;
+    
+    const matchCard = document.createElement('div');
+    matchCard.className = 'tv-match-card';
+    matchCard.style.animationDelay = '0s';
+    matchCard.style.marginBottom = '1rem';
+    
+    const torneoLabel = match.torneo === 'M' ? '♂ M' : '♀ F';
+    const torneoColor = match.torneo === 'M' ? 'rgba(59,139,212,0.3)' : 'rgba(212,79,160,0.3)';
+    
+    matchCard.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;background:rgba(255,255,255,0.02);border-radius:8px;">
+        <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+          <span style="font-size:0.7rem;background:${torneoColor};padding:0.2rem 0.4rem;border-radius:3px;font-family:Oswald;">${torneoLabel}</span>
+          <span style="font-size:0.75rem;color:rgba(255,255,255,0.6);font-family:Oswald;">${match.time}</span>
+        </div>
+        <div style="flex:3;display:flex;align-items:center;justify-content:center;gap:0.8rem;">
+          <div style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
+            <span style="font-size:0.9rem;font-family:Oswald;color:#fff;">${homeTeam ? homeTeam.name : 'TBD'}</span>
+            <img src="${homeLogo}" style="width:25px;height:25px;object-fit:contain;border-radius:50%;">
+          </div>
+          <span style="font-size:0.8rem;color:var(--muted);">VS</span>
+          <div style="flex:1;text-align:left;display:flex;align-items:center;gap:0.5rem;">
+            <img src="${awayLogo}" style="width:25px;height:25px;object-fit:contain;border-radius:50%;">
+            <span style="font-size:0.9rem;font-family:Oswald;color:#fff;">${awayTeam ? awayTeam.name : 'TBD'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    return matchCard;
+  }
+  
+  showNextMatchPair();
+}
+
 function showTVSummary() {
   const container = document.getElementById('tv-slide-container');
   
@@ -4943,6 +5082,13 @@ function updateTVProgress() {
 
 function exitTVMode() {
   console.log('🚪 Exit TV Mode chiamato');
+  
+  // Stop background music
+  if (tvModeData.backgroundMusic) {
+    tvModeData.backgroundMusic.pause();
+    tvModeData.backgroundMusic.currentTime = 0;
+    console.log('🔇 Musica fermata');
+  }
   
   // Clear all active timeouts
   if (tvModeData.activeTimeouts && tvModeData.activeTimeouts.length > 0) {
