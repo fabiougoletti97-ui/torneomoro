@@ -3094,7 +3094,7 @@ function renderCalendario(){
   // Sort dates chronologically using dateToNum
   function _dNum(s){const mp={'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};const p=s.split(' ');const d=new Date(parseInt(p[2]||2026),mp[p[1]]||0,parseInt(p[0]));return isNaN(d)?0:d.getTime();}
   const sortedDates = Object.keys(dateMap).sort((a,b)=>_dNum(a)-_dNum(b));
-  const giornate = sortedDates; // repurpose variable for compatibility
+  const giornate = sortedDates;
   const cont=document.getElementById('calendario-content');
   cont.innerHTML='';
   giornate.slice(0,20).forEach(g=>{
@@ -3106,28 +3106,37 @@ function renderCalendario(){
       const home=getTeam(m.home),away=getTeam(m.away);
       const row=document.createElement('div');
       row.className='match-row';
+      row.style.flexDirection = 'column';
+      row.style.gap = '0.5rem';
+      
+      // Orario e campo VISIBILI al centro, UNA VOLTA SOLA
+      const fieldName = m.field === '11' ? 'CAMPO 11' : m.field === '7' ? 'CAMPO 7' : 'CAMPO ?';
+      const matchHeader = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:1rem;padding:0.4rem 0.8rem;background:rgba(59,139,212,0.05);border-radius:6px;flex-wrap:wrap;">
+          <span style="font-family:Oswald;font-size:1.1rem;font-weight:600;color:#7ec8f7;letter-spacing:1px;">🕐 ${m.time||'--:--'}</span>
+          <span style="display:inline-block;background:rgba(245,197,24,0.25);color:var(--gold);font-family:Oswald;font-size:1rem;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:5px;border:2px solid rgba(245,197,24,0.5);">🏟️ ${fieldName}</span>
+        </div>
+      `;
+      
       if(isAdmin){
         const evCount = (m.goals||[]).length+(m.yellow||[]).length+(m.red||[]).length;
         const evBadge = evCount>0 ? `<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">${evCount} eventi</span>` : '';
-        row.innerHTML=`
-          <div><div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
-          <div class="match-info" style="text-align:right;display:flex;align-items:center;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
-            <input class="date-input" type="text" id="date-${m.id}" value="${m.date||''}" placeholder="es. 5 Lug" onchange="updateMatchDate('${m.id}',this.value)" title="Data partita">
-            <input class="time-input" type="time" id="time-${m.id}" value="${m.time||'16:00'}" onchange="updateMatchTime('${m.id}',this.value)" title="Orario partita">
-          </div></div>
-          <div class="match-score-box" style="flex-direction:column;gap:6px;">
-            <div style="display:flex;align-items:center;gap:4px;">
-              <input class="score-input" type="number" id="sh-${m.id}" value="${(m.scoreHome!==null&&m.scoreHome!==undefined)?m.scoreHome:''}" placeholder="-" min="0" max="99">
-              <span class="score-sep">:</span>
-              <input class="score-input" type="number" id="sa-${m.id}" value="${(m.scoreAway!==null&&m.scoreAway!==undefined)?m.scoreAway:''}" placeholder="-" min="0" max="99">
-              <button class="save-score-btn" onclick="saveScore('${m.id}')">SALVA</button>
-              <span class="saved-tag" id="saved-${m.id}">✓</span>
+        row.innerHTML = matchHeader + `
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div style="flex:1;"><div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div></div>
+            <div class="match-score-box" style="flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <input class="score-input" type="number" id="sh-${m.id}" value="${(m.scoreHome!==null&&m.scoreHome!==undefined)?m.scoreHome:''}" placeholder="-" min="0" max="99">
+                <span class="score-sep">:</span>
+                <input class="score-input" type="number" id="sa-${m.id}" value="${(m.scoreAway!==null&&m.scoreAway!==undefined)?m.scoreAway:''}" placeholder="-" min="0" max="99">
+                <button class="save-score-btn" onclick="saveScore('${m.id}')">SALVA</button>
+                <span class="saved-tag" id="saved-${m.id}">✓</span>
+              </div>
+              <button class="match-detail-btn" onclick="openMatchDetail('${m.id}')">📋 Dettaglio${evBadge}</button>
+              ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
             </div>
-            <button class="match-detail-btn" onclick="openMatchDetail('${m.id}')">📋 Dettaglio${evBadge}</button>
-            ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
-          </div>
-          <div><div class="match-team">${away?teamDisplay(away):'TBD'}</div>
-          <div class="match-info">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div></div>`;
+            <div style="flex:1;"><div class="match-team">${away?teamDisplay(away):'TBD'}</div></div>
+          </div>`;
       } else {
         const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
         const scoreStr = hasScore ? `${m.scoreHome}<span style="color:var(--muted);font-size:1.2rem;padding:0 4px;">—</span>${m.scoreAway}` : `<span style="color:var(--muted);font-size:1rem;">vs</span>`;
@@ -3149,17 +3158,17 @@ function renderCalendario(){
           if(side==='home')homeEvents+=line; else awayEvents+=line;
         });
         const hasEvents = homeEvents||awayEvents;
-        row.innerHTML=`
-          <div>
-            <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
-            <div class="match-info" style="text-align:right">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div>
-            ${homeEvents?`<div class="match-events-pub" style="text-align:right;">${homeEvents}</div>`:''}
-          </div>
-          <div class="score-display">${scoreStr}</div>
-          <div>
-            <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
-            <div class="match-info">${m.date} · ${m.time}${m.field?`&nbsp;<span style="display:inline-block;background:rgba(59,139,212,0.18);color:#7ec8f7;font-family:Oswald;font-size:0.65rem;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid rgba(59,139,212,0.3);">C.${m.field}</span>`:''}</div>
-            ${awayEvents?`<div class="match-events-pub">${awayEvents}</div>`:''}
+        row.innerHTML = matchHeader + `
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div style="flex:1;">
+              <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
+              ${homeEvents?`<div class="match-events-pub" style="text-align:right;">${homeEvents}</div>`:''}
+            </div>
+            <div class="score-display">${scoreStr}</div>
+            <div style="flex:1;">
+              <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
+              ${awayEvents?`<div class="match-events-pub">${awayEvents}</div>`:''}
+            </div>
           </div>`;
       }
       block.appendChild(row);
@@ -4492,7 +4501,7 @@ function previewCalendario() {
           <span class="gmp-vs">VS</span>
           <span class="gmp-team">${away?teamDisplay(away):'?'}</span>
           <span style="font-size:0.65rem;color:var(--muted);min-width:50px;text-align:right;">${fasciaLabel[m.fasciaTag]||''}</span>
-          <span style="font-size:0.65rem;color:rgba(59,139,212,0.8);min-width:55px;text-align:right;">🏟️ C.${m.field||'?'}</span>
+          <span style="font-size:0.65rem;color:rgba(59,139,212,0.8);min-width:70px;text-align:right;">🏟️ CAMPO ${m.field||'?'}</span>
         </div>`;
       });
     });
