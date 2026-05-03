@@ -3140,12 +3140,12 @@ function renderCalendario(){
       row.style.flexDirection = 'column';
       row.style.gap = '0.5rem';
       
-      // Orario e campo VISIBILI al centro, UNA VOLTA SOLA - DIMENSIONI UNIFORMI
+      // Header con orario e campo - 0.75rem, tutto bianco, centrale
       const fieldName = m.field === '11' ? 'CAMPO 11' : m.field === '7' ? 'CAMPO 7' : 'CAMPO ?';
       const matchHeader = `
-        <div style="display:flex;align-items:center;justify-content:center;gap:1rem;padding:0.4rem 0.8rem;background:rgba(59,139,212,0.05);border-radius:6px;flex-wrap:wrap;">
-          <span style="font-family:Oswald;font-size:1rem;font-weight:600;color:#7ec8f7;letter-spacing:1px;">🕐 ${m.time||'--:--'}</span>
-          <span style="display:inline-block;background:rgba(245,197,24,0.25);color:var(--gold);font-family:Oswald;font-size:1rem;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:5px;border:2px solid rgba(245,197,24,0.5);">${fieldName}</span>
+        <div style="display:flex;align-items:center;justify-content:center;gap:1rem;padding:0.4rem 0.8rem;background:rgba(255,255,255,0.03);border-radius:6px;flex-wrap:wrap;">
+          <span style="font-family:Oswald;font-size:0.75rem;color:rgba(255,255,255,0.7);letter-spacing:1px;">${m.time||'--:--'}</span>
+          <span style="font-family:Oswald;font-size:0.75rem;color:rgba(255,255,255,0.7);letter-spacing:1px;">${fieldName}</span>
         </div>
       `;
       
