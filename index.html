@@ -4391,13 +4391,6 @@ function assignTimeslotsSimple(pairs, torneo) {
   const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
   const slots = [...schedule];
 
-  function getWeek(dateStr) {
-    const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
-    const parts = dateStr.split(' ');
-    const d = new Date(parseInt(parts[2]), map[parts[1]]||0, parseInt(parts[0]));
-    const jan1 = new Date(d.getFullYear(), 0, 1);
-    return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  }
   function dateToNum(dateStr) {
     const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
     const parts = dateStr.split(' ');
@@ -4406,9 +4399,8 @@ function assignTimeslotsSimple(pairs, torneo) {
   }
 
   const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
-  const teamWeekCount = {};
-  const teamLastDay = {};
-  allTeamIds.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
+  const teamMatchDates = {};
+  allTeamIds.forEach(id => { teamMatchDates[id] = []; });
 
   const shuffledPairs = shuffle([...pairs]);
   const assigned = new Array(slots.length).fill(null);
@@ -4416,7 +4408,6 @@ function assignTimeslotsSimple(pairs, torneo) {
 
   for (let si = 0; si < slots.length; si++) {
     const slot = slots[si];
-    const slotWeek = getWeek(slot.date);
     const slotDateNum = dateToNum(slot.date);
 
     for (let pi = 0; pi < shuffledPairs.length; pi++) {
@@ -4426,24 +4417,28 @@ function assignTimeslotsSimple(pairs, torneo) {
 
       const h = pair.home.id, a = pair.away.id;
 
-      if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
-      if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
-
       const ONE_DAY = 86400000;
-      // Permetti più partite nello stesso giorno (diff = 0), impedisci solo giorni consecutivi (diff = ONE_DAY)
-      const diffH = Math.abs(slotDateNum - teamLastDay[h]);
-      const diffA = Math.abs(slotDateNum - teamLastDay[a]);
-      if (teamLastDay[h] && diffH > 0 && diffH <= ONE_DAY) continue;
-      if (teamLastDay[a] && diffA > 0 && diffA <= ONE_DAY) continue;
+      
+      // VINCOLO 1: Non giocare nello stesso giorno
+      const homeHasSameDay = teamMatchDates[h].some(d => Math.abs(slotDateNum - d) === 0);
+      const awayHasSameDay = teamMatchDates[a].some(d => Math.abs(slotDateNum - d) === 0);
+      if (homeHasSameDay || awayHasSameDay) continue;
+      
+      // VINCOLO 2: Non giocare in giorni consecutivi
+      const homeHasConsecutive = teamMatchDates[h].some(d => {
+        const diff = Math.abs(slotDateNum - d);
+        return diff > 0 && diff <= ONE_DAY;
+      });
+      const awayHasConsecutive = teamMatchDates[a].some(d => {
+        const diff = Math.abs(slotDateNum - d);
+        return diff > 0 && diff <= ONE_DAY;
+      });
+      if (homeHasConsecutive || awayHasConsecutive) continue;
 
       assigned[si] = {pair, slot};
       usedPairs.add(key);
-      if (!teamWeekCount[h]) teamWeekCount[h] = {};
-      if (!teamWeekCount[a]) teamWeekCount[a] = {};
-      teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
-      teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
-      teamLastDay[h] = slotDateNum;
-      teamLastDay[a] = slotDateNum;
+      teamMatchDates[h].push(slotDateNum);
+      teamMatchDates[a].push(slotDateNum);
       break;
     }
   }
