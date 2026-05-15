@@ -4485,27 +4485,6 @@ function assignTimeslotsSimple(pairs, torneo) {
   return [];
 }
 
-  let matchId = Date.now();
-  const scheduled = [];
-  assigned.forEach(a => {
-    if (!a) return;
-    scheduled.push({
-      id: torneo + '_m' + (matchId++),
-      torneo,
-      giornata: scheduled.length + 1,
-      home: a.pair.home.id,
-      away: a.pair.away.id,
-      fasciaTag: a.pair.fasciaTag || 'random',
-      scoreHome: null, scoreAway: null,
-      goals:[], yellow:[], red:[],
-      date: a.slot.date,
-      time: a.slot.time,
-      field: a.slot.field
-    });
-  });
-  return scheduled;
-}
-
 
 // ─── FEMMINILE: random matchups, no repeats, 3 giornate ───────────────────
 function buildRandomMatchups(teams) {
