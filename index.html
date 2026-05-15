@@ -4390,7 +4390,6 @@ function assignTimeslots(pairs, torneo) {
 function assignTimeslotsSimple(pairs, torneo) {
   const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
   const slots = [...schedule];
-  const MAX_ATTEMPTS = 100;
 
   function getWeek(dateStr) {
     const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
@@ -4406,81 +4405,65 @@ function assignTimeslotsSimple(pairs, torneo) {
     return d.getTime();
   }
 
-  // VINCOLO: Tutti gli slot devono essere riempiti
-  // Prova più volte con shuffle diversi finché non riesce
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
-    const teamWeekCount = {};
-    const teamLastDay = {};
-    allTeamIds.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
+  const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
+  const teamWeekCount = {};
+  const teamLastDay = {};
+  allTeamIds.forEach(id => { teamWeekCount[id] = {}; teamLastDay[id] = 0; });
 
-    const shuffledPairs = shuffle([...pairs]);
-    const assigned = new Array(slots.length).fill(null);
-    const usedPairs = new Set();
+  const shuffledPairs = shuffle([...pairs]);
+  const assigned = new Array(slots.length).fill(null);
+  const usedPairs = new Set();
 
-    for (let si = 0; si < slots.length; si++) {
-      const slot = slots[si];
-      const slotWeek = getWeek(slot.date);
-      const slotDateNum = dateToNum(slot.date);
+  for (let si = 0; si < slots.length; si++) {
+    const slot = slots[si];
+    const slotWeek = getWeek(slot.date);
+    const slotDateNum = dateToNum(slot.date);
 
-      for (let pi = 0; pi < shuffledPairs.length; pi++) {
-        const pair = shuffledPairs[pi];
-        const key = pair.home.id + '_' + pair.away.id;
-        if (usedPairs.has(key)) continue;
+    for (let pi = 0; pi < shuffledPairs.length; pi++) {
+      const pair = shuffledPairs[pi];
+      const key = pair.home.id + '_' + pair.away.id;
+      if (usedPairs.has(key)) continue;
 
-        const h = pair.home.id, a = pair.away.id;
+      const h = pair.home.id, a = pair.away.id;
 
-        if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
-        if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
+      if (((teamWeekCount[h]||{})[slotWeek]||0) >= 2) continue;
+      if (((teamWeekCount[a]||{})[slotWeek]||0) >= 2) continue;
 
-        const ONE_DAY = 86400000;
-        if (teamLastDay[h] && Math.abs(slotDateNum - teamLastDay[h]) <= ONE_DAY) continue;
-        if (teamLastDay[a] && Math.abs(slotDateNum - teamLastDay[a]) <= ONE_DAY) continue;
+      const ONE_DAY = 86400000;
+      if (teamLastDay[h] && Math.abs(slotDateNum - teamLastDay[h]) <= ONE_DAY) continue;
+      if (teamLastDay[a] && Math.abs(slotDateNum - teamLastDay[a]) <= ONE_DAY) continue;
 
-        assigned[si] = {pair, slot};
-        usedPairs.add(key);
-        if (!teamWeekCount[h]) teamWeekCount[h] = {};
-        if (!teamWeekCount[a]) teamWeekCount[a] = {};
-        teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
-        teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
-        teamLastDay[h] = slotDateNum;
-        teamLastDay[a] = slotDateNum;
-        break;
-      }
-    }
-
-    // Verifica che TUTTI gli slot siano stati riempiti
-    const filledSlots = assigned.filter(a => a !== null).length;
-    if (filledSlots === slots.length) {
-      // SUCCESSO: Tutti gli slot riempiti
-      let matchId = Date.now();
-      const scheduled = [];
-      assigned.forEach(a => {
-        if (a) {
-          scheduled.push({
-            id: 'M' + (matchId++),
-            torneo: torneo,
-            home: a.pair.home.id,
-            away: a.pair.away.id,
-            date: a.slot.date,
-            time: a.slot.time,
-            field: a.slot.field,
-            scoreHome: null,
-            scoreAway: null
-          });
-        }
-      });
-      console.log(`✅ [${torneo}] Calendario generato: ${scheduled.length}/${slots.length} slot riempiti (attempt ${attempt + 1})`);
-      return scheduled;
-    } else {
-      console.log(`⚠️ [${torneo}] Tentativo ${attempt + 1}: solo ${filledSlots}/${slots.length} slot riempiti, riprovo...`);
+      assigned[si] = {pair, slot};
+      usedPairs.add(key);
+      if (!teamWeekCount[h]) teamWeekCount[h] = {};
+      if (!teamWeekCount[a]) teamWeekCount[a] = {};
+      teamWeekCount[h][slotWeek] = (teamWeekCount[h][slotWeek]||0) + 1;
+      teamWeekCount[a][slotWeek] = (teamWeekCount[a][slotWeek]||0) + 1;
+      teamLastDay[h] = slotDateNum;
+      teamLastDay[a] = slotDateNum;
+      break;
     }
   }
 
-  // Se dopo MAX_ATTEMPTS non è riuscito, ritorna il miglior risultato parziale
-  console.error(`❌ [${torneo}] ERRORE: Impossibile riempire tutti gli slot dopo ${MAX_ATTEMPTS} tentativi`);
-  alert(`⚠️ ATTENZIONE: Il calendario ${torneo === 'M' ? 'maschile' : 'femminile'} non è riuscito a riempire tutti gli slot. Riprova la generazione.`);
-  return [];
+  let matchId = Date.now();
+  const scheduled = [];
+  assigned.forEach(a => {
+    if (!a) return;
+    scheduled.push({
+      id: torneo + '_m' + (matchId++),
+      torneo,
+      giornata: scheduled.length + 1,
+      home: a.pair.home.id,
+      away: a.pair.away.id,
+      fasciaTag: a.pair.fasciaTag || 'random',
+      scoreHome: null, scoreAway: null,
+      goals:[], yellow:[], red:[],
+      date: a.slot.date,
+      time: a.slot.time,
+      field: a.slot.field
+    });
+  });
+  return scheduled;
 }
 
 
