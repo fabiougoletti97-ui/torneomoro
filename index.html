@@ -4390,6 +4390,7 @@ function assignTimeslots(pairs, torneo) {
 function assignTimeslotsSimple(pairs, torneo) {
   const schedule = torneo === 'M' ? SCHEDULE_M : SCHEDULE_F;
   const slots = [...schedule];
+  const MAX_ATTEMPTS = 1000;
 
   function dateToNum(dateStr) {
     const map = {'Gen':0,'Feb':1,'Mar':2,'Apr':3,'Mag':4,'Giu':5,'Lug':6,'Ago':7,'Set':8,'Ott':9,'Nov':10,'Dic':11};
@@ -4398,50 +4399,91 @@ function assignTimeslotsSimple(pairs, torneo) {
     return d.getTime();
   }
 
-  const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
-  const teamMatchDates = {};
-  allTeamIds.forEach(id => { teamMatchDates[id] = []; });
+  // Ripeti finché non ottieni tutte le partite richieste
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const allTeamIds = [...new Set(pairs.flatMap(p => [p.home.id, p.away.id]))];
+    const teamMatchDates = {};
+    allTeamIds.forEach(id => { teamMatchDates[id] = []; });
 
-  const shuffledPairs = shuffle([...pairs]);
-  const assigned = new Array(slots.length).fill(null);
-  const usedPairs = new Set();
+    const shuffledPairs = shuffle([...pairs]);
+    const assigned = new Array(slots.length).fill(null);
+    const usedPairs = new Set();
 
-  for (let si = 0; si < slots.length; si++) {
-    const slot = slots[si];
-    const slotDateNum = dateToNum(slot.date);
+    for (let si = 0; si < slots.length; si++) {
+      const slot = slots[si];
+      const slotDateNum = dateToNum(slot.date);
 
-    for (let pi = 0; pi < shuffledPairs.length; pi++) {
-      const pair = shuffledPairs[pi];
-      const key = pair.home.id + '_' + pair.away.id;
-      if (usedPairs.has(key)) continue;
+      for (let pi = 0; pi < shuffledPairs.length; pi++) {
+        const pair = shuffledPairs[pi];
+        const key = pair.home.id + '_' + pair.away.id;
+        if (usedPairs.has(key)) continue;
 
-      const h = pair.home.id, a = pair.away.id;
+        const h = pair.home.id, a = pair.away.id;
 
-      const ONE_DAY = 86400000;
-      
-      // VINCOLO 1: Non giocare nello stesso giorno
-      const homeHasSameDay = teamMatchDates[h].some(d => Math.abs(slotDateNum - d) === 0);
-      const awayHasSameDay = teamMatchDates[a].some(d => Math.abs(slotDateNum - d) === 0);
-      if (homeHasSameDay || awayHasSameDay) continue;
-      
-      // VINCOLO 2: Non giocare in giorni consecutivi
-      const homeHasConsecutive = teamMatchDates[h].some(d => {
-        const diff = Math.abs(slotDateNum - d);
-        return diff > 0 && diff <= ONE_DAY;
+        const ONE_DAY = 86400000;
+        
+        // VINCOLO 1: Non giocare nello stesso giorno
+        const homeHasSameDay = teamMatchDates[h].some(d => Math.abs(slotDateNum - d) === 0);
+        const awayHasSameDay = teamMatchDates[a].some(d => Math.abs(slotDateNum - d) === 0);
+        if (homeHasSameDay || awayHasSameDay) continue;
+        
+        // VINCOLO 2: Non giocare in giorni consecutivi
+        const homeHasConsecutive = teamMatchDates[h].some(d => {
+          const diff = Math.abs(slotDateNum - d);
+          return diff > 0 && diff <= ONE_DAY;
+        });
+        const awayHasConsecutive = teamMatchDates[a].some(d => {
+          const diff = Math.abs(slotDateNum - d);
+          return diff > 0 && diff <= ONE_DAY;
+        });
+        if (homeHasConsecutive || awayHasConsecutive) continue;
+
+        assigned[si] = {pair, slot};
+        usedPairs.add(key);
+        teamMatchDates[h].push(slotDateNum);
+        teamMatchDates[a].push(slotDateNum);
+        break;
+      }
+    }
+
+    // Conta quante partite sono state assegnate
+    const assignedCount = assigned.filter(a => a !== null).length;
+    
+    // Se abbiamo assegnato tutte le partite richieste, procedi a costruire il risultato
+    if (assignedCount === pairs.length) {
+      let matchId = Date.now();
+      const scheduled = [];
+      assigned.forEach(a => {
+        if (!a) return;
+        scheduled.push({
+          id: torneo + '_m' + (matchId++),
+          torneo,
+          giornata: scheduled.length + 1,
+          home: a.pair.home.id,
+          away: a.pair.away.id,
+          fasciaTag: a.pair.fasciaTag || 'random',
+          scoreHome: null, scoreAway: null,
+          goals:[], yellow:[], red:[],
+          date: a.slot.date,
+          time: a.slot.time,
+          field: a.slot.field
+        });
       });
-      const awayHasConsecutive = teamMatchDates[a].some(d => {
-        const diff = Math.abs(slotDateNum - d);
-        return diff > 0 && diff <= ONE_DAY;
-      });
-      if (homeHasConsecutive || awayHasConsecutive) continue;
-
-      assigned[si] = {pair, slot};
-      usedPairs.add(key);
-      teamMatchDates[h].push(slotDateNum);
-      teamMatchDates[a].push(slotDateNum);
-      break;
+      
+      console.log(`✅ Calendario ${torneo} generato con successo: ${scheduled.length} partite (tentativo ${attempt + 1})`);
+      return scheduled;
+    }
+    
+    // Altrimenti riprova con un'altra permutazione casuale
+    if (attempt % 100 === 0 && attempt > 0) {
+      console.log(`⚠️ Tentativo ${attempt}: solo ${assignedCount}/${pairs.length} partite assegnate, riprovo...`);
     }
   }
+  
+  // Se dopo MAX_ATTEMPTS non abbiamo trovato una soluzione valida, restituisci quello che abbiamo
+  console.error(`❌ ERRORE: Impossibile generare calendario completo per ${torneo} dopo ${MAX_ATTEMPTS} tentativi`);
+  return [];
+}
 
   let matchId = Date.now();
   const scheduled = [];
