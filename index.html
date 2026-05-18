@@ -616,23 +616,23 @@ body.admin-mode .gen-cal-btn{display:flex;}
   text-align:center;transition:all 0.2s;}
 .time-input:focus{border-color:var(--gold);}
 /* Gen modal preview */
-.gen-preview{max-height:340px;overflow-y:auto;margin-top:1rem;}
-.gen-preview::-webkit-scrollbar{width:4px;}
-.gen-preview::-webkit-scrollbar-thumb{background:var(--grass);border-radius:2px;}
-.gen-match-preview{display:flex;align-items:center;gap:8px;padding:7px 10px;
-  border-radius:5px;margin-bottom:5px;font-size:0.82rem;}
-.gen-match-preview .gmp-vs{color:var(--muted);font-family:'Oswald';font-size:0.75rem;flex-shrink:0;}
-.gen-match-preview .gmp-team{font-family:'Oswald';font-size:0.82rem;font-weight:600;flex:1;}
+.gen-preview{max-height:680px;overflow-y:auto;margin-top:1rem;}
+.gen-preview::-webkit-scrollbar{width:8px;}
+.gen-preview::-webkit-scrollbar-thumb{background:var(--grass);border-radius:4px;}
+.gen-match-preview{display:flex;align-items:center;gap:16px;padding:14px 20px;
+  border-radius:10px;margin-bottom:10px;font-size:1.64rem;}
+.gen-match-preview .gmp-vs{color:var(--muted);font-family:'Oswald';font-size:1.5rem;flex-shrink:0;}
+.gen-match-preview .gmp-team{font-family:'Oswald';font-size:1.64rem;font-weight:600;flex:1;}
 .gen-match-preview .gmp-team.home{text-align:right;}
-.gen-match-preview .gmp-giornata{font-size:0.68rem;color:var(--muted);font-family:'Oswald';letter-spacing:1px;min-width:32px;}
-.gmp-f1{background:rgba(245,197,24,0.06);border:1px solid rgba(245,197,24,0.12);}
-.gmp-f2{background:rgba(180,180,180,0.05);border:1px solid rgba(180,180,180,0.1);}
-.gmp-f3{background:rgba(160,100,40,0.05);border:1px solid rgba(160,100,40,0.1);}
-.gen-day-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.8rem;}
-.gen-slot-label{font-family:'Oswald';font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
-.gen-warning{background:rgba(224,53,53,0.1);border:1px solid rgba(224,53,53,0.25);border-radius:6px;
-  padding:0.8rem 1rem;font-size:0.82rem;color:var(--red);margin-bottom:1rem;}
-.gen-ok{background:rgba(62,207,94,0.08);border:1px solid rgba(62,207,94,0.2);border-radius:6px;
+.gen-match-preview .gmp-giornata{font-size:1.36rem;color:var(--muted);font-family:'Oswald';letter-spacing:2px;min-width:64px;}
+.gmp-f1{background:rgba(245,197,24,0.06);border:2px solid rgba(245,197,24,0.12);}
+.gmp-f2{background:rgba(180,180,180,0.05);border:2px solid rgba(180,180,180,0.1);}
+.gmp-f3{background:rgba(160,100,40,0.05);border:2px solid rgba(160,100,40,0.1);}
+.gen-day-row{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1.6rem;}
+.gen-slot-label{font-family:'Oswald';font-size:1.4rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.gen-warning{background:rgba(224,53,53,0.1);border:2px solid rgba(224,53,53,0.25);border-radius:12px;
+  padding:1.6rem 2rem;font-size:1.64rem;color:var(--red);margin-bottom:2rem;}
+.gen-ok{background:rgba(62,207,94,0.08);border:2px solid rgba(62,207,94,0.2);border-radius:12px;
   padding:0.8rem 1rem;font-size:0.82rem;color:var(--accent);margin-bottom:1rem;}
 
 /* FASCIA SELECTOR */
@@ -4573,25 +4573,25 @@ function previewCalendario() {
     const dateGroups = {};
     matches.forEach(m => { const k = m.date||('Partita '+m.giornata); if(!dateGroups[k]) dateGroups[k]=[]; dateGroups[k].push(m); });
     const giornate = Object.keys(dateGroups).sort((a,b)=>_pDNum(a)-_pDNum(b));
-    html += `<div style="margin-bottom:1.5rem;">
-      <div style="font-family:Oswald;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;
-        color:${tor==='M'?'var(--blue)':'var(--pink)'};margin-bottom:0.8rem;padding-bottom:6px;
-        border-bottom:1px solid rgba(255,255,255,0.07);">${label} — ${matches.length} partite${tor==='F'?' · 3 giornate casuali':''}</div>`;
+    html += `<div style="margin-bottom:3rem;">
+      <div style="font-family:Oswald;font-size:1.7rem;letter-spacing:4px;text-transform:uppercase;
+        color:${tor==='M'?'var(--blue)':'var(--pink)'};margin-bottom:1.6rem;padding-bottom:12px;
+        border-bottom:2px solid rgba(255,255,255,0.07);">${label} — ${matches.length} partite${tor==='F'?' · 3 giornate casuali':''}</div>`;
 
     giornate.forEach(g => {
       const gMatches = dateGroups[g].sort((a,b) => a.time > b.time ? 1 : -1);
-      html += `<div style="font-family:Oswald;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:8px 0 5px;">
+      html += `<div style="font-family:Oswald;font-size:1.4rem;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin:16px 0 10px;">
         📅 ${g}</div>`;
       gMatches.forEach(m => {
         const home = getTeam(m.home), away = getTeam(m.away);
         const cls = fasciaColors[m.fasciaTag]||'';
         html += `<div class="gen-match-preview ${cls}">
-          <span style="font-family:Oswald;font-size:0.7rem;color:var(--muted);min-width:44px;">${m.time}</span>
-          <span class="gmp-team home">${home?teamDisplay(home):'?'}</span>
+          <span style="font-family:Oswald;font-size:1.4rem;color:var(--muted);min-width:88px;">${m.time}</span>
+          <span class="gmp-team home">${home?teamDisplay(home, 48):'?'}</span>
           <span class="gmp-vs">VS</span>
-          <span class="gmp-team">${away?teamDisplay(away):'?'}</span>
-          <span style="font-size:0.65rem;color:var(--muted);min-width:50px;text-align:right;">${fasciaLabel[m.fasciaTag]||''}</span>
-          <span style="font-size:0.65rem;color:rgba(59,139,212,0.8);min-width:70px;text-align:right;">🏟️ CAMPO ${m.field||'?'}</span>
+          <span class="gmp-team">${away?teamDisplay(away, 48):'?'}</span>
+          <span style="font-size:1.3rem;color:var(--muted);min-width:100px;text-align:right;">${fasciaLabel[m.fasciaTag]||''}</span>
+          <span style="font-size:1.3rem;color:rgba(59,139,212,0.8);min-width:140px;text-align:right;">🏟️ CAMPO ${m.field||'?'}</span>
         </div>`;
       });
     });
@@ -5197,9 +5197,10 @@ function exitTVMode() {
 function teamLogo(team, size) {
   if (!team) return '';
   const s = size || 24;
+  const marginRight = size ? Math.round(size * 0.208) : 5; // Proporzionale: 5px per 24px = 0.208
   if (team.logo) {
     // Uniform square box: all logos same visual size regardless of original dimensions
-    return `<img src="${team.logo}" alt="${team.name}" style="width:${s}px;height:${s}px;object-fit:contain;border-radius:3px;vertical-align:middle;margin-right:5px;background:rgba(255,255,255,0.05);padding:1px;box-sizing:border-box;flex-shrink:0;">`;
+    return `<img src="${team.logo}" alt="${team.name}" style="width:${s}px;height:${s}px;object-fit:contain;border-radius:6px;vertical-align:middle;margin-right:${marginRight}px;background:rgba(255,255,255,0.05);padding:2px;box-sizing:border-box;flex-shrink:0;">`;
   }
   return '';
 }
