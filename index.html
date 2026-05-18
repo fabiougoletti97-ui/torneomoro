@@ -679,6 +679,12 @@ body.admin-mode .gen-cal-btn{display:flex;}
   border-radius:3px;color:var(--gold);font-family:'Oswald';font-size:0.68rem;letter-spacing:1px;
   cursor:pointer;margin-left:6px;transition:all 0.2s;}
 .match-detail-btn:hover{background:rgba(245,197,24,0.2);}
+.team-change-select{font-family:Oswald;font-size:0.75rem;padding:0.3rem 0.5rem;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:#fff;cursor:pointer;transition:all 0.2s;
+  outline:none;width:100%;}
+.team-change-select:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);}
+.team-change-select:focus{border-color:var(--grass);background:rgba(255,255,255,0.1);}
+.team-change-select option{background:var(--dark);color:#fff;padding:0.5rem;}
 .md-section{margin-bottom:1.4rem;}
 .md-section-title{font-family:'Oswald';font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;
   color:var(--muted);margin-bottom:0.7rem;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.07);}
@@ -3177,9 +3183,23 @@ function renderCalendario(){
       if(isAdmin){
         const evCount = (m.goals||[]).length+(m.yellow||[]).length+(m.red||[]).length;
         const evBadge = evCount>0 ? `<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">${evCount} eventi</span>` : '';
+        
+        // Crea dropdown squadre per home e away
+        const homeTeamsOptions = db.teams.filter(t => t.torneo === curCal).map(t => 
+          `<option value="${t.id}" ${t.id === m.home ? 'selected' : ''}>${t.name}</option>`
+        ).join('');
+        const awayTeamsOptions = db.teams.filter(t => t.torneo === curCal).map(t => 
+          `<option value="${t.id}" ${t.id === m.away ? 'selected' : ''}>${t.name}</option>`
+        ).join('');
+        
         row.innerHTML = matchHeader + `
           <div style="display:flex;align-items:center;gap:1rem;">
-            <div style="flex:1;"><div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem;">
+              <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
+              <select class="team-change-select" onchange="changeTeam('${m.id}','home',this.value)">
+                ${homeTeamsOptions}
+              </select>
+            </div>
             <div class="match-score-box" style="flex-direction:column;gap:6px;">
               <div style="display:flex;align-items:center;gap:4px;">
                 <input class="score-input" type="number" id="sh-${m.id}" value="${(m.scoreHome!==null&&m.scoreHome!==undefined)?m.scoreHome:''}" placeholder="-" min="0" max="99">
@@ -3191,7 +3211,12 @@ function renderCalendario(){
               <button class="match-detail-btn" onclick="openMatchDetail('${m.id}')">📋 Dettaglio${evBadge}</button>
               ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
             </div>
-            <div style="flex:1;"><div class="match-team">${away?teamDisplay(away):'TBD'}</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem;">
+              <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
+              <select class="team-change-select" onchange="changeTeam('${m.id}','away',this.value)">
+                ${awayTeamsOptions}
+              </select>
+            </div>
           </div>`;
       } else {
         const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
@@ -3244,6 +3269,42 @@ function switchCal(t,el){
   document.getElementById('cal-tab-m').className='t-tab'+(t==='M'?' active-m':'');
   document.getElementById('cal-tab-f').className='t-tab'+(t==='F'?' active-f':'');
   renderCalendario();
+}
+
+function changeTeam(matchId, side, newTeamId) {
+  const m = db.matches.find(x => x.id === matchId);
+  if (!m) return;
+  
+  const newTeamIdNum = parseInt(newTeamId);
+  
+  // Verifica che non sia la stessa squadra
+  if (side === 'home' && newTeamIdNum === m.away) {
+    showToast('⚠️ Non puoi selezionare la stessa squadra per casa e trasferta!');
+    renderCalendario();
+    return;
+  }
+  if (side === 'away' && newTeamIdNum === m.home) {
+    showToast('⚠️ Non puoi selezionare la stessa squadra per casa e trasferta!');
+    renderCalendario();
+    return;
+  }
+  
+  // Cambia la squadra
+  if (side === 'home') {
+    m.home = newTeamIdNum;
+  } else {
+    m.away = newTeamIdNum;
+  }
+  
+  // Aggiorna la visualizzazione
+  renderCalendario();
+  renderStandings();
+  updateStats();
+  renderStats();
+  saveToStorage();
+  
+  const newTeam = getTeam(newTeamIdNum);
+  showToast(`✅ Squadra cambiata: ${newTeam ? newTeam.name : 'Unknown'}`);
 }
 
 function saveScore(mid){
