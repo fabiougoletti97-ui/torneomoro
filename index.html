@@ -1123,26 +1123,26 @@ body.admin-mode .delete-team-btn{display:block;}
 @keyframes tvCalSlideIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
 @keyframes tvCalSlideOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.1);opacity:0.8;}}
-.tv-date-header{font-family:'Bebas Neue',sans-serif;font-size:10rem;color:#fff;text-align:center;margin-bottom:6rem;text-shadow:0 0 80px rgba(59,139,212,0.8),0 0 40px rgba(59,139,212,0.5);letter-spacing:8px;animation:glow 2s ease-in-out infinite alternate;}
-@keyframes glow{from{text-shadow:0 0 80px rgba(59,139,212,0.8),0 0 40px rgba(59,139,212,0.5);}to{text-shadow:0 0 120px rgba(59,139,212,1),0 0 60px rgba(59,139,212,0.8),0 0 160px rgba(59,139,212,0.6);}}
-.tv-matches-container{width:100%;max-width:1800px;display:flex;flex-direction:column;gap:3rem;padding:0 4rem;max-height:70vh;overflow-y:auto;}
-.tv-matches-container::-webkit-scrollbar{width:16px;}
-.tv-matches-container::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:20px;}
-.tv-matches-container::-webkit-scrollbar-thumb{background:rgba(59,139,212,0.5);border-radius:20px;}
+.tv-date-header{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:#fff;text-align:center;margin-bottom:3rem;text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);letter-spacing:4px;animation:glow 2s ease-in-out infinite alternate;}
+@keyframes glow{from{text-shadow:0 0 40px rgba(59,139,212,0.8),0 0 20px rgba(59,139,212,0.5);}to{text-shadow:0 0 60px rgba(59,139,212,1),0 0 30px rgba(59,139,212,0.8),0 0 80px rgba(59,139,212,0.6);}}
+.tv-matches-container{width:100%;max-width:900px;display:flex;flex-direction:column;gap:1.5rem;padding:0 2rem;max-height:70vh;overflow-y:auto;}
+.tv-matches-container::-webkit-scrollbar{width:8px;}
+.tv-matches-container::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:10px;}
+.tv-matches-container::-webkit-scrollbar-thumb{background:rgba(59,139,212,0.5);border-radius:10px;}
 .tv-matches-container::-webkit-scrollbar-thumb:hover{background:rgba(59,139,212,0.8);}
-.tv-match-card{background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%);border:4px solid rgba(255,255,255,0.1);border-radius:32px;padding:4rem;backdrop-filter:blur(20px);opacity:0;transform:translateX(-50px);animation:matchSlideIn 0.6s ease forwards;position:relative;overflow:hidden;}
+.tv-match-card{background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%);border:2px solid rgba(255,255,255,0.1);border-radius:16px;padding:2rem;backdrop-filter:blur(20px);opacity:0;transform:translateX(-50px);animation:matchSlideIn 0.6s ease forwards;position:relative;overflow:hidden;}
 .tv-match-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);animation:shine 3s ease-in-out infinite;}
 @keyframes shine{0%,100%{left:-100%;}50%{left:100%;}}
 @keyframes matchSlideIn{to{opacity:1;transform:translateX(0);}}
-.tv-match-time{font-family:'Oswald',sans-serif;font-size:2.4rem;color:rgba(255,255,255,0.6);margin-bottom:1.6rem;letter-spacing:4px;}
-.tv-match-teams{display:flex;align-items:center;justify-content:space-between;gap:3rem;margin-bottom:2rem;}
+.tv-match-time{font-family:'Oswald',sans-serif;font-size:2.4rem;color:rgba(255,255,255,0.6);margin-bottom:0.8rem;letter-spacing:2px;}
+.tv-match-teams{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1rem;}
 .tv-team{font-family:'Oswald',sans-serif;font-size:3.6rem;color:#fff;font-weight:600;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;}
-.tv-vs{font-family:'Bebas Neue',sans-serif;font-size:4rem;color:rgba(255,255,255,0.4);font-weight:bold;}
-.tv-match-field{font-family:'Oswald',sans-serif;font-size:2.2rem;color:var(--blue);text-align:center;padding:1rem 2rem;background:rgba(59,139,212,0.15);border-radius:16px;border:2px solid rgba(59,139,212,0.3);}
+.tv-vs{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:rgba(255,255,255,0.4);font-weight:bold;}
+.tv-match-field{font-family:'Oswald',sans-serif;font-size:2.2rem;color:var(--blue);text-align:center;padding:0.5rem 1rem;background:rgba(59,139,212,0.15);border-radius:8px;border:1px solid rgba(59,139,212,0.3);}
 .tv-match-field.field-11{color:var(--gold);background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.3);}
-.tv-torneo-badge{position:absolute;top:2rem;right:2rem;font-family:'Oswald',sans-serif;font-size:1.8rem;padding:0.8rem 1.6rem;border-radius:12px;font-weight:600;letter-spacing:2px;}
-.tv-torneo-badge.M{background:rgba(59,139,212,0.2);color:var(--blue);border:2px solid rgba(59,139,212,0.4);}
-.tv-torneo-badge.F{background:rgba(236,72,153,0.2);color:var(--pink);border:2px solid rgba(236,72,153,0.4);}
+.tv-torneo-badge{position:absolute;top:1rem;right:1rem;font-family:'Oswald',sans-serif;font-size:1.8rem;padding:0.4rem 0.8rem;border-radius:6px;font-weight:600;letter-spacing:1px;}
+.tv-torneo-badge.M{background:rgba(59,139,212,0.2);color:var(--blue);border:1px solid rgba(59,139,212,0.4);}
+.tv-torneo-badge.F{background:rgba(236,72,153,0.2);color:var(--pink);border:1px solid rgba(236,72,153,0.4);}
 .tv-progress-dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all 0.3s ease;}
 .tv-progress-dot.active{background:var(--blue);box-shadow:0 0 20px rgba(59,139,212,0.8);transform:scale(1.5);}
 .tv-summary{width:100%;max-width:1200px;text-align:center;animation:fadeIn 1s ease forwards;}
@@ -4870,17 +4870,17 @@ function showTVSlide(index) {
   const slideHTML = `
     <div class="tv-calendar-slide">
       <div class="tv-date-header">${slide.date.toUpperCase()}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;width:100%;max-width:2800px;padding:0 4rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;width:100%;max-width:1400px;padding:0 2rem;">
         <!-- Colonna CAMPO 7 -->
         <div>
-          <div style="font-family:Oswald;font-size:3rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:3rem;letter-spacing:4px;border-bottom:4px solid rgba(59,139,212,0.5);padding-bottom:1rem;">
+          <div style="font-family:Oswald;font-size:1.5rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:1.5rem;letter-spacing:2px;border-bottom:2px solid rgba(59,139,212,0.5);padding-bottom:0.5rem;">
             CAMPO 7
           </div>
           <div id="tv-matches-campo7-${index}"></div>
         </div>
         <!-- Colonna CAMPO 11 -->
         <div>
-          <div style="font-family:Oswald;font-size:3rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:3rem;letter-spacing:4px;border-bottom:4px solid rgba(245,197,24,0.5);padding-bottom:1rem;">
+          <div style="font-family:Oswald;font-size:1.5rem;color:rgba(255,255,255,0.9);text-align:center;margin-bottom:1.5rem;letter-spacing:2px;border-bottom:2px solid rgba(245,197,24,0.5);padding-bottom:0.5rem;">
             CAMPO 11
           </div>
           <div id="tv-matches-campo11-${index}"></div>
@@ -5046,18 +5046,18 @@ function animateTVMatchesTwoColumns(campo7Matches, campo11Matches, slideIndex) {
     const torneoColor = match.torneo === 'M' ? 'rgba(59,139,212,0.3)' : 'rgba(212,79,160,0.3)';
     
     matchCard.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:1.6rem 2rem;background:rgba(255,255,255,0.02);border-radius:16px;">
-        <div style="display:flex;align-items:center;gap:1rem;flex:1;">
-          <span style="font-size:1.4rem;background:${torneoColor};padding:0.4rem 0.8rem;border-radius:6px;font-family:Oswald;">${torneoLabel}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;background:rgba(255,255,255,0.02);border-radius:8px;">
+        <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+          <span style="font-size:1.4rem;background:${torneoColor};padding:0.2rem 0.4rem;border-radius:3px;font-family:Oswald;">${torneoLabel}</span>
           <span style="font-size:1.5rem;color:rgba(255,255,255,0.6);font-family:Oswald;">${match.time}</span>
         </div>
-        <div style="flex:3;display:flex;align-items:center;justify-content:center;gap:1.6rem;">
-          <div style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:1rem;">
+        <div style="flex:3;display:flex;align-items:center;justify-content:center;gap:0.8rem;">
+          <div style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
             <span style="font-size:1.8rem;font-family:Oswald;color:#fff;">${homeTeam ? homeTeam.name : 'TBD'}</span>
             <img src="${homeLogo}" style="width:50px;height:50px;object-fit:contain;border-radius:50%;">
           </div>
-          <span style="font-size:1.6rem;color:var(--muted);">VS</span>
-          <div style="flex:1;text-align:left;display:flex;align-items:center;gap:1rem;">
+          <span style="font-size:0.8rem;color:var(--muted);">VS</span>
+          <div style="flex:1;text-align:left;display:flex;align-items:center;gap:0.5rem;">
             <img src="${awayLogo}" style="width:50px;height:50px;object-fit:contain;border-radius:50%;">
             <span style="font-size:1.8rem;font-family:Oswald;color:#fff;">${awayTeam ? awayTeam.name : 'TBD'}</span>
           </div>
