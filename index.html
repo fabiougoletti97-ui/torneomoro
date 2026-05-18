@@ -4487,6 +4487,11 @@ function assignTimeslotsSimple(pairs, torneo) {
 
 
 // ─── FEMMINILE: random matchups, no repeats, 3 giornate ───────────────────
+// Coppie vietate nel torneo femminile (non possono giocare tra loro)
+const FORBIDDEN_MATCHUPS_F = [
+  {team1: 17, team2: 24}  // Squadra 17 non può giocare contro squadra 24
+];
+
 function buildRandomMatchups(teams) {
   // Round-robin style but stop after enough pairs for 3 giornate
   // With N teams: N/2 matches per giornata × 3 giornate = N*3/2 total matches
@@ -4513,11 +4518,21 @@ function buildRandomMatchups(teams) {
 
     const t = needy[0];
     // Find valid opponent: hasn't played this team, also needs more matches
-    const opponents = shuffle(shuffled).filter(p =>
-      p.id !== t.id &&
-      matchCount[p.id] < maxMatchesPerTeam &&
-      !pairSet.has([Math.min(t.id,p.id),Math.max(t.id,p.id)].join('-'))
-    );
+    const opponents = shuffle(shuffled).filter(p => {
+      // Controllo base: non se stesso, ha bisogno di partite, non già giocato
+      if (p.id === t.id) return false;
+      if (matchCount[p.id] >= maxMatchesPerTeam) return false;
+      if (pairSet.has([Math.min(t.id,p.id),Math.max(t.id,p.id)].join('-'))) return false;
+      
+      // Controllo coppie vietate
+      const isForbidden = FORBIDDEN_MATCHUPS_F.some(f => 
+        (f.team1 === t.id && f.team2 === p.id) || 
+        (f.team2 === t.id && f.team1 === p.id)
+      );
+      if (isForbidden) return false;
+      
+      return true;
+    });
     if (!opponents.length) break;
 
     const opp = opponents[0];
