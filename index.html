@@ -679,12 +679,6 @@ body.admin-mode .gen-cal-btn{display:flex;}
   border-radius:3px;color:var(--gold);font-family:'Oswald';font-size:0.68rem;letter-spacing:1px;
   cursor:pointer;margin-left:6px;transition:all 0.2s;}
 .match-detail-btn:hover{background:rgba(245,197,24,0.2);}
-.team-change-select{font-family:Oswald;font-size:0.75rem;padding:0.3rem 0.5rem;background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:#fff;cursor:pointer;transition:all 0.2s;
-  outline:none;width:100%;}
-.team-change-select:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);}
-.team-change-select:focus{border-color:var(--grass);background:rgba(255,255,255,0.1);}
-.team-change-select option{background:var(--dark);color:#fff;padding:0.5rem;}
 .md-section{margin-bottom:1.4rem;}
 .md-section-title{font-family:'Oswald';font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;
   color:var(--muted);margin-bottom:0.7rem;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.07);}
@@ -3162,7 +3156,11 @@ function renderCalendario(){
   giornate.slice(0,20).forEach(g=>{
     const block=document.createElement('div');
     block.className='matchday-block';
-    block.innerHTML=`<div class="matchday-title">📅 ${g}</div>`;
+    
+    // Aggiungi pulsante per storie Instagram (solo admin)
+    const storyBtn = isAdmin ? `<button class="ig-story-btn" onclick="generateDayStories('${g}')" style="margin-left:1rem;padding:0.4rem 0.8rem;background:linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);border:none;border-radius:6px;color:#fff;font-family:Oswald;font-size:0.75rem;cursor:pointer;letter-spacing:1px;">📸 STORIE IG</button>` : '';
+    
+    block.innerHTML=`<div class="matchday-title">📅 ${g}${storyBtn}</div>`;
     const gMatches=dateMap[g].sort((a,b)=>a.time>b.time?1:-1);
     gMatches.forEach(m=>{
       const home=getTeam(m.home),away=getTeam(m.away);
@@ -3183,23 +3181,9 @@ function renderCalendario(){
       if(isAdmin){
         const evCount = (m.goals||[]).length+(m.yellow||[]).length+(m.red||[]).length;
         const evBadge = evCount>0 ? `<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">${evCount} eventi</span>` : '';
-        
-        // Crea dropdown squadre per home e away
-        const homeTeamsOptions = db.teams.filter(t => t.torneo === curCal).map(t => 
-          `<option value="${t.id}" ${t.id === m.home ? 'selected' : ''}>${t.name}</option>`
-        ).join('');
-        const awayTeamsOptions = db.teams.filter(t => t.torneo === curCal).map(t => 
-          `<option value="${t.id}" ${t.id === m.away ? 'selected' : ''}>${t.name}</option>`
-        ).join('');
-        
         row.innerHTML = matchHeader + `
           <div style="display:flex;align-items:center;gap:1rem;">
-            <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem;">
-              <div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div>
-              <select class="team-change-select" onchange="changeTeam('${m.id}','home',this.value)">
-                ${homeTeamsOptions}
-              </select>
-            </div>
+            <div style="flex:1;"><div class="match-team match-team-home">${home?teamDisplay(home):'TBD'}</div></div>
             <div class="match-score-box" style="flex-direction:column;gap:6px;">
               <div style="display:flex;align-items:center;gap:4px;">
                 <input class="score-input" type="number" id="sh-${m.id}" value="${(m.scoreHome!==null&&m.scoreHome!==undefined)?m.scoreHome:''}" placeholder="-" min="0" max="99">
@@ -3211,12 +3195,7 @@ function renderCalendario(){
               <button class="match-detail-btn" onclick="openMatchDetail('${m.id}')">📋 Dettaglio${evBadge}</button>
               ${m.scoreHome!==null?`<button class="ig-btn" onclick="openIGPreview('${m.id}')">📸 Instagram</button>`:''}
             </div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem;">
-              <div class="match-team">${away?teamDisplay(away):'TBD'}</div>
-              <select class="team-change-select" onchange="changeTeam('${m.id}','away',this.value)">
-                ${awayTeamsOptions}
-              </select>
-            </div>
+            <div style="flex:1;"><div class="match-team">${away?teamDisplay(away):'TBD'}</div></div>
           </div>`;
       } else {
         const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
@@ -3269,42 +3248,6 @@ function switchCal(t,el){
   document.getElementById('cal-tab-m').className='t-tab'+(t==='M'?' active-m':'');
   document.getElementById('cal-tab-f').className='t-tab'+(t==='F'?' active-f':'');
   renderCalendario();
-}
-
-function changeTeam(matchId, side, newTeamId) {
-  const m = db.matches.find(x => x.id === matchId);
-  if (!m) return;
-  
-  const newTeamIdNum = parseInt(newTeamId);
-  
-  // Verifica che non sia la stessa squadra
-  if (side === 'home' && newTeamIdNum === m.away) {
-    showToast('⚠️ Non puoi selezionare la stessa squadra per casa e trasferta!');
-    renderCalendario();
-    return;
-  }
-  if (side === 'away' && newTeamIdNum === m.home) {
-    showToast('⚠️ Non puoi selezionare la stessa squadra per casa e trasferta!');
-    renderCalendario();
-    return;
-  }
-  
-  // Cambia la squadra
-  if (side === 'home') {
-    m.home = newTeamIdNum;
-  } else {
-    m.away = newTeamIdNum;
-  }
-  
-  // Aggiorna la visualizzazione
-  renderCalendario();
-  renderStandings();
-  updateStats();
-  renderStats();
-  saveToStorage();
-  
-  const newTeam = getTeam(newTeamIdNum);
-  showToast(`✅ Squadra cambiata: ${newTeam ? newTeam.name : 'Unknown'}`);
 }
 
 function saveScore(mid){
@@ -6288,6 +6231,139 @@ async function exportIGBracket(torneo) {
 
   igDownload(canvas, `bracket_${torneo==='M'?'maschile':'femminile'}_${new Date().toISOString().slice(0,10)}.png`);
   showToast('📸 Bracket esportato!');
+}
+
+// ── 4. STORIE INSTAGRAM PER GIORNATA ──────────────────────────────────────
+async function generateDayStories(dateStr) {
+  showToast('⏳ Generazione storie Instagram...');
+  
+  // Trova tutte le partite di questa data
+  const allMatches = db.matches.filter(m => m.date === dateStr);
+  const matchesM = allMatches.filter(m => m.torneo === 'M');
+  const matchesF = allMatches.filter(m => m.torneo === 'F');
+  
+  // Genera storia per maschile se ci sono partite
+  if (matchesM.length > 0) {
+    await generateStoryForTorneo(dateStr, matchesM, 'M');
+  }
+  
+  // Genera storia per femminile se ci sono partite
+  if (matchesF.length > 0) {
+    await generateStoryForTorneo(dateStr, matchesF, 'F');
+  }
+  
+  if (matchesM.length === 0 && matchesF.length === 0) {
+    showToast('⚠️ Nessuna partita trovata per questa data');
+  } else {
+    showToast('📸 Storie Instagram generate!');
+  }
+}
+
+async function generateStoryForTorneo(dateStr, matches, torneo) {
+  const W = 1080, H = 1920;
+  const MATCH_H = 140;
+  const HEADER_H = 280;
+  const FOOTER_H = 80;
+  
+  const {canvas, ctx} = igSetup(W, H);
+  igGoldBar(ctx, W, H);
+  
+  // Logo in alto
+  await igDrawLogo(ctx, W, 25, 70);
+  
+  // Titolo e data
+  const label = torneo === 'M' ? '♂ MASCHILE' : '♀ FEMMINILE';
+  const color = torneo === 'M' ? '#3b8bd4' : '#d44fa0';
+  
+  ctx.fillStyle = color;
+  ctx.font = 'bold 56px Bebas Neue,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, W/2, 140);
+  
+  ctx.fillStyle = '#f5c518';
+  ctx.font = 'bold 48px Oswald,sans-serif';
+  ctx.fillText(dateStr.toUpperCase(), W/2, 200);
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '500 28px Oswald,sans-serif';
+  ctx.fillText(`${matches.length} ${matches.length === 1 ? 'PARTITA' : 'PARTITE'}`, W/2, 240);
+  
+  // Separator
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = '#f5c518';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(80, 260);
+  ctx.lineTo(W-80, 260);
+  ctx.stroke();
+  ctx.restore();
+  
+  // Ordina partite per orario
+  const sortedMatches = matches.sort((a,b) => (a.time || '').localeCompare(b.time || ''));
+  
+  let y = HEADER_H;
+  
+  for (const m of sortedMatches) {
+    const home = getTeam(m.home);
+    const away = getTeam(m.away);
+    const hName = home ? home.name : 'Casa';
+    const aName = away ? away.name : 'Ospite';
+    const hC = home ? home.color : '#f5c518';
+    const aC = away ? away.color : '#3b8bd4';
+    
+    // Background partita con gradient
+    const gRow = ctx.createLinearGradient(40, y, W-40, y);
+    gRow.addColorStop(0, hexAlpha(hC, 0.12));
+    gRow.addColorStop(0.5, 'rgba(15,20,13,0.8)');
+    gRow.addColorStop(1, hexAlpha(aC, 0.12));
+    ctx.fillStyle = gRow;
+    ctx.beginPath();
+    ctx.roundRect(40, y, W-80, MATCH_H-12, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    const midY = y + MATCH_H/2;
+    
+    // Orario e campo in alto
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '500 24px Oswald,sans-serif';
+    ctx.textAlign = 'center';
+    const timeField = `${m.time || '--:--'} • CAMPO ${m.field || '?'}`;
+    ctx.fillText(timeField, W/2, y + 30);
+    
+    // Nome squadra casa (destra)
+    ctx.fillStyle = '#f0f0e8';
+    ctx.font = 'bold 38px Oswald,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(hName, W/2 - 100, midY + 10);
+    
+    // Nome squadra trasferta (sinistra)
+    ctx.textAlign = 'left';
+    ctx.fillText(aName, W/2 + 100, midY + 10);
+    
+    // VS centrale
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = 'bold 32px Bebas Neue,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('VS', W/2, midY + 10);
+    
+    y += MATCH_H;
+  }
+  
+  // Footer
+  ctx.fillStyle = 'rgba(245,197,24,0.4)';
+  ctx.font = '500 28px Oswald,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 30);
+  
+  // Download
+  const filename = `storia_${dateStr.replace(/ /g, '_')}_${torneo === 'M' ? 'maschile' : 'femminile'}.png`;
+  igDownload(canvas, filename);
 }
 
 function renderAll(){renderTeams();renderCalendario();renderStandings();updateStats();renderStats();renderPlayoff();renderSponsors();renderHomeSponsor();}
