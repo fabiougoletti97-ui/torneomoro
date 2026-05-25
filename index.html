@@ -6270,14 +6270,17 @@ async function generateDayStories(dateStr) {
 async function generateStoryForTorneo(dateStr, matches, torneo) {
   const W = 1080, H = 1920;
   const MATCH_H = 180;
-  const HEADER_H = 400; // Aumentato per header più grande
-  const FOOTER_H = 200; // Aumentato per sponsor
+  const HEADER_H = 450; // Aumentato ancora per più spazio
+  const FOOTER_H = 250; // Aumentato per sponsor quadrato
   
   const {canvas, ctx} = igSetup(W, H);
   igGoldBar(ctx, W, H);
   
-  // Logo in alto ancora più grande
+  // Logo in alto con più spazio sotto
   await igDrawLogo(ctx, W, 40, 110);
+  
+  // SPAZIO TRA LOGO E TITOLO AUMENTATO
+  const titleY = 230; // Prima era 160, ora molto più in basso
   
   // Titolo e data con font molto più grandi
   const label = torneo === 'M' ? '♂ MASCHILE' : '♀ FEMMINILE';
@@ -6286,15 +6289,15 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   ctx.fillStyle = color;
   ctx.font = 'bold 80px Bebas Neue,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(label, W/2, 200);
+  ctx.fillText(label, W/2, titleY);
   
   ctx.fillStyle = '#f5c518';
   ctx.font = 'bold 72px Oswald,sans-serif';
-  ctx.fillText(dateStr.toUpperCase(), W/2, 290);
+  ctx.fillText(dateStr.toUpperCase(), W/2, titleY + 90);
   
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '500 40px Oswald,sans-serif';
-  ctx.fillText(`${matches.length} ${matches.length === 1 ? 'PARTITA' : 'PARTITE'}`, W/2, 345);
+  ctx.fillText(`${matches.length} ${matches.length === 1 ? 'PARTITA' : 'PARTITE'}`, W/2, titleY + 145);
   
   // Separator più evidente e più largo
   ctx.save();
@@ -6302,8 +6305,8 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   ctx.strokeStyle = '#f5c518';
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.moveTo(40, 375);
-  ctx.lineTo(W-40, 375);
+  ctx.moveTo(40, titleY + 175);
+  ctx.lineTo(W-40, titleY + 175);
   ctx.stroke();
   ctx.restore();
   
@@ -6424,12 +6427,12 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
     y += MATCH_H;
   }
   
-  // SPONSOR SECTION - Riquadro fisso in basso
-  const sponsorY = H - 180;
+  // SPONSOR SECTION - Riquadro QUADRATO in basso
+  const sponsorY = H - 230;
   
   // Sfondo sponsor
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(0, sponsorY - 20, W, 180);
+  ctx.fillRect(0, sponsorY - 20, W, 250);
   
   // Separator sopra sponsor
   ctx.save();
@@ -6444,34 +6447,39 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   
   // Testo "POWERED BY"
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '500 22px Oswald,sans-serif';
+  ctx.font = '500 24px Oswald,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('POWERED BY', W/2, sponsorY + 15);
+  ctx.fillText('POWERED BY', W/2, sponsorY + 20);
   
-  // Riquadro sponsor fisso 400x80
-  const sponsorBoxW = 400;
-  const sponsorBoxH = 80;
-  const sponsorBoxX = W/2 - sponsorBoxW/2;
-  const sponsorBoxY = sponsorY + 30;
+  // Riquadro sponsor QUADRATO 160x160
+  const sponsorBoxSize = 160;
+  const sponsorBoxX = W/2 - sponsorBoxSize/2;
+  const sponsorBoxY = sponsorY + 40;
+  
+  // Sfondo bianco per il logo sponsor
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.roundRect(sponsorBoxX, sponsorBoxY, sponsorBoxSize, sponsorBoxSize, 12);
+  ctx.fill();
   
   // Bordo riquadro sponsor
-  ctx.strokeStyle = 'rgba(245,197,24,0.3)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(sponsorBoxX, sponsorBoxY, sponsorBoxW, sponsorBoxH);
+  ctx.strokeStyle = 'rgba(245,197,24,0.5)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
   
   // Seleziona sponsor random
   const sponsors = db.sponsors.filter(s => s.logo);
   if (sponsors.length > 0) {
     const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
-    // Logo sponsor centrato nel riquadro fisso con object-fit contain
-    await drawImageOnCanvas(ctx, randomSponsor.logo, sponsorBoxX + 10, sponsorBoxY + 10, sponsorBoxW - 20, sponsorBoxH - 20);
+    // Logo sponsor centrato nel quadrato con padding
+    await drawImageOnCanvas(ctx, randomSponsor.logo, sponsorBoxX + 15, sponsorBoxY + 15, sponsorBoxSize - 30, sponsorBoxSize - 30);
   }
   
   // Footer hashtag
   ctx.fillStyle = '#f5c518';
   ctx.font = 'bold 28px Oswald,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 25);
+  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 20);
   
   // Download
   const filename = `storia_${dateStr.replace(/ /g, '_')}_${torneo === 'M' ? 'maschile' : 'femminile'}.png`;
