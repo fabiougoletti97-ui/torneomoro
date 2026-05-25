@@ -6237,19 +6237,10 @@ async function exportIGBracket(torneo) {
 async function generateDayStories(dateStr) {
   showToast('⏳ Generazione storie Instagram...');
   
-  // Debug: mostra quante partite totali ci sono
-  console.log('Cercando partite per data:', dateStr);
-  console.log('Partite totali nel database:', db.matches.length);
-  
   // Trova tutte le partite di questa data in TUTTO il database
   const allMatches = db.matches.filter(m => m.date === dateStr);
-  console.log('Partite trovate per questa data:', allMatches.length, allMatches);
-  
   const matchesM = allMatches.filter(m => m.torneo === 'M');
   const matchesF = allMatches.filter(m => m.torneo === 'F');
-  
-  console.log('Partite maschili:', matchesM.length);
-  console.log('Partite femminili:', matchesF.length);
   
   let generated = 0;
   
@@ -6257,6 +6248,10 @@ async function generateDayStories(dateStr) {
   if (matchesM.length > 0) {
     await generateStoryForTorneo(dateStr, matchesM, 'M');
     generated++;
+    // Delay di 500ms tra i download per evitare conflitti
+    if (matchesF.length > 0) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }
   
   // Genera storia per femminile se ci sono partite
@@ -6373,29 +6368,32 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
     const timeField = `${m.time || '--:--'} • CAMPO ${m.field || '?'}`;
     ctx.fillText(timeField, W/2, y + 32);
     
-    const midY = y + MATCH_H/2 + 20;
+    const midY = y + MATCH_H/2 + 10;
     
     // SQUADRA CASA (sinistra)
     const homeX = 200;
+    const logoSize = 80;
+    const logoY = midY - 50; // Logo più in alto
+    const nameY = logoY + logoSize + 10; // Nome sotto il logo
+    
     // Logo casa
     if (hLogo) {
-      await drawImageOnCanvas(ctx, hLogo, homeX - 50, midY - 40, 80, 80);
+      await drawImageOnCanvas(ctx, hLogo, homeX - logoSize/2, logoY, logoSize, logoSize);
     }
-    // Nome casa con word wrap
+    // Nome casa con word wrap SOTTO il logo
     ctx.fillStyle = '#f0f0e8';
-    ctx.font = 'bold 32px Oswald,sans-serif';
+    ctx.font = 'bold 28px Oswald,sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'top';
     const hLines = wrapText(hName, 280);
-    const hStartY = midY - (hLines.length - 1) * 18;
     hLines.forEach((line, i) => {
-      ctx.fillText(line, homeX, hStartY + i * 36);
+      ctx.fillText(line, homeX, nameY + i * 32);
     });
     
     // VS centrale con cerchio
     ctx.fillStyle = 'rgba(245,197,24,0.15)';
     ctx.beginPath();
-    ctx.arc(W/2, midY, 50, 0, Math.PI * 2);
+    ctx.arc(W/2, midY + 10, 50, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = 'rgba(245,197,24,0.4)';
     ctx.lineWidth = 3;
@@ -6405,23 +6403,22 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
     ctx.font = 'bold 40px Bebas Neue,sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('VS', W/2, midY);
+    ctx.fillText('VS', W/2, midY + 10);
     
     // SQUADRA TRASFERTA (destra)
     const awayX = W - 200;
     // Logo trasferta
     if (aLogo) {
-      await drawImageOnCanvas(ctx, aLogo, awayX - 50, midY - 40, 80, 80);
+      await drawImageOnCanvas(ctx, aLogo, awayX - logoSize/2, logoY, logoSize, logoSize);
     }
-    // Nome trasferta con word wrap
+    // Nome trasferta con word wrap SOTTO il logo
     ctx.fillStyle = '#f0f0e8';
-    ctx.font = 'bold 32px Oswald,sans-serif';
+    ctx.font = 'bold 28px Oswald,sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'top';
     const aLines = wrapText(aName, 280);
-    const aStartY = midY - (aLines.length - 1) * 18;
     aLines.forEach((line, i) => {
-      ctx.fillText(line, awayX, aStartY + i * 36);
+      ctx.fillText(line, awayX, nameY + i * 32);
     });
     
     y += MATCH_H;
