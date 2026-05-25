@@ -6237,65 +6237,78 @@ async function exportIGBracket(torneo) {
 async function generateDayStories(dateStr) {
   showToast('⏳ Generazione storie Instagram...');
   
-  // Trova tutte le partite di questa data
+  // Debug: mostra quante partite totali ci sono
+  console.log('Cercando partite per data:', dateStr);
+  console.log('Partite totali nel database:', db.matches.length);
+  
+  // Trova tutte le partite di questa data in TUTTO il database
   const allMatches = db.matches.filter(m => m.date === dateStr);
+  console.log('Partite trovate per questa data:', allMatches.length, allMatches);
+  
   const matchesM = allMatches.filter(m => m.torneo === 'M');
   const matchesF = allMatches.filter(m => m.torneo === 'F');
+  
+  console.log('Partite maschili:', matchesM.length);
+  console.log('Partite femminili:', matchesF.length);
+  
+  let generated = 0;
   
   // Genera storia per maschile se ci sono partite
   if (matchesM.length > 0) {
     await generateStoryForTorneo(dateStr, matchesM, 'M');
+    generated++;
   }
   
   // Genera storia per femminile se ci sono partite
   if (matchesF.length > 0) {
     await generateStoryForTorneo(dateStr, matchesF, 'F');
+    generated++;
   }
   
-  if (matchesM.length === 0 && matchesF.length === 0) {
+  if (generated === 0) {
     showToast('⚠️ Nessuna partita trovata per questa data');
   } else {
-    showToast('📸 Storie Instagram generate!');
+    showToast(`📸 ${generated} ${generated === 1 ? 'storia generata' : 'storie generate'}!`);
   }
 }
 
 async function generateStoryForTorneo(dateStr, matches, torneo) {
   const W = 1080, H = 1920;
-  const MATCH_H = 140;
-  const HEADER_H = 280;
-  const FOOTER_H = 80;
+  const MATCH_H = 180; // Aumentato per avere più spazio
+  const HEADER_H = 320;
+  const FOOTER_H = 100;
   
   const {canvas, ctx} = igSetup(W, H);
   igGoldBar(ctx, W, H);
   
-  // Logo in alto
-  await igDrawLogo(ctx, W, 25, 70);
+  // Logo in alto più grande
+  await igDrawLogo(ctx, W, 30, 90);
   
   // Titolo e data
   const label = torneo === 'M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   const color = torneo === 'M' ? '#3b8bd4' : '#d44fa0';
   
   ctx.fillStyle = color;
-  ctx.font = 'bold 56px Bebas Neue,sans-serif';
+  ctx.font = 'bold 64px Bebas Neue,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(label, W/2, 140);
+  ctx.fillText(label, W/2, 160);
   
   ctx.fillStyle = '#f5c518';
-  ctx.font = 'bold 48px Oswald,sans-serif';
-  ctx.fillText(dateStr.toUpperCase(), W/2, 200);
+  ctx.font = 'bold 56px Oswald,sans-serif';
+  ctx.fillText(dateStr.toUpperCase(), W/2, 230);
   
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '500 28px Oswald,sans-serif';
-  ctx.fillText(`${matches.length} ${matches.length === 1 ? 'PARTITA' : 'PARTITE'}`, W/2, 240);
+  ctx.font = '500 32px Oswald,sans-serif';
+  ctx.fillText(`${matches.length} ${matches.length === 1 ? 'PARTITA' : 'PARTITE'}`, W/2, 275);
   
-  // Separator
+  // Separator più evidente
   ctx.save();
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha = 0.25;
   ctx.strokeStyle = '#f5c518';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(80, 260);
-  ctx.lineTo(W-80, 260);
+  ctx.moveTo(60, 300);
+  ctx.lineTo(W-60, 300);
   ctx.stroke();
   ctx.restore();
   
@@ -6304,6 +6317,26 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   
   let y = HEADER_H;
   
+  // Funzione helper per word wrap
+  function wrapText(text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = words[0];
+    
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = ctx.measureText(currentLine + " " + word).width;
+      if (width < maxWidth) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
+    return lines;
+  }
+  
   for (const m of sortedMatches) {
     const home = getTeam(m.home);
     const away = getTeam(m.away);
@@ -6311,55 +6344,99 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
     const aName = away ? away.name : 'Ospite';
     const hC = home ? home.color : '#f5c518';
     const aC = away ? away.color : '#3b8bd4';
+    const hLogo = home && home.logo ? home.logo : null;
+    const aLogo = away && away.logo ? away.logo : null;
     
-    // Background partita con gradient
-    const gRow = ctx.createLinearGradient(40, y, W-40, y);
-    gRow.addColorStop(0, hexAlpha(hC, 0.12));
-    gRow.addColorStop(0.5, 'rgba(15,20,13,0.8)');
-    gRow.addColorStop(1, hexAlpha(aC, 0.12));
+    // Background partita con gradient più intenso
+    const gRow = ctx.createLinearGradient(30, y, W-30, y);
+    gRow.addColorStop(0, hexAlpha(hC, 0.18));
+    gRow.addColorStop(0.5, 'rgba(15,20,13,0.85)');
+    gRow.addColorStop(1, hexAlpha(aC, 0.18));
     ctx.fillStyle = gRow;
     ctx.beginPath();
-    ctx.roundRect(40, y, W-80, MATCH_H-12, 12);
+    ctx.roundRect(30, y, W-60, MATCH_H-15, 16);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 3;
     ctx.stroke();
     
-    const midY = y + MATCH_H/2;
+    // Orario e campo in alto con sfondo
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.roundRect(W/2 - 180, y + 12, 360, 40, 8);
+    ctx.fill();
     
-    // Orario e campo in alto
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '500 24px Oswald,sans-serif';
+    ctx.fillStyle = '#f5c518';
+    ctx.font = 'bold 28px Oswald,sans-serif';
     ctx.textAlign = 'center';
-    const timeField = `${m.time || '--:--'} • CAMPO ${m.field || '?'}`;
-    ctx.fillText(timeField, W/2, y + 30);
-    
-    // Nome squadra casa (destra)
-    ctx.fillStyle = '#f0f0e8';
-    ctx.font = 'bold 38px Oswald,sans-serif';
-    ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    ctx.fillText(hName, W/2 - 100, midY + 10);
+    const timeField = `${m.time || '--:--'} • CAMPO ${m.field || '?'}`;
+    ctx.fillText(timeField, W/2, y + 32);
     
-    // Nome squadra trasferta (sinistra)
-    ctx.textAlign = 'left';
-    ctx.fillText(aName, W/2 + 100, midY + 10);
+    const midY = y + MATCH_H/2 + 20;
     
-    // VS centrale
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = 'bold 32px Bebas Neue,sans-serif';
+    // SQUADRA CASA (sinistra)
+    const homeX = 200;
+    // Logo casa
+    if (hLogo) {
+      await drawImageOnCanvas(ctx, hLogo, homeX - 50, midY - 40, 80, 80);
+    }
+    // Nome casa con word wrap
+    ctx.fillStyle = '#f0f0e8';
+    ctx.font = 'bold 32px Oswald,sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('VS', W/2, midY + 10);
+    ctx.textBaseline = 'middle';
+    const hLines = wrapText(hName, 280);
+    const hStartY = midY - (hLines.length - 1) * 18;
+    hLines.forEach((line, i) => {
+      ctx.fillText(line, homeX, hStartY + i * 36);
+    });
+    
+    // VS centrale con cerchio
+    ctx.fillStyle = 'rgba(245,197,24,0.15)';
+    ctx.beginPath();
+    ctx.arc(W/2, midY, 50, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(245,197,24,0.4)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    ctx.fillStyle = '#f5c518';
+    ctx.font = 'bold 40px Bebas Neue,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('VS', W/2, midY);
+    
+    // SQUADRA TRASFERTA (destra)
+    const awayX = W - 200;
+    // Logo trasferta
+    if (aLogo) {
+      await drawImageOnCanvas(ctx, aLogo, awayX - 50, midY - 40, 80, 80);
+    }
+    // Nome trasferta con word wrap
+    ctx.fillStyle = '#f0f0e8';
+    ctx.font = 'bold 32px Oswald,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const aLines = wrapText(aName, 280);
+    const aStartY = midY - (aLines.length - 1) * 18;
+    aLines.forEach((line, i) => {
+      ctx.fillText(line, awayX, aStartY + i * 36);
+    });
     
     y += MATCH_H;
   }
   
-  // Footer
-  ctx.fillStyle = 'rgba(245,197,24,0.4)';
-  ctx.font = '500 28px Oswald,sans-serif';
+  // Footer più evidente
+  const footerY = H - 50;
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(0, footerY - 30, W, 80);
+  
+  ctx.fillStyle = '#f5c518';
+  ctx.font = 'bold 32px Oswald,sans-serif';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 30);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, footerY);
   
   // Download
   const filename = `storia_${dateStr.replace(/ /g, '_')}_${torneo === 'M' ? 'maschile' : 'femminile'}.png`;
