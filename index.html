@@ -5,11 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Torneo Moro Chiozza</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#62c370">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TMC 2026">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1246,7 +1241,7 @@ body.admin-mode .delete-team-btn{display:block;}
       <a class="btn-primary" href="#classifica">🏅 Classifica</a>
       <a class="btn-outline" href="#calendario">📅 Calendario & Risultati</a>
       <a class="btn-outline" href="#menu">🍔 Menu</a>
-      <button id="installBtn" class="btn-outline" onclick="installPWA()" style="display:none;">📱 SCARICA APP</button>
+      <button id="addToHomeBtn" class="btn-outline" onclick="showAddToHomeInstructions()">📱 SCARICA APP</button>
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="hero-stat-num" id="stat-teams">0</div><div class="hero-stat-label">Squadre</div></div>
@@ -6837,44 +6832,14 @@ function tvRenderSponsors() {
   cont.innerHTML = html + '</div>';
 }
 
-// ── PWA INSTALL ────────────────────────────────────────────────────────
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) {
-    installBtn.style.display = 'inline-block';
-  }
-});
-
-function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        console.log('PWA installata');
-        showToast('✅ App installata con successo!');
-      } else {
-        console.log('PWA non installata');
-      }
-      deferredPrompt = null;
-      const installBtn = document.getElementById('installBtn');
-      if (installBtn) {
-        installBtn.style.display = 'none';
-      }
-    });
-  }
+// ── ADD TO HOME INSTRUCTIONS ───────────────────────────────────────────
+function showAddToHomeInstructions() {
+  document.getElementById('addToHomeModal').classList.add('open');
 }
 
-window.addEventListener('appinstalled', () => {
-  console.log('PWA installata');
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) {
-    installBtn.style.display = 'none';
-  }
-});
+function closeAddToHomeModal() {
+  document.getElementById('addToHomeModal').classList.remove('open');
+}
 
 // ── Compact standings table override ──────────────────────────────────
 </script>
@@ -6985,5 +6950,39 @@ window.addEventListener('appinstalled', () => {
   <div id="tvWatermark">TORNEO MORO CHIOZZA · 2026</div>
 </div>
 <!-- /TV MODE OVERLAY -->
+<!-- ADD TO HOME INSTRUCTIONS MODAL -->
+<div id="addToHomeModal" class="modal-overlay" onclick="if(event.target===this) closeAddToHomeModal()">
+  <div class="modal" style="max-width:500px;padding:2rem;">
+    <button class="modal-close" onclick="closeAddToHomeModal()">✕</button>
+    <div class="modal-title">📱 AGGIUNGI ALLA HOME</div>
+    <div style="color:var(--muted);line-height:1.7;font-size:0.9rem;">
+      <p style="margin-bottom:1.5rem;color:var(--white);">Aggiungi questo sito alla schermata principale del tuo smartphone per un accesso rapido!</p>
+      
+      <div style="background:rgba(255,255,255,0.03);padding:1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.08);margin-bottom:1rem;">
+        <div style="font-family:Oswald;color:var(--accent);font-size:1rem;margin-bottom:0.8rem;letter-spacing:1px;">📱 ANDROID (Chrome)</div>
+        <ol style="margin-left:1.2rem;color:rgba(255,255,255,0.8);">
+          <li style="margin-bottom:0.5rem;">Tocca i <strong>tre puntini</strong> in alto a destra <span style="font-size:1.2rem;">⋮</span></li>
+          <li style="margin-bottom:0.5rem;">Seleziona <strong>"Aggiungi a schermata Home"</strong></li>
+          <li>Conferma e l'icona apparirà sulla tua home!</li>
+        </ol>
+      </div>
+      
+      <div style="background:rgba(255,255,255,0.03);padding:1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-family:Oswald;color:#3b8bd4;font-size:1rem;margin-bottom:0.8rem;letter-spacing:1px;">🍎 iPHONE (Safari)</div>
+        <ol style="margin-left:1.2rem;color:rgba(255,255,255,0.8);">
+          <li style="margin-bottom:0.5rem;">Tocca l'icona <strong>Condividi</strong> in basso <span style="font-size:1.2rem;">🔄</span></li>
+          <li style="margin-bottom:0.5rem;">Scorri e seleziona <strong>"Aggiungi a Home"</strong></li>
+          <li>Conferma e l'icona apparirà sulla tua home!</li>
+        </ol>
+      </div>
+      
+      <p style="margin-top:1.5rem;text-align:center;font-size:0.85rem;color:rgba(255,255,255,0.5);">
+        Una volta aggiunta, potrai aprire il sito come un'app! ⚽
+      </p>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:1.5rem;" onclick="closeAddToHomeModal()">HO CAPITO</button>
+  </div>
+</div>
+
 </body>
 </html>
