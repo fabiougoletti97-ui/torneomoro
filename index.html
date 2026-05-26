@@ -3423,7 +3423,7 @@ function renderStandings(){
   const fasciaStars = ['','⭐⭐⭐','⭐⭐','⭐'];
   const showFascia = curSt === 'M';
   document.getElementById('standings-content').innerHTML=`<table class="standings-table">
-    <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GA</th><th>DR</th><th>Pts</th><th>Forma</th></tr></thead>
+    <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th><th>Pts</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
       const zone=getZone(i);
@@ -3441,24 +3441,24 @@ function renderStandings(){
         <td><span class="rank-pts">${r.Pts}</span></td>
         <td><div class="form-badges">${form}</div></td></tr>`;
     }).join('')}</tbody></table>`;
+  renderStandingsLegend();
 }
 
 function renderStandingsLegend() {
   const leg = document.getElementById('standings-legend');
   if (!leg) return;
   const dot = (color, label) =>
-    `<span><span style="display:inline-block;width:8px;height:8px;background:${color};border-radius:50%;margin-right:4px;"></span>${label}</span>`;
+    `<span><span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:6px;"></span>${label}</span>`;
   if (curSt === 'F') {
     leg.innerHTML =
-      dot('var(--grass-l)', 'Semifinali (1°-4°)') +
-      dot('var(--red)', 'Eliminata (5°-8°)');
+      dot('#3ecf5e', 'Fasi Finali') +
+      dot('var(--red)', 'Eliminate');
   } else {
     leg.innerHTML =
-      dot('var(--grass-l)', 'Quarti/Playoff diretti (1°-4°)') +
-      dot('var(--gold)', 'Play-In (5°-12°)') +
-      dot('var(--red)', 'Eliminato (13°-16°)');
+      dot('#3ecf5e', 'Fasi Finali') +
+      dot('var(--gold)', 'Play In') +
+      dot('var(--red)', 'Eliminate');
   }
-  renderStandingsLegend();
 }
 
 function switchSt(t,el){
@@ -5978,7 +5978,7 @@ async function exportIGStandings(torneo) {
   let y = HEADER_H;
   ctx.fillStyle='rgba(255,255,255,0.3)';
   ctx.font='600 32px Oswald,sans-serif'; ctx.textAlign='center';
-  ['#','SQUADRA','G','V','P','S','GF','GA','DR','PTS'].forEach((h,i) => {
+  ['#','SQUADRA','G','V','P','S','GF','GS','DR','PTS'].forEach((h,i) => {
     const xPos = [42,280,540,590,640,690,740,790,845,920][i];
     ctx.textAlign = i===1?'left':'center';
     ctx.fillText(h, xPos, y+40);
