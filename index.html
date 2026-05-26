@@ -960,7 +960,7 @@ body.admin-mode .ig-export-bar{display:flex;}
 
 /* Content area */
 .tv-content-area {
-  flex: 1; overflow: hidden;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column;
 }
 
@@ -6525,7 +6525,7 @@ if(calGenerated) {
 let tvInterval = null;
 let tvCurrentSlide = 0;
 const TV_DURATION = 20000;
-const TV_SLIDES = 5;
+const TV_SLIDES = 6; // Aumentato per separare bracket M e F
 
 function enterTVMode() {
   const overlay = document.getElementById('tvModeOverlay');
@@ -6628,9 +6628,10 @@ function tvRenderAll() { for (let i = 0; i < TV_SLIDES; i++) tvRenderSlide(i); }
 function tvRenderSlide(idx) {
   if (idx === 0) { tvRenderStandings('M', 'tvStandingsMContent'); tvRenderStandings('F', 'tvStandingsFContent'); }
   if (idx === 1) { tvRenderRisultati('M', 'tvRisultatiMContent'); tvRenderRisultati('F', 'tvRisultatiFContent'); }
-  if (idx === 2) { tvRenderPlayoff('M', 'tvPlayoffMContent'); tvRenderPlayoff('F', 'tvPlayoffFContent'); }
-  if (idx === 3) { tvRenderStats('M', 'tvStatsMContent'); tvRenderStats('F', 'tvStatsFContent'); }
-  if (idx === 4) { tvRenderSponsors(); }
+  if (idx === 2) { tvRenderPlayoff('M', 'tvPlayoffMContent'); } // Solo Maschile
+  if (idx === 3) { tvRenderPlayoff('F', 'tvPlayoffFContent'); } // Solo Femminile
+  if (idx === 4) { tvRenderStats('M', 'tvStatsMContent'); tvRenderStats('F', 'tvStatsFContent'); }
+  if (idx === 5) { tvRenderSponsors(); }
 }
 
 // ── CLASSIFICA COMPATTA TV ───────────────────────────────────────────
@@ -6843,6 +6844,7 @@ function tvRenderSponsors() {
     <div class="tv-dot" data-idx="2"></div>
     <div class="tv-dot" data-idx="3"></div>
     <div class="tv-dot" data-idx="4"></div>
+    <div class="tv-dot" data-idx="5"></div>
   </div>
   <div id="tvSlides">
 
@@ -6884,27 +6886,30 @@ function tvRenderSponsors() {
       </div>
     </div>
 
-    <!-- SLIDE 2: Playoff M sopra F -->
+    <!-- SLIDE 2: Playoff MASCHILE -->
     <div class="tv-slide" id="tvSlide2">
       <div class="tv-slide-header">
         <span class="tv-slide-icon">⚡</span>
-        <span class="tv-slide-title">PLAYOFF</span>
+        <span class="tv-slide-title">PLAYOFF ♂ MASCHILE</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:24px;flex:1;overflow:hidden;">
-        <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
-          <div class="tv-sub-label tv-badge-m">♂ MASCHILE</div>
-          <div id="tvPlayoffMContent" class="tv-content-area" style="overflow-x:auto;"></div>
-        </div>
-        <div style="height:1px;background:rgba(255,255,255,0.07);flex-shrink:0;"></div>
-        <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
-          <div class="tv-sub-label tv-badge-f">♀ FEMMINILE</div>
-          <div id="tvPlayoffFContent" class="tv-content-area" style="overflow-x:auto;"></div>
-        </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div id="tvPlayoffMContent" class="tv-content-area" style="overflow-x:auto;"></div>
       </div>
     </div>
 
-    <!-- SLIDE 3: Marcatori M+F -->
+    <!-- SLIDE 3: Playoff FEMMINILE -->
     <div class="tv-slide" id="tvSlide3">
+      <div class="tv-slide-header">
+        <span class="tv-slide-icon">⚡</span>
+        <span class="tv-slide-title">PLAYOFF ♀ FEMMINILE</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div id="tvPlayoffFContent" class="tv-content-area" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Marcatori M+F -->
+    <div class="tv-slide" id="tvSlide4">
       <div class="tv-slide-header">
         <span class="tv-slide-icon">📊</span>
         <span class="tv-slide-title">CLASSIFICA MARCATORI</span>
@@ -6922,8 +6927,8 @@ function tvRenderSponsors() {
       </div>
     </div>
 
-    <!-- SLIDE 4: Sponsor -->
-    <div class="tv-slide" id="tvSlide4">
+    <!-- SLIDE 5: Sponsor -->
+    <div class="tv-slide" id="tvSlide5">
       <div class="tv-slide-header">
         <span class="tv-slide-icon">🤝</span>
         <span class="tv-slide-title">I NOSTRI PARTNER</span>
