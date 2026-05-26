@@ -5,6 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Torneo Moro Chiozza</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#62c370">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TMC 2026">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1241,6 +1246,7 @@ body.admin-mode .delete-team-btn{display:block;}
       <a class="btn-primary" href="#classifica">🏅 Classifica</a>
       <a class="btn-outline" href="#calendario">📅 Calendario & Risultati</a>
       <a class="btn-outline" href="#menu">🍔 Menu</a>
+      <button id="installBtn" class="btn-outline" onclick="installPWA()" style="display:none;">📱 SCARICA APP</button>
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="hero-stat-num" id="stat-teams">0</div><div class="hero-stat-label">Squadre</div></div>
@@ -6830,6 +6836,45 @@ function tvRenderSponsors() {
   
   cont.innerHTML = html + '</div>';
 }
+
+// ── PWA INSTALL ────────────────────────────────────────────────────────
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) {
+    installBtn.style.display = 'inline-block';
+  }
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('PWA installata');
+        showToast('✅ App installata con successo!');
+      } else {
+        console.log('PWA non installata');
+      }
+      deferredPrompt = null;
+      const installBtn = document.getElementById('installBtn');
+      if (installBtn) {
+        installBtn.style.display = 'none';
+      }
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('PWA installata');
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) {
+    installBtn.style.display = 'none';
+  }
+});
 
 // ── Compact standings table override ──────────────────────────────────
 </script>
