@@ -1868,8 +1868,8 @@ body.admin-mode .delete-team-btn{display:block;}
   <div class="modal" style="max-width:560px;">
     <button class="modal-close" onclick="closeModal('igPreviewModal')">&#x2715;</button>
     <div class="modal-title">📸 Grafica Instagram</div>
-    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">Anteprima 1080×1080px — pronta da pubblicare su Instagram</p>
-    <div id="ig-canvas-wrap"><canvas id="igCanvas" width="1080" height="1080"></canvas></div>
+    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">Anteprima 1080×1920px — pronta da pubblicare su Instagram Stories</p>
+    <div id="ig-canvas-wrap"><canvas id="igCanvas" width="1080" height="1920"></canvas></div>
     <button class="ig-dl-btn" onclick="downloadIG()">⬇ Scarica Immagine PNG</button>
   </div>
 </div>
@@ -3662,9 +3662,9 @@ async function drawIGCard(m) {
   ctx.textAlign = 'center';
   ctx.fillText(torneoLabel + (m.date ? '  ·  ' + m.date.toUpperCase() : ''), W/2, 255);
 
-  // ── LOGHI SQUADRE — cerchi grandi ──────────────────────────────────
-  const logoY = 360;
-  const logoR = 320; // raggio cerchio (raddoppiato da 160)
+  // ── LOGHI SQUADRE — cerchi RIDOTTI 60% ──────────────────────────────
+  const logoY = 220;
+  const logoR = 128; // RIDOTTO: 320 * 0.4 = 128
   const homeX = W * 0.25;
   const awayX = W * 0.75;
 
@@ -3673,7 +3673,7 @@ async function drawIGCard(m) {
     // Shadow glow
     ctx.save();
     ctx.shadowColor = color;
-    ctx.shadowBlur = 80;
+    ctx.shadowBlur = 40;
     // Cerchio sfondo
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
@@ -3681,12 +3681,12 @@ async function drawIGCard(m) {
     ctx.restore();
     // Bordo colorato
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.stroke();
     // Logo dentro il cerchio
     if (team && team.logo) {
       ctx.save();
-      ctx.beginPath(); ctx.arc(cx, cy, r-12, 0, Math.PI*2); ctx.clip();
-      await drawImageOnCanvas(ctx, team.logo, cx-r+12, cy-r+12, (r-12)*2, (r-12)*2);
+      ctx.beginPath(); ctx.arc(cx, cy, r-6, 0, Math.PI*2); ctx.clip();
+      await drawImageOnCanvas(ctx, team.logo, cx-r+6, cy-r+6, (r-6)*2, (r-6)*2);
       ctx.restore();
     }
   }
@@ -3694,56 +3694,56 @@ async function drawIGCard(m) {
   await drawTeamCircle(home, homeX, logoY + logoR, logoR, homeColor);
   await drawTeamCircle(away, awayX, logoY + logoR, logoR, awayColor);
 
-  // ── FULL TIME banner ───────────────────────────────────────────────
-  const ftY = logoY + logoR*2 + 120;
-  roundRect(ctx, W/2-320, ftY, 640, 112, 16);
+  // ── FULL TIME banner (ridotto) ───────────────────────────────────────
+  const ftY = logoY + logoR*2 + 60;
+  roundRect(ctx, W/2-200, ftY, 400, 70, 10);
   ctx.fillStyle = '#1a3a6e';
   ctx.fill();
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 68px Oswald, sans-serif';
+  ctx.font = 'bold 42px Oswald, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('FULL TIME', W/2, ftY + 76);
+  ctx.fillText('FULL TIME', W/2, ftY + 48);
 
-  // ── NOMI SQUADRE ───────────────────────────────────────────────────
-  const nameY = ftY + 200;
+  // ── NOMI SQUADRE (ridotti 60%) ───────────────────────────────────────
+  const nameY = ftY + 90;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 140px Bebas Neue, sans-serif';
+  ctx.font = 'bold 56px Bebas Neue, sans-serif'; // RIDOTTO: 140 * 0.4 = 56
   // Home name (wrapping se lungo)
-  const homeLines = wrapText(homeName, 12);
-  homeLines.forEach((line, i) => ctx.fillText(line, homeX, nameY + i*152));
+  const homeLines = wrapText(homeName, 20);
+  homeLines.forEach((line, i) => ctx.fillText(line, homeX, nameY + i*61));
   // Away name
-  const awayLines = wrapText(awayName, 12);
-  awayLines.forEach((line, i) => ctx.fillText(line, awayX, nameY + i*152));
+  const awayLines = wrapText(awayName, 20);
+  awayLines.forEach((line, i) => ctx.fillText(line, awayX, nameY + i*61));
 
-  // ── PUNTEGGIO CENTRALE ENORME ──────────────────────────────────────
-  const scoreY = nameY + (Math.max(homeLines.length, awayLines.length)) * 152 + 120;
+  // ── PUNTEGGIO CENTRALE (ridotto 60%) ──────────────────────────────────
+  const scoreY = nameY + (Math.max(homeLines.length, awayLines.length)) * 61 + 80;
 
   // Cerchio sfondo punteggio
-  const scoreR = 360;
+  const scoreR = 144; // RIDOTTO: 360 * 0.4 = 144
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 60;
+  ctx.shadowBlur = 40;
   ctx.beginPath(); ctx.arc(W/2, scoreY, scoreR, 0, Math.PI*2);
   ctx.fillStyle = hexAlpha(homeColor, 0.25);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 6; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 4; ctx.stroke();
   ctx.restore();
 
-  // Punteggio
-  ctx.font = 'bold 400px Bebas Neue, sans-serif';
+  // Punteggio (ridotto 60%)
+  ctx.font = 'bold 160px Bebas Neue, sans-serif'; // RIDOTTO: 400 * 0.4 = 160
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const hWin = m.scoreHome > m.scoreAway;
   const aWin = m.scoreAway > m.scoreHome;
   ctx.fillStyle = hWin ? '#3ecf5e' : '#ffffff';
-  ctx.fillText(String(m.scoreHome), W/2 - 220, scoreY);
+  ctx.fillText(String(m.scoreHome), W/2 - 88, scoreY);
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = 'bold 240px Bebas Neue, sans-serif';
+  ctx.font = 'bold 96px Bebas Neue, sans-serif'; // RIDOTTO: 240 * 0.4 = 96
   ctx.fillText('-', W/2, scoreY);
   ctx.fillStyle = aWin ? '#3ecf5e' : '#ffffff';
-  ctx.font = 'bold 400px Bebas Neue, sans-serif';
-  ctx.fillText(String(m.scoreAway), W/2 + 220, scoreY);
+  ctx.font = 'bold 160px Bebas Neue, sans-serif';
+  ctx.fillText(String(m.scoreAway), W/2 + 88, scoreY);
   ctx.textBaseline = 'alphabetic';
 
   // ── MARCATORI E CARTELLINI ─────────────────────────────────────────
@@ -3831,11 +3831,11 @@ async function drawIGCard(m) {
   awayYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 + colPad, yR, 'left'); yR += 44; });
   awayRed.forEach(e => { drawCardRow(e.player, 'red', W/2 + colPad, yR, 'left'); yR += 44; });
 
-  // ── SPONSOR PRINCIPALE ─────────────────────────────────────────────
+  // ── SPONSOR PRINCIPALE (aumentato 10%) ─────────────────────────────────
   if (db.sponsors) {
     const mainSponsors = db.sponsors.filter(s => s.tier === 'main');
     if (mainSponsors.length && mainSponsors[0].logo) {
-      await drawImageOnCanvas(ctx, mainSponsors[0].logo, W/2-100, H-200, 200, 100);
+      await drawImageOnCanvas(ctx, mainSponsors[0].logo, W/2-110, H-215, 220, 110);
     }
   }
 
