@@ -3595,9 +3595,8 @@ function drawImageOnCanvas(ctx, src, x, y, w, h) {
 async function drawIGCard(m) {
   const canvas = document.getElementById('igCanvas');
   const ctx = canvas.getContext('2d');
-  const W = 1080, H = 1920;
-  canvas.width = W;
-  canvas.height = H;
+  const W = 1080, H = 1920; // Story 9:16
+  canvas.width = W; canvas.height = H;
 
   const home = getTeam(m.home);
   const away = getTeam(m.away);
@@ -3605,200 +3604,238 @@ async function drawIGCard(m) {
   const awayName = away ? away.name : 'Ospite';
   const homeColor = home ? home.color : '#e03535';
   const awayColor = away ? away.color : '#3b8bd4';
-  const homeLogo = home && home.logo ? home.logo : null;
-  const awayLogo = away && away.logo ? away.logo : null;
 
-  // ── BACKGROUND CAMPO ──────────────────────────────────────────────────
+  // ── BACKGROUND: campo verde scuro ──────────────────────────────────
+  // Campo base
   ctx.fillStyle = '#1a4a1a';
   ctx.fillRect(0, 0, W, H);
 
-  // Texture erba — righe alternate
+  // Texture erba — righe orizzontali alternate
   for (let i = 0; i < H; i += 60) {
     ctx.fillStyle = i % 120 === 0 ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.03)';
     ctx.fillRect(0, i, W, 60);
   }
 
-  // ── HEADER SECTION (0-200px) ──────────────────────────────────────────
-  // Barra top con colori squadre
-  ctx.fillStyle = homeColor;
-  ctx.fillRect(0, 0, W/2, 80);
-  ctx.fillStyle = awayColor;
-  ctx.fillRect(W/2, 0, W/2, 80);
-
-  // Logo TMC piccolo
-  await igDrawLogo(ctx, W, 10, 50);
-
-  // Titolo e data
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 48px Bebas Neue,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`Torneo ${m.torneo === 'M' ? 'Maschile' : 'Femminile'} ${m.date}`, W/2, 180);
-
-  // ── CAMPO CON LOGHI TORNEI (200-400px) ────────────────────────────────
-  // Disegna campo da calcio
+  // Campo da calcio disegnato sullo sfondo (tenue)
   ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(80, 220, W-160, 150);
-  ctx.beginPath();
-  ctx.arc(W/2, 295, 60, 0, Math.PI*2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(80, 295);
-  ctx.lineTo(W-80, 295);
-  ctx.stroke();
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 4;
+  // Bordo campo
+  ctx.strokeRect(60, 120, W-120, H-240);
+  // Cerchio centrasle
+  ctx.beginPath(); ctx.arc(W/2, H/2, 130, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(60, H/2); ctx.lineTo(W-60, H/2); ctx.stroke();
+  // Area di rigore alta
+  ctx.strokeRect(W/2-200, 120, 400, 180);
+  // Area di rigore bassa
+  ctx.strokeRect(W/2-200, H-300, 400, 180);
   ctx.restore();
 
-  // ── FULL TIME BANNER (400-480px) ──────────────────────────────────────
-  ctx.fillStyle = '#1a2a4a';
-  ctx.fillRect(150, 420, W-300, 60);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 40px Oswald,sans-serif';
+  // Overlay scuro centrale per leggibilità
+  const gradCenter = ctx.createLinearGradient(0, 0, 0, H);
+  gradCenter.addColorStop(0, 'rgba(0,0,0,0.55)');
+  gradCenter.addColorStop(0.25, 'rgba(0,0,0,0.3)');
+  gradCenter.addColorStop(0.5, 'rgba(0,0,0,0.15)');
+  gradCenter.addColorStop(0.75, 'rgba(0,0,0,0.3)');
+  gradCenter.addColorStop(1, 'rgba(0,0,0,0.6)');
+  ctx.fillStyle = gradCenter;
+  ctx.fillRect(0, 0, W, H);
+
+  // Splash colori squadre
+  const gL = ctx.createRadialGradient(0, H*0.5, 0, 0, H*0.5, 500);
+  gL.addColorStop(0, hexAlpha(homeColor, 0.35)); gL.addColorStop(1, 'transparent');
+  ctx.fillStyle = gL; ctx.fillRect(0, 0, W, H);
+  const gR = ctx.createRadialGradient(W, H*0.5, 0, W, H*0.5, 500);
+  gR.addColorStop(0, hexAlpha(awayColor, 0.35)); gR.addColorStop(1, 'transparent');
+  ctx.fillStyle = gR; ctx.fillRect(0, 0, W, H);
+
+  // ── LOGO TMC in cima ───────────────────────────────────────────────
+  const tmcB64 = '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';
+  await drawImageOnCanvas(ctx, 'data:image/png;base64,'+tmcB64, W/2-170, 60, 340, 160);
+
+  // ── TORNEO LABEL ───────────────────────────────────────────────────
+  const torneoLabel = m.torneo === 'M' ? 'TORNEO MASCHILE' : 'TORNEO FEMMINILE';
+  const torneoColor = m.torneo === 'M' ? '#7ec8f7' : '#f7a8e0';
+  ctx.font = '500 32px Oswald, sans-serif';
+  ctx.fillStyle = torneoColor;
   ctx.textAlign = 'center';
-  ctx.fillText('FULL TIME', W/2, 460);
+  ctx.fillText(torneoLabel + (m.date ? '  ·  ' + m.date.toUpperCase() : ''), W/2, 255);
 
-  // ── RISULTATO SEZIONE (480-750px) ────────────────────────────────────
-  const resultY = 550;
+  // ── LOGHI SQUADRE — cerchi grandi ──────────────────────────────────
+  const logoY = 360;
+  const logoR = 320; // raggio cerchio (raddoppiato da 160)
+  const homeX = W * 0.25;
+  const awayX = W * 0.75;
 
-  // Cerchi squadre
-  const circleRadius = 90;
-  const circleY = resultY + 80;
-
-  // Cerchio casa (sinistra)
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  ctx.beginPath();
-  ctx.arc(W/3, circleY, circleRadius, 0, Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle = homeColor;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // Logo home nel cerchio
-  if (homeLogo) await drawImageOnCanvas(ctx, homeLogo, W/3 - 60, circleY - 60, 120, 120);
-
-  // Cerchio ospite (destra)
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  ctx.beginPath();
-  ctx.arc(2*W/3, circleY, circleRadius, 0, Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle = awayColor;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // Logo away nel cerchio
-  if (awayLogo) await drawImageOnCanvas(ctx, awayLogo, 2*W/3 - 60, circleY - 60, 120, 120);
-
-  // Score grande nel mezzo
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 120px Oswald,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`${m.scoreHome} - ${m.scoreAway}`, W/2, circleY + 60);
-
-  // Nomi squadre sotto cerchi (con word wrap per nomi lunghi)
-  function wrapTeamName(text, maxWidth) {
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = words[0];
-    for (let i = 1; i < words.length; i++) {
-      const testLine = currentLine + ' ' + words[i];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width < maxWidth) {
-        currentLine = testLine;
-      } else {
-        lines.push(currentLine);
-        currentLine = words[i];
-      }
+  // Funzione disegna cerchio logo
+  async function drawTeamCircle(team, cx, cy, r, color) {
+    // Shadow glow
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 80;
+    // Cerchio sfondo
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.fill();
+    ctx.restore();
+    // Bordo colorato
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.stroke();
+    // Logo dentro il cerchio
+    if (team && team.logo) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r-12, 0, Math.PI*2); ctx.clip();
+      await drawImageOnCanvas(ctx, team.logo, cx-r+12, cy-r+12, (r-12)*2, (r-12)*2);
+      ctx.restore();
     }
-    lines.push(currentLine);
-    return lines;
   }
 
-  ctx.font = 'bold 32px Oswald,sans-serif';
-  ctx.fillStyle = '#fff';
+  await drawTeamCircle(home, homeX, logoY + logoR, logoR, homeColor);
+  await drawTeamCircle(away, awayX, logoY + logoR, logoR, awayColor);
+
+  // ── FULL TIME banner ───────────────────────────────────────────────
+  const ftY = logoY + logoR*2 + 120;
+  roundRect(ctx, W/2-320, ftY, 640, 112, 16);
+  ctx.fillStyle = '#1a3a6e';
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 68px Oswald, sans-serif';
   ctx.textAlign = 'center';
-  
-  const homeLines = wrapTeamName(homeName, 220);
-  const homeStartY = circleY + 160;
-  homeLines.forEach((line, i) => {
-    ctx.fillText(line, W/3, homeStartY + i * 38);
-  });
+  ctx.fillText('FULL TIME', W/2, ftY + 76);
 
-  const awayLines = wrapTeamName(awayName, 220);
-  const awayStartY = circleY + 160;
-  awayLines.forEach((line, i) => {
-    ctx.fillText(line, 2*W/3, awayStartY + i * 38);
-  });
-
-  // ── MARCATORI SEZIONE (750-1400px) ────────────────────────────────────
-  const scorersY = 850;
-  const scorersH = 550;
-
-  // Background rosso-marrone per marcatori
-  ctx.fillStyle = 'rgba(139, 60, 60, 0.4)';
-  ctx.fillRect(0, scorersY - 20, W, scorersH);
-
-  // Titolo marcatori
-  ctx.fillStyle = '#f5c518';
-  ctx.font = 'bold 36px Oswald,sans-serif';
+  // ── NOMI SQUADRE ───────────────────────────────────────────────────
+  const nameY = ftY + 200;
   ctx.textAlign = 'center';
-  ctx.fillText('MARCATORI', W/2, scorersY + 40);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 140px Bebas Neue, sans-serif';
+  // Home name (wrapping se lungo)
+  const homeLines = wrapText(homeName, 12);
+  homeLines.forEach((line, i) => ctx.fillText(line, homeX, nameY + i*152));
+  // Away name
+  const awayLines = wrapText(awayName, 12);
+  awayLines.forEach((line, i) => ctx.fillText(line, awayX, nameY + i*152));
 
-  // Marcatori home (sinistra) - STACCATE
-  const homeScorers = (m.goals || []).filter(g => g.team === 'home').sort((a, b) => (b.count || 1) - (a.count || 1));
-  let homeScorersY = scorersY + 100;
-  
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 28px Oswald,sans-serif';
-  ctx.textAlign = 'left';
-  
-  homeScorers.slice(0, 6).forEach(scorer => {
-    ctx.fillText(scorer.player.toUpperCase(), 60, homeScorersY);
-    ctx.fillStyle = homeColor;
-    ctx.fillText(scorer.count || 1, W/2 - 120, homeScorersY);
-    ctx.fillStyle = '#fff';
-    homeScorersY += 50;
-  });
+  // ── PUNTEGGIO CENTRALE ENORME ──────────────────────────────────────
+  const scoreY = nameY + (Math.max(homeLines.length, awayLines.length)) * 152 + 120;
 
-  // Marcatori away (destra) - STACCATE
-  const awayScorers = (m.goals || []).filter(g => g.team === 'away').sort((a, b) => (b.count || 1) - (a.count || 1));
-  let awayScorersY = scorersY + 100;
-  
-  ctx.textAlign = 'right';
-  
-  awayScorers.slice(0, 6).forEach(scorer => {
-    ctx.fillText(scorer.player.toUpperCase(), W - 60, awayScorersY);
-    ctx.fillStyle = awayColor;
-    ctx.fillText(scorer.count || 1, W/2 + 120, awayScorersY);
-    ctx.fillStyle = '#fff';
-    awayScorersY += 50;
-  });
-
-  // ── FOOTER CAMPO (1400-1920px) ────────────────────────────────────────
+  // Cerchio sfondo punteggio
+  const scoreR = 360;
   ctx.save();
-  ctx.globalAlpha = 0.15;
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(100, 1500, W-200, 350);
-  ctx.beginPath();
-  ctx.arc(W/2, 1675, 100, 0, Math.PI*2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(100, 1675);
-  ctx.lineTo(W-100, 1675);
-  ctx.stroke();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 60;
+  ctx.beginPath(); ctx.arc(W/2, scoreY, scoreR, 0, Math.PI*2);
+  ctx.fillStyle = hexAlpha(homeColor, 0.25);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 6; ctx.stroke();
   ctx.restore();
 
-  // Data/ora partita in fondo
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '500 24px Oswald,sans-serif';
+  // Punteggio
+  ctx.font = 'bold 400px Bebas Neue, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`${m.date} • ${m.time} • CAMPO ${m.field}`, W/2, 1850);
+  ctx.textBaseline = 'middle';
+  const hWin = m.scoreHome > m.scoreAway;
+  const aWin = m.scoreAway > m.scoreHome;
+  ctx.fillStyle = hWin ? '#3ecf5e' : '#ffffff';
+  ctx.fillText(String(m.scoreHome), W/2 - 220, scoreY);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = 'bold 240px Bebas Neue, sans-serif';
+  ctx.fillText('-', W/2, scoreY);
+  ctx.fillStyle = aWin ? '#3ecf5e' : '#ffffff';
+  ctx.font = 'bold 400px Bebas Neue, sans-serif';
+  ctx.fillText(String(m.scoreAway), W/2 + 220, scoreY);
+  ctx.textBaseline = 'alphabetic';
 
-  // Hashtag
-  ctx.fillStyle = '#f5c518';
-  ctx.font = 'bold 28px Oswald,sans-serif';
-  ctx.fillText('#TorneoMoro2026', W/2, 1900);
+  // ── MARCATORI E CARTELLINI ─────────────────────────────────────────
+  const evStartY = scoreY + scoreR + 50;
+  const homeGoals  = (m.goals||[]).filter(e => e.teamId === m.home);
+  const awayGoals  = (m.goals||[]).filter(e => e.teamId === m.away);
+  const homeYellow = (m.yellow||[]).filter(e => e.teamId === m.home);
+  const awayYellow = (m.yellow||[]).filter(e => e.teamId === m.away);
+  const homeRed    = (m.red||[]).filter(e => e.teamId === m.home);
+  const awayRed    = (m.red||[]).filter(e => e.teamId === m.away);
+
+  // Funzione per disegnare riga marcatore con badge rosso
+  function drawScorerRow(name, goals, x, y, align) {
+    const boxW = 420, boxH = 52, badge = 52;
+    const boxX = align === 'right' ? x - boxW : x;
+
+    // Sfondo riga
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    roundRect(ctx, boxX, y, boxW, boxH, 6); ctx.fill();
+
+    // Badge gol rosso
+    ctx.fillStyle = '#cc2222';
+    if (align === 'right') {
+      roundRect(ctx, boxX, y, badge, boxH, 6); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String(goals), boxX + badge/2, y + boxH*0.72);
+      // Nome
+      ctx.fillStyle = '#111111';
+      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(name.toUpperCase(), boxX + badge + 12, y + boxH*0.72);
+    } else {
+      roundRect(ctx, boxX + boxW - badge, y, badge, boxH, 6); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String(goals), boxX + boxW - badge/2, y + boxH*0.72);
+      // Nome
+      ctx.fillStyle = '#111111';
+      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(name.toUpperCase(), boxX + boxW - badge - 12, y + boxH*0.72);
+    }
+  }
+
+  // Funzione per cartellino
+  function drawCardRow(name, type, x, y, align) {
+    const icon = type === 'yellow' ? '🟨' : '🟥';
+    const boxW = 380, boxH = 46;
+    const boxX = align === 'right' ? x - boxW : x;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    roundRect(ctx, boxX, y, boxW, boxH, 5); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = '500 22px Oswald, sans-serif';
+    if (align === 'right') {
+      ctx.textAlign = 'left';
+      ctx.fillText(icon + ' ' + name.toUpperCase(), boxX + 12, y + boxH*0.70);
+    } else {
+      ctx.textAlign = 'right';
+      ctx.fillText(name.toUpperCase() + ' ' + icon, boxX + boxW - 12, y + boxH*0.70);
+    }
+  }
+
+  // Colonne marcatori: home a sinistra (align right), away a destra (align left)
+  const colPad = 60;
+  let yL = evStartY, yR = evStartY;
+  const rowGap = 60;
+
+  homeGoals.forEach(e => {
+    drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right');
+    yL += rowGap;
+  });
+  homeYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 - colPad, yL, 'right'); yL += 54; });
+  homeRed.forEach(e => { drawCardRow(e.player, 'red', W/2 - colPad, yL, 'right'); yL += 54; });
+
+  awayGoals.forEach(e => {
+    drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left');
+    yR += rowGap;
+  });
+  awayYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 + colPad, yR, 'left'); yR += 54; });
+  awayRed.forEach(e => { drawCardRow(e.player, 'red', W/2 + colPad, yR, 'left'); yR += 54; });
+
+  // ── SPONSOR PRINCIPALE ─────────────────────────────────────────────
+  if (db.sponsors) {
+    const mainSponsors = db.sponsors.filter(s => s.tier === 'main');
+    if (mainSponsors.length && mainSponsors[0].logo) {
+      await drawImageOnCanvas(ctx, mainSponsors[0].logo, W/2-100, H-200, 200, 100);
+    }
+  }
+
+  // ── HASHTAG in fondo ───────────────────────────────────────────────
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '500 28px Oswald, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 50);
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -5885,7 +5922,7 @@ function igSetup(W, H) {
   return {canvas, ctx};
 }
 
-async function igGoldBar(ctx, W, H) {
+function igGoldBar(ctx, W, H) {
   const g = ctx.createLinearGradient(0,0,W,0);
   g.addColorStop(0,'transparent'); g.addColorStop(0.3,'#f5c518');
   g.addColorStop(0.7,'#f5c518'); g.addColorStop(1,'transparent');
@@ -5932,7 +5969,7 @@ async function exportIGStandings(torneo) {
   const H = Math.max(1080, HEADER_H + rows.length * ROW_H + FOOTER_H + 20);
 
   const {canvas, ctx} = igSetup(W, H);
-  await igGoldBar(ctx, W, H);
+  igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, 'CLASSIFICA', label);
@@ -6022,7 +6059,7 @@ async function exportIGRisultati(torneo) {
   const W=1080, MATCH_H=220, HEADER_H=185, FOOTER_H=55;
   const H = Math.max(1080, HEADER_H + matches.length*MATCH_H + FOOTER_H + 20);
   const {canvas, ctx} = igSetup(W, H);
-  await igGoldBar(ctx, W, H);
+  igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, `GIORNATA ${lastGiornata} — RISULTATI`, label);
@@ -6082,7 +6119,7 @@ async function exportIGBracket(torneo) {
 
   const W=1080, H=1080;
   const {canvas, ctx} = igSetup(W, H);
-  await igGoldBar(ctx, W, H);
+  igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, 'TABELLONE PLAYOFF', label);
@@ -6238,7 +6275,7 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   const FOOTER_H = 250; // Aumentato per sponsor quadrato
   
   const {canvas, ctx} = igSetup(W, H);
-  await igGoldBar(ctx, W, H);
+  igGoldBar(ctx, W, H);
   
   // Logo in alto con più spazio sotto
   await igDrawLogo(ctx, W, 40, 110);
