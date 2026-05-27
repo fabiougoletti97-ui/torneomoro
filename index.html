@@ -3755,73 +3755,81 @@ async function drawIGCard(m) {
   const homeRed    = (m.red||[]).filter(e => e.teamId === m.home);
   const awayRed    = (m.red||[]).filter(e => e.teamId === m.away);
 
-  // Funzione per disegnare riga marcatore con badge rosso
-  function drawScorerRow(name, goals, x, y, align) {
-    const boxW = 420, boxH = 52, badge = 52;
+  // Funzione per disegnare riga marcatore con badge numerato
+  function drawScorerRow(name, goals, x, y, align, badgeNum) {
+    const boxW = 320, boxH = 48;
+    const badge = 48;
     const boxX = align === 'right' ? x - boxW : x;
 
-    // Sfondo riga
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    roundRect(ctx, boxX, y, boxW, boxH, 6); ctx.fill();
-
-    // Badge gol rosso
+    // Badge numerato (rosso) a sinistra (home) o destra (away)
     ctx.fillStyle = '#cc2222';
     if (align === 'right') {
-      roundRect(ctx, boxX, y, badge, boxH, 6); ctx.fill();
+      roundRect(ctx, boxX, y, badge, boxH, 4); ctx.fill();
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(goals), boxX + badge/2, y + boxH*0.72);
+      ctx.font = 'bold 24px Oswald, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String(badgeNum), boxX + badge/2, y + boxH*0.70);
+      // Sfondo nome
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      roundRect(ctx, boxX + badge, y, boxW - badge, boxH, 4); ctx.fill();
       // Nome
       ctx.fillStyle = '#111111';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(name.toUpperCase(), boxX + badge + 12, y + boxH*0.72);
+      ctx.font = 'bold 20px Oswald, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(name.toUpperCase(), boxX + badge + 12, y + boxH*0.70);
     } else {
-      roundRect(ctx, boxX + boxW - badge, y, badge, boxH, 6); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(goals), boxX + boxW - badge/2, y + boxH*0.72);
+      // Sfondo nome
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      roundRect(ctx, boxX, y, boxW - badge, boxH, 4); ctx.fill();
       // Nome
       ctx.fillStyle = '#111111';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'right';
-      ctx.fillText(name.toUpperCase(), boxX + boxW - badge - 12, y + boxH*0.72);
+      ctx.font = 'bold 20px Oswald, sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(name.toUpperCase(), boxX + boxW - badge - 12, y + boxH*0.70);
+      // Badge numerato (rosso)
+      ctx.fillStyle = '#cc2222';
+      roundRect(ctx, boxX + boxW - badge, y, badge, boxH, 4); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px Oswald, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String(badgeNum), boxX + boxW - badge/2, y + boxH*0.70);
     }
   }
 
   // Funzione per cartellino
   function drawCardRow(name, type, x, y, align) {
     const icon = type === 'yellow' ? '🟨' : '🟥';
-    const boxW = 380, boxH = 46;
+    const boxW = 280, boxH = 40;
     const boxX = align === 'right' ? x - boxW : x;
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    roundRect(ctx, boxX, y, boxW, boxH, 5); ctx.fill();
-    ctx.fillStyle = '#ffffff'; ctx.font = '500 22px Oswald, sans-serif';
+    roundRect(ctx, boxX, y, boxW, boxH, 4); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = '500 18px Oswald, sans-serif';
     if (align === 'right') {
       ctx.textAlign = 'left';
-      ctx.fillText(icon + ' ' + name.toUpperCase(), boxX + 12, y + boxH*0.70);
+      ctx.fillText(icon + ' ' + name.toUpperCase(), boxX + 12, y + boxH*0.65);
     } else {
       ctx.textAlign = 'right';
-      ctx.fillText(name.toUpperCase() + ' ' + icon, boxX + boxW - 12, y + boxH*0.70);
+      ctx.fillText(name.toUpperCase() + ' ' + icon, boxX + boxW - 12, y + boxH*0.65);
     }
   }
 
-  // Colonne marcatori: home a sinistra (align right), away a destra (align left)
-  const colPad = 60;
+  // Tabelle marcatori: home a sinistra (align right), away a destra (align left)
+  const colPad = 80;
   let yL = evStartY, yR = evStartY;
-  const rowGap = 60;
+  const rowGap = 50;
+  let homeScoreIdx = 1, awayScoreIdx = 1;
 
   homeGoals.forEach(e => {
-    drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right');
+    drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right', homeScoreIdx);
+    homeScoreIdx++;
     yL += rowGap;
   });
-  homeYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 - colPad, yL, 'right'); yL += 54; });
-  homeRed.forEach(e => { drawCardRow(e.player, 'red', W/2 - colPad, yL, 'right'); yL += 54; });
+  homeYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 - colPad, yL, 'right'); yL += 44; });
+  homeRed.forEach(e => { drawCardRow(e.player, 'red', W/2 - colPad, yL, 'right'); yL += 44; });
 
   awayGoals.forEach(e => {
-    drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left');
+    drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left', awayScoreIdx);
+    awayScoreIdx++;
     yR += rowGap;
   });
-  awayYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 + colPad, yR, 'left'); yR += 54; });
-  awayRed.forEach(e => { drawCardRow(e.player, 'red', W/2 + colPad, yR, 'left'); yR += 54; });
+  awayYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 + colPad, yR, 'left'); yR += 44; });
+  awayRed.forEach(e => { drawCardRow(e.player, 'red', W/2 + colPad, yR, 'left'); yR += 44; });
 
   // ── SPONSOR PRINCIPALE ─────────────────────────────────────────────
   if (db.sponsors) {
