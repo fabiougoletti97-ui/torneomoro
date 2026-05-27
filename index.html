@@ -3389,7 +3389,36 @@ function computeStandings(torneo){
     else if(m.scoreHome<m.scoreAway){a.W++;a.Pts+=3;h.L++;a.form.push('W');h.form.push('L');}
     else{h.D++;a.D++;h.Pts++;a.Pts++;h.form.push('D');a.form.push('D');}
   });
-  return Object.values(stats).sort((a,b)=>b.Pts-a.Pts||(b.GF-b.GA)-(a.GF-a.GA)||b.GF-a.GF);
+  
+  // Ordina per: Punti → Diff.Reti → Gol.Fatti → Gol.Subiti
+  const sorted = Object.values(stats).sort((a,b)=>{
+    if(b.Pts !== a.Pts) return b.Pts - a.Pts;
+    const drA = a.GF - a.GA, drB = b.GF - b.GA;
+    if(drB !== drA) return drB - drA;
+    if(b.GF !== a.GF) return b.GF - a.GF;
+    return b.GA - a.GA;
+  });
+  
+  // Assegna posizioni: squadre identiche hanno stessa posizione
+  let currentPos = 1;
+  sorted.forEach((team, idx) => {
+    if(idx > 0) {
+      const prev = sorted[idx-1];
+      // Se sono identiche in tutto, mantieni la stessa posizione
+      if(prev.Pts === team.Pts && 
+         prev.GF - prev.GA === team.GF - team.GA && 
+         prev.GF === team.GF && 
+         prev.GA === team.GA) {
+        team.position = prev.position;
+      } else {
+        team.position = idx + 1;
+      }
+    } else {
+      team.position = 1;
+    }
+  });
+  
+  return sorted;
 }
 
 function renderStandings(){
@@ -3427,9 +3456,9 @@ function renderStandings(){
     <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>Pts</th><th>DR</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
-      const zone=getZone(i);
-      const posStyle=getPosStyle(i);
-      const posLabel = i+1;
+      const zone=getZone(r.position);
+      const posStyle=getPosStyle(r.position);
+      const posLabel = r.position;
       const t=db.teams.find(t=>t.id===r.id);
       const fn=t?t.fascia||1:1;
       const fasciaCell=`<span class="team-fascia team-fascia-${fn}" style="font-size:0.6rem;padding:2px 6px;">${fasciaStars[fn]}</span>`;
@@ -3518,13 +3547,29 @@ function renderStats(){
   if(curStatView==='scorers'){
     const sorted=allPlayers.filter(p=>p.goals>0).sort((a,b)=>b.goals-a.goals).slice(0, 15);
     if(!sorted.length){cont.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessun gol registrato.</p>';return;}
+    
+    // Assegna posizioni: giocatori con stessi gol hanno stessa posizione
+    sorted.forEach((player, idx) => {
+      if(idx > 0) {
+        const prev = sorted[idx-1];
+        if(prev.goals === player.goals) {
+          player.position = prev.position;
+        } else {
+          player.position = idx + 1;
+        }
+      } else {
+        player.position = 1;
+      }
+    });
+    
     const posIcons=['🥇','🥈','🥉'];
     cont.innerHTML=`<table class="scorer-table">
       <thead><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>⚽ Gol</th></tr></thead>
       <tbody>${sorted.map((p,i)=>{
         const t=getTeam(p.teamId);
+        const posLabel = p.position <= 3 ? posIcons[p.position-1] : p.position;
         return `<tr>
-          <td><span style="font-size:1rem;">${posIcons[i]||i+1}</span></td>
+          <td><span style="font-size:1rem;">${posLabel}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
           <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-goals">${p.goals}</span></td>
@@ -3533,12 +3578,27 @@ function renderStats(){
   } else if(curStatView==='yellow'){
     const sorted=allPlayers.filter(p=>p.yellow>0).sort((a,b)=>b.yellow-a.yellow);
     if(!sorted.length){cont.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessuna ammonizione registrata.</p>';return;}
+    
+    // Assegna posizioni: giocatori con stesse ammonizioni hanno stessa posizione
+    sorted.forEach((player, idx) => {
+      if(idx > 0) {
+        const prev = sorted[idx-1];
+        if(prev.yellow === player.yellow) {
+          player.position = prev.position;
+        } else {
+          player.position = idx + 1;
+        }
+      } else {
+        player.position = 1;
+      }
+    });
+    
     cont.innerHTML=`<table class="scorer-table">
       <thead><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>🟨 Amm.</th></tr></thead>
       <tbody>${sorted.map((p,i)=>{
         const t=getTeam(p.teamId);
         return `<tr>
-          <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
+          <td><span style="font-family:Oswald;color:var(--muted);">${p.position}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
           <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-yellow">${p.yellow}</span></td>
@@ -3547,12 +3607,27 @@ function renderStats(){
   } else {
     const sorted=allPlayers.filter(p=>p.red>0).sort((a,b)=>b.red-a.red);
     if(!sorted.length){cont.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessuna espulsione registrata.</p>';return;}
+    
+    // Assegna posizioni: giocatori con stesse espulsioni hanno stessa posizione
+    sorted.forEach((player, idx) => {
+      if(idx > 0) {
+        const prev = sorted[idx-1];
+        if(prev.red === player.red) {
+          player.position = prev.position;
+        } else {
+          player.position = idx + 1;
+        }
+      } else {
+        player.position = 1;
+      }
+    });
+    
     cont.innerHTML=`<table class="scorer-table">
       <thead><tr><th>#</th><th>Giocatore</th><th>Squadra</th><th>🟥 Esp.</th></tr></thead>
       <tbody>${sorted.map((p,i)=>{
         const t=getTeam(p.teamId);
         return `<tr>
-          <td><span style="font-family:Oswald;color:var(--muted);">${i+1}</span></td>
+          <td><span style="font-family:Oswald;color:var(--muted);">${p.position}</span></td>
           <td><span style="font-family:Oswald;font-weight:600;">${p.name}</span></td>
           <td><span style="color:var(--muted);font-size:0.82rem;">${t?teamDisplay(t,20):'-'}</span></td>
           <td><span class="scorer-red">${p.red}</span></td>
