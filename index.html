@@ -3778,19 +3778,19 @@ async function drawIGCard(m) {
     ...awayRed.map(e => ({...e, type: 'red', align: 'left'}))
   ].sort((a, b) => (a.minuto || 0) - (b.minuto || 0));
 
-  // Funzione per disegnare riga marcatore con badge numerato
-  function drawScorerRow(name, goals, x, y, align, badgeNum) {
+  // Funzione per disegnare riga marcatore con numero gol
+  function drawScorerRow(name, goals, x, y, align) {
     const boxW = 320, boxH = 48;
     const badge = 48;
     const boxX = align === 'right' ? x - boxW : x;
 
-    // Badge numerato (rosso) a sinistra (home) o destra (away)
+    // Badge numero gol (rosso) a sinistra (home) o destra (away)
     ctx.fillStyle = '#cc2222';
     if (align === 'right') {
       roundRect(ctx, boxX, y, badge, boxH, 4); ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 24px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(badgeNum), boxX + badge/2, y + boxH*0.70);
+      ctx.fillText(String(goals), boxX + badge/2, y + boxH*0.70);
       // Sfondo nome
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       roundRect(ctx, boxX + badge, y, boxW - badge, boxH, 4); ctx.fill();
@@ -3806,12 +3806,12 @@ async function drawIGCard(m) {
       ctx.fillStyle = '#111111';
       ctx.font = 'bold 20px Oswald, sans-serif'; ctx.textAlign = 'right';
       ctx.fillText(name.toUpperCase(), boxX + boxW - badge - 12, y + boxH*0.70);
-      // Badge numerato (rosso)
+      // Badge numero gol (rosso)
       ctx.fillStyle = '#cc2222';
       roundRect(ctx, boxX + boxW - badge, y, badge, boxH, 4); ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 24px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(badgeNum), boxX + boxW - badge/2, y + boxH*0.70);
+      ctx.fillText(String(goals), boxX + boxW - badge/2, y + boxH*0.70);
     }
   }
 
@@ -3836,13 +3836,11 @@ async function drawIGCard(m) {
   const colPad = 80;
   let yL = evStartY, yR = evStartY;
   const rowGap = 50;
-  let homeScoreIdx = 1, awayScoreIdx = 1;
 
   // Disegna gli eventi in ordine cronologico
   homeEvents.forEach(e => {
     if (e.type === 'goal') {
-      drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right', homeScoreIdx);
-      homeScoreIdx++;
+      drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right');
       yL += rowGap;
     } else {
       drawCardRow(e.player, e.type, W/2 - colPad, yL, 'right');
@@ -3852,8 +3850,7 @@ async function drawIGCard(m) {
 
   awayEvents.forEach(e => {
     if (e.type === 'goal') {
-      drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left', awayScoreIdx);
-      awayScoreIdx++;
+      drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left');
       yR += rowGap;
     } else {
       drawCardRow(e.player, e.type, W/2 + colPad, yR, 'left');
