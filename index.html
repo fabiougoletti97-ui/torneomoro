@@ -3632,7 +3632,7 @@ async function drawIGCard(m) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 48px Bebas Neue,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`Torneo ${m.torneo === 'M' ? 'Maschile' : 'Femminile'} ${new Date(m.date).toLocaleDateString('it-IT')}`, W/2, 180);
+  ctx.fillText(`Torneo ${m.torneo === 'M' ? 'Maschile' : 'Femminile'} ${m.date}`, W/2, 180);
 
   // ── CAMPO CON LOGHI TORNEI (200-400px) ────────────────────────────────
   // Disegna campo da calcio
@@ -3800,74 +3800,6 @@ async function drawIGCard(m) {
   ctx.font = 'bold 28px Oswald,sans-serif';
   ctx.fillText('#TorneoMoro2026', W/2, 1900);
 }
-  const tmcB64 = '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';
-  await drawImageOnCanvas(ctx, 'data:image/png;base64,'+tmcB64, W/2-170, 60, 340, 160);
-
-  // ── TORNEO LABEL ───────────────────────────────────────────────────
-  const torneoLabel = m.torneo === 'M' ? 'TORNEO MASCHILE' : 'TORNEO FEMMINILE';
-  const torneoColor = m.torneo === 'M' ? '#7ec8f7' : '#f7a8e0';
-  ctx.font = '500 32px Oswald, sans-serif';
-  ctx.fillStyle = torneoColor;
-  ctx.textAlign = 'center';
-  ctx.fillText(torneoLabel + (m.date ? '  ·  ' + m.date.toUpperCase() : ''), W/2, 255);
-
-  // ── LOGHI SQUADRE — cerchi grandi ──────────────────────────────────
-  const logoY = 360;
-  const logoR = 320; // raggio cerchio (raddoppiato da 160)
-  const homeX = W * 0.25;
-  const awayX = W * 0.75;
-
-  // Funzione disegna cerchio logo
-  async function drawTeamCircle(team, cx, cy, r, color) {
-    // Shadow glow
-    ctx.save();
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 80;
-    // Cerchio sfondo
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.fill();
-    ctx.restore();
-    // Bordo colorato
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.stroke();
-    // Logo dentro il cerchio
-    if (team && team.logo) {
-      ctx.save();
-      ctx.beginPath(); ctx.arc(cx, cy, r-12, 0, Math.PI*2); ctx.clip();
-      await drawImageOnCanvas(ctx, team.logo, cx-r+12, cy-r+12, (r-12)*2, (r-12)*2);
-      ctx.restore();
-    }
-  }
-
-  await drawTeamCircle(home, homeX, logoY + logoR, logoR, homeColor);
-  await drawTeamCircle(away, awayX, logoY + logoR, logoR, awayColor);
-
-  // ── FULL TIME banner ───────────────────────────────────────────────
-  const ftY = logoY + logoR*2 + 120;
-  roundRect(ctx, W/2-320, ftY, 640, 112, 16);
-  ctx.fillStyle = '#1a3a6e';
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 68px Oswald, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('FULL TIME', W/2, ftY + 76);
-
-  // ── NOMI SQUADRE ───────────────────────────────────────────────────
-  const nameY = ftY + 200;
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 140px Bebas Neue, sans-serif';
-  // Home name (wrapping se lungo)
-  const homeLines = wrapText(homeName, 12);
-  homeLines.forEach((line, i) => ctx.fillText(line, homeX, nameY + i*152));
-  // Away name
-  const awayLines = wrapText(awayName, 12);
-  awayLines.forEach((line, i) => ctx.fillText(line, awayX, nameY + i*152));
-
-  // ── PUNTEGGIO CENTRALE ENORME ──────────────────────────────────────
-  const scoreY = nameY + (Math.max(homeLines.length, awayLines.length)) * 152 + 120;
-
   // Cerchio sfondo punteggio
   const scoreR = 360;
   ctx.save();
