@@ -3424,7 +3424,7 @@ function renderStandings(){
   const fasciaStars = ['','⭐⭐⭐','⭐⭐','⭐'];
   const showFascia = curSt === 'M';
   document.getElementById('standings-content').innerHTML=`<table class="standings-table">
-    <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th><th>Pts</th><th>Forma</th></tr></thead>
+    <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>Pts</th><th>DR</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
       const zone=getZone(i);
@@ -3437,9 +3437,11 @@ function renderStandings(){
         <td><span style="font-family:Oswald;font-size:1rem;${posStyle}">${posLabel}</span></td>
         <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),24)}${r.name}</span></td>
         ${showFascia ? `<td>${fasciaCell}</td>` : ''}
-        <td>${r.G}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
-        <td>${r.GF}</td><td>${r.GA}</td><td>${r.GF-r.GA>0?'+':''}${r.GF-r.GA}</td>
+        <td>${r.G}</td>
         <td><span class="rank-pts">${r.Pts}</span></td>
+        <td>${r.GF-r.GA>0?'+':''}${r.GF-r.GA}</td>
+        <td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
+        <td>${r.GF}</td><td>${r.GA}</td>
         <td><div class="form-badges">${form}</div></td></tr>`;
     }).join('')}</tbody></table>`;
   renderStandingsLegend();
@@ -3514,7 +3516,7 @@ function renderStats(){
   if(!allPlayers.length){cont.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessun dato disponibile. Inserisci i dettagli delle partite tramite il pulsante Dettaglio nel Calendario (admin).</p>';return;}
   
   if(curStatView==='scorers'){
-    const sorted=allPlayers.filter(p=>p.goals>0).sort((a,b)=>b.goals-a.goals);
+    const sorted=allPlayers.filter(p=>p.goals>0).sort((a,b)=>b.goals-a.goals).slice(0, 15);
     if(!sorted.length){cont.innerHTML='<p style="color:var(--muted);font-size:0.88rem;">Nessun gol registrato.</p>';return;}
     const posIcons=['🥇','🥈','🥉'];
     cont.innerHTML=`<table class="scorer-table">
