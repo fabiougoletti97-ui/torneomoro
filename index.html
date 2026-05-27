@@ -3632,7 +3632,7 @@ async function drawIGCard(m) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 48px Bebas Neue,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`Torneo ${m.torneo === 'M' ? 'Maschile' : 'Femminile'} ${m.date}`, W/2, 180);
+  ctx.fillText(`Torneo ${m.torneo === 'M' ? 'Maschile' : 'Femminile'} ${new Date(m.date).toLocaleDateString('it-IT')}`, W/2, 180);
 
   // ── CAMPO CON LOGHI TORNEI (200-400px) ────────────────────────────────
   // Disegna campo da calcio
