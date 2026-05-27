@@ -3800,124 +3800,6 @@ async function drawIGCard(m) {
   ctx.font = 'bold 28px Oswald,sans-serif';
   ctx.fillText('#TorneoMoro2026', W/2, 1900);
 }
-  // Cerchio sfondo punteggio
-  const scoreR = 360;
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 60;
-  ctx.beginPath(); ctx.arc(W/2, scoreY, scoreR, 0, Math.PI*2);
-  ctx.fillStyle = hexAlpha(homeColor, 0.25);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 6; ctx.stroke();
-  ctx.restore();
-
-  // Punteggio
-  ctx.font = 'bold 400px Bebas Neue, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const hWin = m.scoreHome > m.scoreAway;
-  const aWin = m.scoreAway > m.scoreHome;
-  ctx.fillStyle = hWin ? '#3ecf5e' : '#ffffff';
-  ctx.fillText(String(m.scoreHome), W/2 - 220, scoreY);
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = 'bold 240px Bebas Neue, sans-serif';
-  ctx.fillText('-', W/2, scoreY);
-  ctx.fillStyle = aWin ? '#3ecf5e' : '#ffffff';
-  ctx.font = 'bold 400px Bebas Neue, sans-serif';
-  ctx.fillText(String(m.scoreAway), W/2 + 220, scoreY);
-  ctx.textBaseline = 'alphabetic';
-
-  // ── MARCATORI E CARTELLINI ─────────────────────────────────────────
-  const evStartY = scoreY + scoreR + 50;
-  const homeGoals  = (m.goals||[]).filter(e => e.teamId === m.home);
-  const awayGoals  = (m.goals||[]).filter(e => e.teamId === m.away);
-  const homeYellow = (m.yellow||[]).filter(e => e.teamId === m.home);
-  const awayYellow = (m.yellow||[]).filter(e => e.teamId === m.away);
-  const homeRed    = (m.red||[]).filter(e => e.teamId === m.home);
-  const awayRed    = (m.red||[]).filter(e => e.teamId === m.away);
-
-  // Funzione per disegnare riga marcatore con badge rosso
-  function drawScorerRow(name, goals, x, y, align) {
-    const boxW = 420, boxH = 52, badge = 52;
-    const boxX = align === 'right' ? x - boxW : x;
-
-    // Sfondo riga
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    roundRect(ctx, boxX, y, boxW, boxH, 6); ctx.fill();
-
-    // Badge gol rosso
-    ctx.fillStyle = '#cc2222';
-    if (align === 'right') {
-      roundRect(ctx, boxX, y, badge, boxH, 6); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(goals), boxX + badge/2, y + boxH*0.72);
-      // Nome
-      ctx.fillStyle = '#111111';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(name.toUpperCase(), boxX + badge + 12, y + boxH*0.72);
-    } else {
-      roundRect(ctx, boxX + boxW - badge, y, badge, boxH, 6); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(String(goals), boxX + boxW - badge/2, y + boxH*0.72);
-      // Nome
-      ctx.fillStyle = '#111111';
-      ctx.font = 'bold 26px Oswald, sans-serif'; ctx.textAlign = 'right';
-      ctx.fillText(name.toUpperCase(), boxX + boxW - badge - 12, y + boxH*0.72);
-    }
-  }
-
-  // Funzione per cartellino
-  function drawCardRow(name, type, x, y, align) {
-    const icon = type === 'yellow' ? '🟨' : '🟥';
-    const boxW = 380, boxH = 46;
-    const boxX = align === 'right' ? x - boxW : x;
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    roundRect(ctx, boxX, y, boxW, boxH, 5); ctx.fill();
-    ctx.fillStyle = '#ffffff'; ctx.font = '500 22px Oswald, sans-serif';
-    if (align === 'right') {
-      ctx.textAlign = 'left';
-      ctx.fillText(icon + ' ' + name.toUpperCase(), boxX + 12, y + boxH*0.70);
-    } else {
-      ctx.textAlign = 'right';
-      ctx.fillText(name.toUpperCase() + ' ' + icon, boxX + boxW - 12, y + boxH*0.70);
-    }
-  }
-
-  // Colonne marcatori: home a sinistra (align right), away a destra (align left)
-  const colPad = 60;
-  let yL = evStartY, yR = evStartY;
-  const rowGap = 60;
-
-  homeGoals.forEach(e => {
-    drawScorerRow(e.player, e.goals||1, W/2 - colPad, yL, 'right');
-    yL += rowGap;
-  });
-  homeYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 - colPad, yL, 'right'); yL += 54; });
-  homeRed.forEach(e => { drawCardRow(e.player, 'red', W/2 - colPad, yL, 'right'); yL += 54; });
-
-  awayGoals.forEach(e => {
-    drawScorerRow(e.player, e.goals||1, W/2 + colPad, yR, 'left');
-    yR += rowGap;
-  });
-  awayYellow.forEach(e => { drawCardRow(e.player, 'yellow', W/2 + colPad, yR, 'left'); yR += 54; });
-  awayRed.forEach(e => { drawCardRow(e.player, 'red', W/2 + colPad, yR, 'left'); yR += 54; });
-
-  // ── SPONSOR PRINCIPALE ─────────────────────────────────────────────
-  if (db.sponsors) {
-    const mainSponsors = db.sponsors.filter(s => s.tier === 'main');
-    if (mainSponsors.length && mainSponsors[0].logo) {
-      await drawImageOnCanvas(ctx, mainSponsors[0].logo, W/2-100, H-200, 200, 100);
-    }
-  }
-
-  // ── HASHTAG in fondo ───────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '500 28px Oswald, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('#TorneoMoro2026  ·  #CalcioA7', W/2, H - 50);
-}
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function hexAlpha(hex, alpha) {
@@ -6003,7 +5885,7 @@ function igSetup(W, H) {
   return {canvas, ctx};
 }
 
-function igGoldBar(ctx, W, H) {
+async function igGoldBar(ctx, W, H) {
   const g = ctx.createLinearGradient(0,0,W,0);
   g.addColorStop(0,'transparent'); g.addColorStop(0.3,'#f5c518');
   g.addColorStop(0.7,'#f5c518'); g.addColorStop(1,'transparent');
@@ -6050,7 +5932,7 @@ async function exportIGStandings(torneo) {
   const H = Math.max(1080, HEADER_H + rows.length * ROW_H + FOOTER_H + 20);
 
   const {canvas, ctx} = igSetup(W, H);
-  igGoldBar(ctx, W, H);
+  await igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, 'CLASSIFICA', label);
@@ -6140,7 +6022,7 @@ async function exportIGRisultati(torneo) {
   const W=1080, MATCH_H=220, HEADER_H=185, FOOTER_H=55;
   const H = Math.max(1080, HEADER_H + matches.length*MATCH_H + FOOTER_H + 20);
   const {canvas, ctx} = igSetup(W, H);
-  igGoldBar(ctx, W, H);
+  await igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, `GIORNATA ${lastGiornata} — RISULTATI`, label);
@@ -6200,7 +6082,7 @@ async function exportIGBracket(torneo) {
 
   const W=1080, H=1080;
   const {canvas, ctx} = igSetup(W, H);
-  igGoldBar(ctx, W, H);
+  await igGoldBar(ctx, W, H);
   await igDrawLogo(ctx, W, 15, 55);
   const label = torneo==='M' ? '♂ MASCHILE' : '♀ FEMMINILE';
   igHeader(ctx, W, 'TABELLONE PLAYOFF', label);
@@ -6356,7 +6238,7 @@ async function generateStoryForTorneo(dateStr, matches, torneo) {
   const FOOTER_H = 250; // Aumentato per sponsor quadrato
   
   const {canvas, ctx} = igSetup(W, H);
-  igGoldBar(ctx, W, H);
+  await igGoldBar(ctx, W, H);
   
   // Logo in alto con più spazio sotto
   await igDrawLogo(ctx, W, 40, 110);
