@@ -3774,27 +3774,6 @@ async function drawIGCard(m) {
     awayScorersY += 50;
   });
 
-  // ── SPONSOR LOGO (sotto marcatori) ─────────────────────────────────────
-  // Seleziona sponsor principale
-  const sponsors = db.sponsors.filter(s => s.logo);
-  if (sponsors.length > 0) {
-    const mainSponsor = sponsors[0]; // Primo sponsor come main
-    const sponsorLogoY = scorersY + 380;
-    const sponsorLogoSize = 120;
-    
-    // Riquadro sponsor
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.beginPath();
-    ctx.roundRect(W/2 - 90, sponsorLogoY - 60, 180, 140, 12);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(245,197,24,0.3)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Logo sponsor nel riquadro
-    await drawImageOnCanvas(ctx, mainSponsor.logo, W/2 - sponsorLogoSize/2, sponsorLogoY - 50, sponsorLogoSize, sponsorLogoSize);
-  }
-
   // ── FOOTER CAMPO (1400-1920px) ────────────────────────────────────────
   ctx.save();
   ctx.globalAlpha = 0.15;
