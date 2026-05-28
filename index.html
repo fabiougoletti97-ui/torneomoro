@@ -448,13 +448,11 @@ body.admin-mode .add-player-btn{display:block;}
 .nba-bracket{
   display:flex;align-items:stretch;gap:0;
   min-width:860px;
-  position:relative;
 }
 .nba-round{
   flex:1;display:flex;flex-direction:column;
   border-right:1px solid rgba(255,255,255,0.05);
   padding:0 6px;
-  position:relative;
 }
 .nba-round:last-child{border-right:none;}
 .nba-round-title{
@@ -468,16 +466,6 @@ body.admin-mode .add-player-btn{display:block;}
   flex:1;
   padding:10px 0;
   gap:8px;
-  position:relative;
-}
-/* Linee di connessione fra i round */
-.nba-round::after{
-  content:'';position:absolute;right:-1px;top:0;bottom:0;
-  background:linear-gradient(to right,
-    transparent 0%,
-    rgba(255,255,255,0.03) 50%,
-    transparent 100%);
-  pointer-events:none;
 }
 /* The connector line between rounds */
 .nba-match{
@@ -541,18 +529,6 @@ body.admin-mode .add-player-btn{display:block;}
 }
 body.admin-mode .nba-edit-btn{display:inline-block;}
 .nba-edit-btn:hover{background:rgba(245,197,24,0.12);}
-/* Badge per semifinali nei Quarti */
-.nba-semi-badge{
-  font-size:0.65rem;color:#7ec8f7;font-family:'Oswald';letter-spacing:0.5px;
-  padding:4px 8px;background:rgba(126,200,245,0.12);
-  text-align:center;border-top:1px solid rgba(126,200,245,0.2);
-  font-weight:600;text-transform:uppercase;
-  cursor:pointer;transition:all 0.2s;
-}
-.nba-semi-badge:hover{
-  background:rgba(126,200,245,0.2);
-  color:#fff;
-}
 /* Champion banner */
 .winner-display{
   text-align:center;padding:2rem 1rem;
@@ -3463,13 +3439,10 @@ function renderStandings(){
     return 'zona-elim';
   }
   function getPosStyle(i){
-    // Colori basati sull'indice di riga (posizione visiva)
     if(curSt==='F'){
-      // Femminile: 1-4 (indici 0-3) verde, 5-8 (indici 4-7) rosso
       if(i<=3) return 'color:var(--grass-l);font-weight:700;';
       return 'color:var(--red);font-weight:600;';
     }
-    // Maschile: 1-4 (indici 0-3) verde, 5-12 (indici 4-11) giallo, 13-16 (indici 12-15) rosso
     if(i<=3) return 'color:var(--grass-l);font-weight:700;';
     if(i<=11) return 'color:var(--gold);font-weight:600;';
     return 'color:var(--red);font-weight:600;';
@@ -3483,26 +3456,13 @@ function renderStandings(){
     <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>Pts</th><th>DR</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
-      const posStyle=getPosStyle(i);
+      const zone=getZone(r.position);
+      const posStyle=getPosStyle(r.position);
       const posLabel = r.position;
       const t=db.teams.find(t=>t.id===r.id);
       const fn=t?t.fascia||1:1;
       const fasciaCell=`<span class="team-fascia team-fascia-${fn}" style="font-size:0.6rem;padding:2px 6px;">${fasciaStars[fn]}</span>`;
-      
-      // Colori dipendono dall'indice di riga (posizione visiva), non dalla posizione calcolata
-      let rowClass = '';
-      if(curSt==='F'){
-        // Femminile: 1-4 (indici 0-3) verde, 5-8 (indici 4-7) rosso
-        if(i <= 3) rowClass = 'zona-qual';
-        else rowClass = 'zona-elim';
-      } else {
-        // Maschile: 1-4 (indici 0-3) verde, 5-12 (indici 4-11) giallo, 13-16 (indici 12-15) rosso
-        if(i <= 3) rowClass = 'zona-qual';
-        else if(i <= 11) rowClass = 'zona-playoff';
-        else rowClass = 'zona-elim';
-      }
-      
-      return `<tr class="${rowClass}">
+      return `<tr class="${zone}">
         <td><span style="font-family:Oswald;font-size:1rem;${posStyle}">${posLabel}</span></td>
         <td><span style="font-family:Oswald;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:6px;">${teamLogo(db.teams.find(t=>t.id===r.id),24)}${r.name}</span></td>
         ${showFascia ? `<td>${fasciaCell}</td>` : ''}
@@ -5566,21 +5526,11 @@ function autoUpdatePlayoff(torneo) {
     [0,1,2,3].forEach(slot => {
       const topRow = rows[slot];
       const e = ex('quarti', slot);
-      
-      // Mapping fra slot quarto e slot play-in
-      const playInSeeds = [
-        {seeds: [8,9]},  // Q0 vs Vin(Ott0: 8 vs 9)
-        {seeds: [7,10]}, // Q1 vs Vin(Ott1: 7 vs 10)
-        {seeds: [6,11]}, // Q2 vs Vin(Ott2: 6 vs 11)
-        {seeds: [5,12]}  // Q3 vs Vin(Ott3: 5 vs 12)
-      ];
-      const seeds = playInSeeds[slot].seeds;
-      
       matches.push({
         id: e.id||newId('quarti',slot), round:'quarti', slot,
         homeId: topRow?.id||null, awayId: null,
         homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name : 'TBD',
-        awayLabel: 'Vin. Play-In '+seeds[0]+' vs '+seeds[1],
+        awayLabel: 'Vin. Play-In '+(slot+1),
         homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
         scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
@@ -5700,8 +5650,7 @@ function nbaMatchHtml(m, extraCls) {
   const sH = (m.scoreHome!==null && m.scoreHome!==undefined) ? m.scoreHome : '';
   const sA = (m.scoreAway!==null && m.scoreAway!==undefined) ? m.scoreAway : '';
   const dateStr = [m.date, m.time, m.field?'🏟️ C.'+m.field:null].filter(Boolean).join(' · ') || '';
-  const matchId = m.id ? m.id.replace(/[^a-zA-Z0-9_-]/g, '') : '';
-  return `<div class="nba-match ${extraCls||''}" data-match-id="${matchId}">
+  return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
       <span class="nba-seed">${m.homeSeed||''}</span>
       <span class="nba-name">${m.homeLabel}</span>
@@ -5732,40 +5681,18 @@ function renderPlayoff() {
   let html = '<div class="bracket-container"><div class="nba-bracket">';
 
   if (curPlayoff === 'M') {
-    // PLAY-IN (4 match) - ordinati per accoppiamento quartale
+    // OTTAVI (4 match, stacked)
     html += `<div class="nba-round">
       <div class="nba-round-title">Play-In</div>
       <div class="nba-slots">`;
-    const ottaviRound = byRound('ottavi');
-    // Ordine per accoppiamenti: Ott0 (Q0), Ott3 (Q3), Ott1 (Q1), Ott2 (Q2)
-    const ottaviOrder = [0, 3, 1, 2];
-    ottaviOrder.forEach((idx) => {
-      const m = ottaviRound[idx];
-      if(!m) return;
-      
-      // Badge solo con freccia
-      const matchHtml = nbaMatchHtml(m, '');
-      const withBadge = matchHtml.replace('</div></div>', `<div class="nba-semi-badge">↓</div></div></div>`);
-      html += withBadge;
-    });
+    byRound('ottavi').forEach(m => { html += nbaMatchHtml(m, ''); });
     html += `</div></div>`;
 
-    // QUARTI (4 match) - ordinati per accoppiamento semifinale
+    // QUARTI (4 match)
     html += `<div class="nba-round">
       <div class="nba-round-title">Quarti di Finale</div>
       <div class="nba-slots">`;
-    const quartiRound = byRound('quarti');
-    // Ordine per accoppiamenti: Q0 (semi 1), Q3 (semi 1), Q1 (semi 2), Q2 (semi 2)
-    const quartiOrder = [0, 3, 1, 2];
-    quartiOrder.forEach(idx => {
-      const m = quartiRound[idx];
-      if(!m) return;
-      
-      // Badge solo con freccia, senza testo
-      const matchHtml = nbaMatchHtml(m, '');
-      const withBadge = matchHtml.replace('</div></div>', `<div class="nba-semi-badge">↓</div></div></div>`);
-      html += withBadge;
-    });
+    byRound('quarti').forEach(m => { html += nbaMatchHtml(m, ''); });
     html += `</div></div>`;
 
     // SEMIFINALI (2 match)
