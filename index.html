@@ -3431,20 +3431,21 @@ function renderStandings(){
   // Femminile: 1-4 giallo, 5-8 verde (no red zone)
   function getZone(i){
     if(curSt==='F'){
-      if(i<=3) return 'zona-qual';   // top 4 = green
-      return 'zona-elim';            // bottom 4 = red
+      if(i<=4) return 'zona-qual';   // 1-4 verde
+      return 'zona-elim';            // 5-8 rosso
     }
-    if(i<=3) return 'zona-qual';
-    if(i<=11) return 'zona-playoff';
+    // Maschile: 1-4 verde, 5-12 giallo, 13-16 rosso
+    if(i<=4) return 'zona-qual';
+    if(i<=12) return 'zona-playoff';
     return 'zona-elim';
   }
   function getPosStyle(i){
     if(curSt==='F'){
-      if(i<=3) return 'color:var(--grass-l);font-weight:700;';
+      if(i<=4) return 'color:var(--grass-l);font-weight:700;';
       return 'color:var(--red);font-weight:600;';
     }
-    if(i<=3) return 'color:var(--grass-l);font-weight:700;';
-    if(i<=11) return 'color:var(--gold);font-weight:600;';
+    if(i<=4) return 'color:var(--grass-l);font-weight:700;';
+    if(i<=12) return 'color:var(--gold);font-weight:600;';
     return 'color:var(--red);font-weight:600;';
   }
 
@@ -3456,8 +3457,8 @@ function renderStandings(){
     <thead><tr><th>#</th><th>Squadra</th>${showFascia ? '<th style="font-size:0.65rem;">Fascia</th>' : ''}<th>G</th><th>Pts</th><th>DR</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>Forma</th></tr></thead>
     <tbody>${rows.map((r,i)=>{
       const form=r.form.slice(-5).map(f=>`<div class="form-${f.toLowerCase()}">${f}</div>`).join('');
-      const zone=getZone(r.position);
-      const posStyle=getPosStyle(r.position);
+      const zone=getZone(i+1);
+      const posStyle=getPosStyle(i+1);
       const posLabel = r.position;
       const t=db.teams.find(t=>t.id===r.id);
       const fn=t?t.fascia||1:1;
@@ -5515,8 +5516,8 @@ function autoUpdatePlayoff(torneo) {
       matches.push({
         id: e.id||newId('ottavi',slot), round:'ottavi', slot,
         homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
-        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
-        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
+        homeLabel: rows[a] ? (a+1)+' '+rows[a].name : 'TBD',
+        awayLabel: rows[b] ? (b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
         scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
@@ -5529,8 +5530,8 @@ function autoUpdatePlayoff(torneo) {
       matches.push({
         id: e.id||newId('quarti',slot), round:'quarti', slot,
         homeId: topRow?.id||null, awayId: null,
-        homeLabel: topRow ? '#'+(slot+1)+' '+topRow.name : 'TBD',
-        awayLabel: 'Vin. Play-In '+(slot+1),
+        homeLabel: topRow ? (slot+1)+' '+topRow.name : 'TBD',
+        awayLabel: ['Vin. Play-In 8v9','Vin. Play-In 7v10','Vin. Play-In 6v11','Vin. Play-In 5v12'][slot],
         homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
         scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
@@ -5555,8 +5556,8 @@ function autoUpdatePlayoff(torneo) {
       matches.push({
         id: e.id||newId('semi',slot), round:'semi', slot,
         homeId: rows[a]?.id||null, awayId: rows[b]?.id||null,
-        homeLabel: rows[a] ? '#'+(a+1)+' '+rows[a].name : 'TBD',
-        awayLabel: rows[b] ? '#'+(b+1)+' '+rows[b].name : 'TBD',
+        homeLabel: rows[a] ? (a+1)+' '+rows[a].name : 'TBD',
+        awayLabel: rows[b] ? (b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
         scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
       });
@@ -5603,7 +5604,7 @@ function resolvePlayoffLabels(torneo) {
       if (ott) {
         const w = winner(ott);
         q.awayId    = w ? w.id    : null;
-        q.awayLabel = w ? w.label : 'Vin. Play-In '+(i+1);
+        q.awayLabel = w ? w.label : ['Vin. Play-In 8v9','Vin. Play-In 7v10','Vin. Play-In 6v11','Vin. Play-In 5v12'][i];
         q.awaySeed  = w ? w.seed  : null;
       }
     });
@@ -6108,15 +6109,21 @@ async function exportIGStandings(torneo) {
   };
 
   function getZoneName(i) {
-    if(i<=3) return 'zona-qual';
-    if(torneo==='M' && i<=11) return 'zona-playoff';
-    if(torneo==='F') return 'zona-playoff';
+    if(torneo==='F'){
+      if(i<=4) return 'zona-qual';
+      return 'zona-elim';
+    }
+    if(i<=4) return 'zona-qual';
+    if(i<=12) return 'zona-playoff';
     return 'zona-elim';
   }
   function getZoneColor(i) {
-    if(i<=3) return 'rgba(62,207,94,0.12)';
-    if(torneo==='M' && i<=11) return 'rgba(245,197,24,0.10)';
-    if(torneo==='F') return 'rgba(245,197,24,0.10)';
+    if(torneo==='F'){
+      if(i<=4) return 'rgba(62,207,94,0.12)';
+      return 'rgba(224,53,53,0.10)';
+    }
+    if(i<=4) return 'rgba(62,207,94,0.12)';
+    if(i<=12) return 'rgba(245,197,24,0.10)';
     return 'rgba(224,53,53,0.10)';
   }
   function getPosColor(i) {
@@ -6755,8 +6762,8 @@ function tvRenderStandings(torneo, containerId) {
   if (!rows.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.2rem;padding:20px;">Nessuna partita.</p>'; return; }
 
   function getZone(i) {
-    if (torneo === 'F') return i <= 3 ? 'tv-zona-q' : 'tv-zona-e';
-    if (i <= 3) return 'tv-zona-q'; if (i <= 11) return 'tv-zona-p'; return 'tv-zona-e';
+    if (torneo === 'F') return i <= 4 ? 'tv-zona-q' : 'tv-zona-e';
+    if (i <= 4) return 'tv-zona-q'; if (i <= 12) return 'tv-zona-p'; return 'tv-zona-e';
   }
 
   // Compact table: #, Squadra, G (giocate), Pts, DR
