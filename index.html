@@ -6093,7 +6093,7 @@ async function exportIGStandings(torneo) {
   ctx.fillStyle='rgba(255,255,255,0.3)';
   ctx.font='600 32px Oswald,sans-serif'; ctx.textAlign='center';
   ['#','SQUADRA','G','V','P','S','GF','GS','DR','PTS'].forEach((h,i) => {
-    const xPos = [42,280,540,590,640,690,740,790,845,920][i];
+    const xPos = [65,310,540,590,640,690,740,790,845,920][i];
     ctx.textAlign = i===1?'left':'center';
     ctx.fillText(h, xPos, y+40);
   });
@@ -6145,10 +6145,10 @@ async function exportIGStandings(torneo) {
     // position
     ctx.fillStyle = getPosColor(i);
     ctx.font='bold 44px Oswald,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(i+1, 42, rowY+ROW_H*0.68);
+    ctx.fillText(i+1, 65, rowY+ROW_H*0.68);
     // name
     ctx.fillStyle='#f0f0e8'; ctx.font='600 40px Oswald,sans-serif'; ctx.textAlign='left';
-    ctx.fillText(r.name, 75, rowY+ROW_H*0.68);
+    ctx.fillText(r.name, 105, rowY+ROW_H*0.68);
     // stats
     ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='36px DM Sans,sans-serif'; ctx.textAlign='center';
     [r.G,r.W,r.D,r.L,r.GF,r.GA,(r.GF-r.GA>0?'+':'')+(r.GF-r.GA)].forEach((v,vi) => {
