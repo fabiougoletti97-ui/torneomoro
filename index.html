@@ -3373,11 +3373,13 @@ function buildEventRow(type, side, team, ev, idx) {
   const players = team ? team.players : [];
   const icon = type==='goals'?'⚽':type==='yellow'?'🟨':'🟥';
   const playerOptions = players.map((p,pi)=>`<option value="${p.name}" ${ev&&ev.player===p.name?'selected':''}>${pi+1}. ${p.name}</option>`).join('');
+  const autogolOpt = type==='goals' ? `<option value="Autogol" ${ev&&ev.player==='Autogol'?'selected':''}>🔴 Autogol</option>` : '';
   const goalNumInput = type==='goals' ? `<input class="md-event-num" type="number" min="1" max="10" value="${ev?ev.goals:1}" placeholder="Gol" data-field="goals">` : '';
   row.innerHTML=`
     <span class="md-event-icon">${icon}</span>
     <select class="md-event-select" data-field="player">
       <option value="">-- Seleziona giocatore --</option>
+      ${autogolOpt}
       ${playerOptions}
     </select>
     ${goalNumInput}
