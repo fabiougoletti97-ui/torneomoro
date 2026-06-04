@@ -1891,16 +1891,6 @@ body.admin-mode .delete-team-btn{display:block;}
     <button class="modal-close" onclick="closeModal('matchDetailModal')">&#x2715;</button>
     <div class="modal-title" id="md-title">Dettaglio Partita</div>
     <input type="hidden" id="md-match-id"/>
-    <div class="form-row" style="margin-bottom:0.8rem;">
-      <div class="form-group">
-        <label class="form-label">Squadra Casa</label>
-        <select class="form-select" id="md-home-select" onchange="mdUpdateTeam('home')"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Squadra Ospite</label>
-        <select class="form-select" id="md-away-select" onchange="mdUpdateTeam('away')"></select>
-      </div>
-    </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1.5rem;padding:1rem;background:var(--dark);border-radius:6px;">
       <div style="font-family:Oswald;font-size:0.9rem;font-weight:600;text-align:right;flex:1;" id="md-home-name">Casa</div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -1947,6 +1937,16 @@ body.admin-mode .delete-team-btn{display:block;}
         <div class="md-team-label" id="md-red-away-label">Ospite</div>
         <div id="md-red-away-list"></div>
         <button class="md-add-btn" onclick="addEventRow('red','away')">+ Aggiungi espulsione</button>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:1rem;">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" type="text" id="md-date" placeholder="es. 17 Giu 2026"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Orario</label>
+        <input class="form-input" type="time" id="md-time"/>
       </div>
     </div>
     <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="saveMatchDetail()">Salva tutto</button>
@@ -3296,12 +3296,8 @@ function openMatchDetail(mid) {
   if(!m.red) m.red=[];
   mdCurrentMatch = m;
   const home = getTeam(m.home), away = getTeam(m.away);
-  // Populate team dropdowns
-  const gender = home?.gender || away?.gender || 'M';
-  const teamList = db.teams.filter(t => t.gender === gender).sort((a,b) => a.name.localeCompare(b.name));
-  const makeOpts = (curId) => teamList.map(t => `<option value="${t.id}" ${t.id===curId?'selected':''}>${t.name}</option>`).join('');
-  document.getElementById('md-home-select').innerHTML = makeOpts(m.home);
-  document.getElementById('md-away-select').innerHTML = makeOpts(m.away);
+  document.getElementById('md-date').value = m.date || '';
+  document.getElementById('md-time').value = m.time || '';
   document.getElementById('md-title').textContent = (home?home.name:'?') + ' vs ' + (away?away.name:'?');
   document.getElementById('md-home-name').innerHTML = home ? teamDisplay(home, 12) : '?';
   document.getElementById('md-away-name').innerHTML = away ? teamDisplay(away, 12) : '?';
@@ -3321,26 +3317,6 @@ function openMatchDetail(mid) {
   renderEventList('red','home', m.red.filter(e=>e.teamId===m.home), home);
   renderEventList('red','away', m.red.filter(e=>e.teamId===m.away), away);
   openModal('matchDetailModal');
-}
-
-function mdUpdateTeam(side) {
-  if (!mdCurrentMatch) return;
-  const sel = document.getElementById('md-'+side+'-select');
-  const team = db.teams.find(t => String(t.id) === sel.value);
-  if (!team) return;
-  if (side === 'home') mdCurrentMatch.home = team.id;
-  else mdCurrentMatch.away = team.id;
-  // Update labels
-  const nameEl = document.getElementById('md-'+side+'-name');
-  if (nameEl) nameEl.innerHTML = teamDisplay(team, 12);
-  const goalLbl = document.getElementById('md-goals-'+side+'-label');
-  const yellowLbl = document.getElementById('md-yellow-'+side+'-label');
-  const redLbl = document.getElementById('md-red-'+side+'-label');
-  if (goalLbl) goalLbl.innerHTML = teamDisplay(team, 12);
-  if (yellowLbl) yellowLbl.innerHTML = teamDisplay(team, 12);
-  if (redLbl) redLbl.innerHTML = teamDisplay(team, 12);
-  document.getElementById('md-title').textContent =
-    (getTeam(mdCurrentMatch.home)?.name||'?') + ' vs ' + (getTeam(mdCurrentMatch.away)?.name||'?');
 }
 
 function getTeamForSide(side) {
@@ -3414,6 +3390,10 @@ function saveMatchDetail() {
   const sh = document.getElementById('md-sh').value;
   const sa = document.getElementById('md-sa').value;
   if(sh!=='' && sa!=='') { m.scoreHome=parseInt(sh); m.scoreAway=parseInt(sa); }
+  const mdDate = document.getElementById('md-date').value.trim();
+  const mdTime = document.getElementById('md-time').value;
+  if(mdDate) m.date = mdDate;
+  if(mdTime) m.time = mdTime;
   m.goals = [...collectEvents('goals','home'), ...collectEvents('goals','away')];
   m.yellow = [...collectEvents('yellow','home'), ...collectEvents('yellow','away')];
   m.red = [...collectEvents('red','home'), ...collectEvents('red','away')];
