@@ -1705,6 +1705,17 @@ body.admin-mode .delete-team-btn{display:block;}
     <button class="modal-close" onclick="closeModal('playoffEditModal')">&#x2715;</button>
     <div class="modal-title" id="po-edit-title">Modifica Partita Playoff</div>
     <input type="hidden" id="po-edit-id"/>
+    <!-- Team selectors -->
+    <div class="form-row" style="margin-bottom:0.8rem;">
+      <div class="form-group">
+        <label class="form-label">Squadra Casa</label>
+        <select class="form-select" id="po-home-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Squadra Ospite</label>
+        <select class="form-select" id="po-away-select"></select>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;
       padding:1rem;background:var(--dark);border-radius:6px;margin-bottom:1.2rem;">
       <div style="font-family:Oswald;font-size:0.9rem;font-weight:600;flex:1;text-align:right;" id="po-edit-home-label">Casa</div>
@@ -5756,6 +5767,23 @@ function openPlayoffEdit(mid) {
   const _poFieldEl = document.getElementById('po-field'); if(_poFieldEl) _poFieldEl.value = m.field || '7';
   document.getElementById('po-edit-home-label').textContent = m.homeLabel || 'Casa';
   document.getElementById('po-edit-away-label').textContent = m.awayLabel || 'Ospite';
+
+  // Populate team dropdowns
+  const torneo = (() => { for(const t of ['M','F']){ if(db.playoff[t]?.matches?.find(x=>x.id===mid)) return t; } return 'M'; })();
+  const teams = db.teams.filter(t => t.gender === torneo).sort((a,b) => a.name.localeCompare(b.name));
+  ['po-home-select','po-away-select'].forEach((id, idx) => {
+    const sel = document.getElementById(id);
+    const curId = idx===0 ? m.homeId : m.awayId;
+    const curLabel = idx===0 ? m.homeLabel : m.awayLabel;
+    sel.innerHTML = `<option value="">— ${curLabel} —</option>` +
+      teams.map(t => `<option value="${t.id}" ${t.id===curId?'selected':''}>${t.name}</option>`).join('');
+    sel.onchange = () => {
+      const lbl = idx===0 ? 'po-edit-home-label' : 'po-edit-away-label';
+      const chosen = teams.find(t => String(t.id)===sel.value);
+      if(chosen) document.getElementById(lbl).textContent = chosen.name;
+    };
+  });
+
   const roundNames = { ottavi:'Play-In', quarti:'Quarti di Finale',
     semi:'Semifinale', finale:'Finale' };
   document.getElementById('po-edit-title').textContent = '✏️ ' + (roundNames[m.round] || 'Playoff');
@@ -5782,6 +5810,17 @@ function savePlayoffMatch() {
   m.time = document.getElementById('po-time').value;
   const poField = document.getElementById('po-field');
   if (poField) m.field = poField.value.trim();
+  // Update teams if changed via dropdown
+  const homeSelVal = document.getElementById('po-home-select').value;
+  const awaySelVal = document.getElementById('po-away-select').value;
+  if (homeSelVal) {
+    const ht = db.teams.find(t => String(t.id)===homeSelVal);
+    if (ht) { m.homeId = ht.id; m.homeLabel = ht.name; m.homeSeed = null; }
+  }
+  if (awaySelVal) {
+    const at = db.teams.find(t => String(t.id)===awaySelVal);
+    if (at) { m.awayId = at.id; m.awayLabel = at.name; m.awaySeed = null; }
+  }
   resolvePlayoffLabels(torneo);
   saveToStorage();
   closeModal('playoffEditModal');
