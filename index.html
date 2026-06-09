@@ -988,6 +988,9 @@ body.admin-mode .ig-export-bar{display:flex;}
 .tv-standings-table tr.tv-zona-q td:first-child { color: #3ecf5e; }
 .tv-standings-table tr.tv-zona-p td:first-child { color: var(--gold); }
 .tv-standings-table tr.tv-zona-e td:first-child { color: var(--red); }
+.tv-standings-table tr.tv-zona-q { background: rgba(62,207,94,0.07); border-left: 3px solid #3ecf5e; }
+.tv-standings-table tr.tv-zona-p { background: rgba(245,197,24,0.07); border-left: 3px solid var(--gold); }
+.tv-standings-table tr.tv-zona-e { background: rgba(224,53,53,0.07); border-left: 3px solid var(--red); }
 .tv-standings-table .tv-pts {
   font-size: 1.8rem; font-weight: 700; color: var(--gold);
 }
@@ -6846,8 +6849,11 @@ function tvRenderStandings(torneo, containerId) {
   if (!rows.length) { cont.innerHTML = '<p style="color:var(--muted);font-size:1.2rem;padding:20px;">Nessuna partita.</p>'; return; }
 
   function getZone(i) {
-    if (torneo === 'F') return i <= 4 ? 'tv-zona-q' : 'tv-zona-e';
-    if (i <= 4) return 'tv-zona-q'; if (i <= 12) return 'tv-zona-p'; return 'tv-zona-e';
+    const pos = i + 1;
+    if (torneo === 'F') return pos <= 4 ? 'tv-zona-q' : 'tv-zona-e';
+    if (pos <= 4) return 'tv-zona-q';
+    if (pos <= 12) return 'tv-zona-p';
+    return 'tv-zona-e';
   }
 
   // Compact table: #, Squadra, G (giocate), Pts, DR
