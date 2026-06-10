@@ -5726,7 +5726,7 @@ function switchPlayoff(t, el) {
   renderPlayoff();
 }
 
-function nbaMatchHtml(m, extraCls) {
+function nbaMatchHtml(m, extraCls, seedPrefix='') {
   const hasResult = m.scoreHome!==null && m.scoreHome!==undefined && m.scoreAway!==null && m.scoreAway!==undefined;
   const hw = hasResult && m.scoreHome > m.scoreAway;
   const aw = hasResult && m.scoreAway > m.scoreHome;
@@ -5739,7 +5739,7 @@ function nbaMatchHtml(m, extraCls) {
   const dateStr = [m.date, m.time, m.field?'🏟️ C.'+m.field:null].filter(Boolean).join(' · ') || '';
   return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
-      <span class="nba-seed">${m.homeSeed||''}</span>
+      <span class="nba-seed">${m.homeSeed ? seedPrefix+m.homeSeed : ''}</span>
       <span class="nba-name">${m.homeLabel}</span>
       <span class="nba-score">${sH}</span>
     </div>
@@ -5779,7 +5779,7 @@ function renderPlayoff() {
     html += `<div class="nba-round">
       <div class="nba-round-title">Quarti di Finale</div>
       <div class="nba-slots">`;
-    byRound('quarti').forEach(m => { html += nbaMatchHtml(m, ''); });
+    byRound('quarti').forEach((m, i) => { html += nbaMatchHtml(m, '', 'Q'); });
     html += `</div></div>`;
 
     // SEMIFINALI (2 match)
