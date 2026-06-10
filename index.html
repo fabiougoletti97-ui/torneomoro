@@ -3370,6 +3370,7 @@ function openPlayoffDetail(mid) {
 }
 
 
+function openTimeEdit(mid) {
   const m = db.matches.find(x => x.id === mid);
   if (!m) return;
   document.getElementById('te-match-id').value = mid;
