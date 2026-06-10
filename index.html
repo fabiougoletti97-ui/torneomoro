@@ -3660,13 +3660,16 @@ function switchStatView(view,el){
 function renderStats(){
   const cont=document.getElementById('stats-content');
   if(!cont) return;
-  const matches=db.matches.filter(m=>m.torneo===curStatT&&m.scoreHome!==null);
+  const matches = db.matches.filter(m=>m.torneo===curStatT&&m.scoreHome!==null);
+  // Aggiungi partite playoff con risultato
+  const playoffMatches = ((db.playoff[curStatT]||{}).matches||[]).filter(m=>m.scoreHome!==null);
+  const allMatches = [...matches, ...playoffMatches];
   // Aggregate per player
   const players={};
   function ensure(name,teamId){
     if(!players[name]) players[name]={name,teamId,goals:0,yellow:0,red:0};
   }
-  matches.forEach(m=>{
+  allMatches.forEach(m=>{
     (m.goals||[]).forEach(e=>{ensure(e.player,e.teamId);players[e.player].goals+=(e.goals||1);});
     (m.yellow||[]).forEach(e=>{ensure(e.player,e.teamId);players[e.player].yellow++;});
     (m.red||[]).forEach(e=>{ensure(e.player,e.teamId);players[e.player].red++;});
@@ -5644,7 +5647,10 @@ function autoUpdatePlayoff(torneo) {
              scoreAway: m.scoreAway!==undefined?m.scoreAway:null,
              date: m.date||(sched?sched.date:''), time: m.time||(sched?sched.time:''),
              field: m.field||(sched?sched.field:'7'),
-             id: m.id || null };
+             id: m.id || null,
+             goals:  m.goals  || [],
+             yellow: m.yellow || [],
+             red:    m.red    || [] };
   };
   const newId = (round, slot) => 'po_'+torneo+'_'+round+'_'+slot;
 
@@ -5662,7 +5668,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: rows[a] ? (a+1)+' '+rows[a].name : 'TBD',
         awayLabel: rows[b] ? (b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field, goals:e.goals, yellow:e.yellow, red:e.red
       });
     });
 
@@ -5676,7 +5682,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: topRow ? (slot+1)+' '+topRow.name : 'TBD',
         awayLabel: ['Vin. Play-In 8v9','Vin. Play-In 7v10','Vin. Play-In 6v11','Vin. Play-In 5v12'][slot],
         homeSeed: slot+1, awaySeed: null, ottaviRef: slot,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field, goals:e.goals, yellow:e.yellow, red:e.red
       });
     });
 
@@ -5688,7 +5694,7 @@ function autoUpdatePlayoff(torneo) {
         homeId:null, awayId:null,
         homeLabel:'Vin. Q'+(qa+1), awayLabel:'Vin. Q'+(qb+1),
         semiRef:[qa,qb],
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field, goals:e.goals, yellow:e.yellow, red:e.red
       });
     });
 
@@ -5702,7 +5708,7 @@ function autoUpdatePlayoff(torneo) {
         homeLabel: rows[a] ? (a+1)+' '+rows[a].name : 'TBD',
         awayLabel: rows[b] ? (b+1)+' '+rows[b].name : 'TBD',
         homeSeed: a+1, awaySeed: b+1,
-        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field
+        scoreHome:e.scoreHome, scoreAway:e.scoreAway, date:e.date, time:e.time, field:e.field, goals:e.goals, yellow:e.yellow, red:e.red
       });
     });
   }
