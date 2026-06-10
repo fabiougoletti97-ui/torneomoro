@@ -3331,7 +3331,45 @@ function openMatchDetail(mid) {
   openModal('matchDetailModal');
 }
 
-function openTimeEdit(mid) {
+function openPlayoffDetail(mid) {
+  let m = null, torneo = null;
+  for (const t of ['M','F']) {
+    if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m){torneo=t;break;} }
+  }
+  if (!m) return;
+  if (!m.goals)  m.goals  = [];
+  if (!m.yellow) m.yellow = [];
+  if (!m.red)    m.red    = [];
+  mdCurrentMatch = m;
+  mdCurrentMatch._isPlayoff = true;
+  mdCurrentMatch._torneo = torneo;
+  // Per i playoff usiamo homeId/awayId invece di home/away
+  const home = getTeam(m.homeId), away = getTeam(m.awayId);
+  // Sovrascrivi temporaneamente home/away con homeId/awayId per compatibilità con collectEvents
+  mdCurrentMatch.home = m.homeId;
+  mdCurrentMatch.away = m.awayId;
+  const roundNames = {ottavi:'Play-In', quarti:'Quarti di Finale', semi:'Semifinale', finale:'Finale'};
+  document.getElementById('md-title').textContent = (roundNames[m.round]||'Playoff') + ': ' + (home?home.name:m.homeLabel||'?') + ' vs ' + (away?away.name:m.awayLabel||'?');
+  document.getElementById('md-home-name').innerHTML = home ? teamDisplay(home, 12) : (m.homeLabel||'Casa');
+  document.getElementById('md-away-name').innerHTML = away ? teamDisplay(away, 12) : (m.awayLabel||'Ospite');
+  document.getElementById('md-sh').value = m.scoreHome!==null && m.scoreHome!==undefined ? m.scoreHome : '';
+  document.getElementById('md-sa').value = m.scoreAway!==null && m.scoreAway!==undefined ? m.scoreAway : '';
+  document.getElementById('md-goals-home-label').innerHTML  = home ? teamDisplay(home, 12) : (m.homeLabel||'Casa');
+  document.getElementById('md-goals-away-label').innerHTML  = away ? teamDisplay(away, 12) : (m.awayLabel||'Ospite');
+  document.getElementById('md-yellow-home-label').innerHTML = home ? teamDisplay(home, 12) : (m.homeLabel||'Casa');
+  document.getElementById('md-yellow-away-label').innerHTML = away ? teamDisplay(away, 12) : (m.awayLabel||'Ospite');
+  document.getElementById('md-red-home-label').innerHTML    = home ? teamDisplay(home, 12) : (m.homeLabel||'Casa');
+  document.getElementById('md-red-away-label').innerHTML    = away ? teamDisplay(away, 12) : (m.awayLabel||'Ospite');
+  renderEventList('goals', 'home',  m.goals.filter(e=>e.teamId===m.homeId), home);
+  renderEventList('goals', 'away',  m.goals.filter(e=>e.teamId===m.awayId), away);
+  renderEventList('yellow','home',  m.yellow.filter(e=>e.teamId===m.homeId), home);
+  renderEventList('yellow','away',  m.yellow.filter(e=>e.teamId===m.awayId), away);
+  renderEventList('red',   'home',  m.red.filter(e=>e.teamId===m.homeId), home);
+  renderEventList('red',   'away',  m.red.filter(e=>e.teamId===m.awayId), away);
+  openModal('matchDetailModal');
+}
+
+
   const m = db.matches.find(x => x.id === mid);
   if (!m) return;
   document.getElementById('te-match-id').value = mid;
@@ -3426,11 +3464,15 @@ function saveMatchDetail() {
   const sh = document.getElementById('md-sh').value;
   const sa = document.getElementById('md-sa').value;
   if(sh!=='' && sa!=='') { m.scoreHome=parseInt(sh); m.scoreAway=parseInt(sa); }
-  m.goals = [...collectEvents('goals','home'), ...collectEvents('goals','away')];
+  m.goals  = [...collectEvents('goals','home'),  ...collectEvents('goals','away')];
   m.yellow = [...collectEvents('yellow','home'), ...collectEvents('yellow','away')];
-  m.red = [...collectEvents('red','home'), ...collectEvents('red','away')];
+  m.red    = [...collectEvents('red','home'),    ...collectEvents('red','away')];
   closeModal('matchDetailModal');
-  renderCalendario(); renderStandings(); updateStats(); renderStats(); renderPlayoff(); saveToStorage();
+  if (m._isPlayoff) {
+    renderPlayoff(); updateStats(); renderStats(); saveToStorage();
+  } else {
+    renderCalendario(); renderStandings(); updateStats(); renderStats(); renderPlayoff(); saveToStorage();
+  }
   showToast('💾 Partita salvata!');
 }
 
@@ -3727,20 +3769,30 @@ function renderStats(){
 // ─── INSTAGRAM CARD GENERATOR ─────────────────────────────────────────────
 let igCurrentMatch = null;
 
-function openIGPreview(mid) {
-  const m = db.matches.find(x=>x.id===mid);
+function openIGPreview(mid, isPlayoff) {
+  let m = null;
+  if (isPlayoff) {
+    for (const t of ['M','F']) {
+      if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m) break; }
+    }
+    // normalizza home/away per compatibilità con drawIGCard
+    if (m) { m._igHome = m.homeId; m._igAway = m.awayId; }
+  } else {
+    m = db.matches.find(x=>x.id===mid);
+  }
   if(!m || m.scoreHome===null) { showToast("⚠️ Inserisci prima il risultato!"); return; }
   igCurrentMatch = m;
   openModal('igPreviewModal');
-  // small delay to let modal render before drawing
   requestAnimationFrame(()=>requestAnimationFrame(()=>drawIGCard(m).catch(()=>{})));
 }
 
 function downloadIG() {
   const canvas = document.getElementById('igCanvas');
   const link = document.createElement('a');
-  const home = getTeam(igCurrentMatch.home);
-  const away = getTeam(igCurrentMatch.away);
+  const homeId = igCurrentMatch._igHome || igCurrentMatch.home;
+  const awayId = igCurrentMatch._igAway || igCurrentMatch.away;
+  const home = getTeam(homeId);
+  const away = getTeam(awayId);
   link.download = `TMC_Story_${home?home.name:''}_vs_${away?away.name:''}_${igCurrentMatch.scoreHome}-${igCurrentMatch.scoreAway}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
@@ -3759,13 +3811,15 @@ function drawImageOnCanvas(ctx, src, x, y, w, h) {
 async function drawIGCard(m) {
   const canvas = document.getElementById('igCanvas');
   const ctx = canvas.getContext('2d');
-  const W = 1080, H = 1920; // Story 9:16
+  const W = 1080, H = 1920;
   canvas.width = W; canvas.height = H;
 
-  const home = getTeam(m.home);
-  const away = getTeam(m.away);
-  const homeName = home ? home.name : 'Casa';
-  const awayName = away ? away.name : 'Ospite';
+  const homeId = m._igHome || m.home;
+  const awayId = m._igAway || m.away;
+  const home = getTeam(homeId);
+  const away = getTeam(awayId);
+  const homeName = home ? home.name : (m.homeLabel || 'Casa');
+  const awayName = away ? away.name : (m.awayLabel || 'Ospite');
   const homeColor = home ? home.color : '#e03535';
   const awayColor = away ? away.color : '#3b8bd4';
 
@@ -3919,12 +3973,14 @@ async function drawIGCard(m) {
   console.log('Yellow:', m.yellow);
   console.log('Red:', m.red);
   
-  const homeGoals  = (m.goals||[]).filter(e => e.teamId === m.home);
-  const awayGoals  = (m.goals||[]).filter(e => e.teamId === m.away);
-  const homeYellow = (m.yellow||[]).filter(e => e.teamId === m.home);
-  const awayYellow = (m.yellow||[]).filter(e => e.teamId === m.away);
-  const homeRed    = (m.red||[]).filter(e => e.teamId === m.home);
-  const awayRed    = (m.red||[]).filter(e => e.teamId === m.away);
+  const _hId = m._igHome || m.home;
+  const _aId = m._igAway || m.away;
+  const homeGoals  = (m.goals||[]).filter(e => e.teamId === _hId);
+  const awayGoals  = (m.goals||[]).filter(e => e.teamId === _aId);
+  const homeYellow = (m.yellow||[]).filter(e => e.teamId === _hId);
+  const awayYellow = (m.yellow||[]).filter(e => e.teamId === _aId);
+  const homeRed    = (m.red||[]).filter(e => e.teamId === _hId);
+  const awayRed    = (m.red||[]).filter(e => e.teamId === _aId);
   
   console.log('✅ Home Goals:', homeGoals, 'Away Goals:', awayGoals);
 
@@ -5737,6 +5793,7 @@ function nbaMatchHtml(m, extraCls, seedPrefix='') {
   const sH = (m.scoreHome!==null && m.scoreHome!==undefined) ? m.scoreHome : '';
   const sA = (m.scoreAway!==null && m.scoreAway!==undefined) ? m.scoreAway : '';
   const dateStr = [m.date, m.time, m.field?'🏟️ C.'+m.field:null].filter(Boolean).join(' · ') || '';
+  const _adm = document.body.classList.contains('admin-mode');
   return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
       <span class="nba-seed">${m.homeSeed ? seedPrefix+m.homeSeed : ''}</span>
@@ -5750,7 +5807,11 @@ function nbaMatchHtml(m, extraCls, seedPrefix='') {
     </div>
     <div class="nba-foot">
       <span>${dateStr}</span>
-      <button class="nba-edit-btn" onclick="openPlayoffEdit('${m.id}')">✏️ Modifica</button>
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${_adm ? `<button class="nba-edit-btn" onclick="openPlayoffEdit('${m.id}')">✏️ Modifica</button>` : ''}
+        ${_adm ? `<button class="nba-edit-btn" onclick="openPlayoffDetail('${m.id}')">📋 Dettaglio</button>` : ''}
+        ${_adm && hasResult ? `<button class="nba-edit-btn" onclick="openIGPreview('${m.id}',true)">📸 Instagram</button>` : ''}
+      </div>
     </div>
   </div>`;
 }
