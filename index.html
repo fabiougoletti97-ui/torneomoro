@@ -3449,9 +3449,36 @@ function computeStandings(torneo){
     else{h.D++;a.D++;h.Pts++;a.Pts++;h.form.push('D');a.form.push('D');}
   });
   
-  // Ordina per: Punti → Diff.Reti → Gol.Fatti → Gol.Subiti
+  // Ordina per: Punti → Scontro diretto (chi ha battuto tutte nel gruppo) → Diff.Reti → Gol.Fatti → Gol.Subiti
+  const allTeams = Object.values(stats);
+  const ptsGroups = {};
+  allTeams.forEach(t => {
+    if (!ptsGroups[t.Pts]) ptsGroups[t.Pts] = [];
+    ptsGroups[t.Pts].push(t);
+  });
+
+  // Restituisce true se 'team' ha battuto tutti gli altri nel gruppo
+  function beatAll(team, group) {
+    return group.every(opp => {
+      if (opp.id === team.id) return true;
+      const m = matches.find(x =>
+        (x.home===team.id && x.away===opp.id) ||
+        (x.home===opp.id && x.away===team.id)
+      );
+      if (!m) return false;
+      return m.home===team.id ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome;
+    });
+  }
+
   const sorted = Object.values(stats).sort((a,b)=>{
     if(b.Pts !== a.Pts) return b.Pts - a.Pts;
+    const group = ptsGroups[a.Pts];
+    if (group && group.length >= 2) {
+      const aBeatAll = beatAll(a, group);
+      const bBeatAll = beatAll(b, group);
+      if (aBeatAll && !bBeatAll) return -1;
+      if (bBeatAll && !aBeatAll) return 1;
+    }
     const drA = a.GF - a.GA, drB = b.GF - b.GA;
     if(drB !== drA) return drB - drA;
     if(b.GF !== a.GF) return b.GF - a.GF;
