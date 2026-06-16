@@ -3776,11 +3776,11 @@ let igCurrentMatch = null;
 function openIGPreview(mid, isPlayoff) {
   let m = null;
   if (isPlayoff) {
+    let _t = null;
     for (const t of ['M','F']) {
-      if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m) break; }
+      if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m){_t=t;break;} }
     }
-    // normalizza home/away per compatibilità con drawIGCard
-    if (m) { m._igHome = m.homeId; m._igAway = m.awayId; m._torneo = torneo; }
+    if (m) { m._igHome = m.homeId; m._igAway = m.awayId; m._torneo = _t; }
   } else {
     m = db.matches.find(x=>x.id===mid);
   }
