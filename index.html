@@ -3780,7 +3780,7 @@ function openIGPreview(mid, isPlayoff) {
       if (db.playoff[t]) { m = db.playoff[t].matches.find(x=>x.id===mid); if(m) break; }
     }
     // normalizza home/away per compatibilità con drawIGCard
-    if (m) { m._igHome = m.homeId; m._igAway = m.awayId; }
+    if (m) { m._igHome = m.homeId; m._igAway = m.awayId; m._torneo = torneo; }
   } else {
     m = db.matches.find(x=>x.id===mid);
   }
@@ -3877,8 +3877,9 @@ async function drawIGCard(m) {
   await drawImageOnCanvas(ctx, 'data:image/png;base64,'+tmcB64, W/2-170, 60, 340, 160);
 
   // ── TORNEO LABEL ───────────────────────────────────────────────────
-  const torneoLabel = m.torneo === 'M' ? 'TORNEO MASCHILE' : 'TORNEO FEMMINILE';
-  const torneoColor = m.torneo === 'M' ? '#7ec8f7' : '#f7a8e0';
+  const _torneo = m._torneo || m.torneo || 'M';
+  const torneoLabel = _torneo === 'M' ? 'TORNEO MASCHILE' : 'TORNEO FEMMINILE';
+  const torneoColor = _torneo === 'M' ? '#7ec8f7' : '#f7a8e0';
   ctx.font = '500 32px Oswald, sans-serif';
   ctx.fillStyle = torneoColor;
   ctx.textAlign = 'center';
@@ -5800,6 +5801,29 @@ function nbaMatchHtml(m, extraCls, seedPrefix='') {
   const sH = (m.scoreHome!==null && m.scoreHome!==undefined) ? m.scoreHome : '';
   const sA = (m.scoreAway!==null && m.scoreAway!==undefined) ? m.scoreAway : '';
   const dateStr = [m.date, m.time, m.field?'🏟️ C.'+m.field:null].filter(Boolean).join(' · ') || '';
+  // Build events display
+  const hId = m.homeId || m.home;
+  const aId = m.awayId || m.away;
+  let homeEv='', awayEv='';
+  (m.goals||[]).forEach(e=>{
+    const line=`<div class="ev-line"><span class="ev-icon">⚽</span><span class="ev-name">${e.player}</span><span style="color:var(--gold);font-family:Oswald;font-size:0.75rem;margin-left:2px;">${e.goals>1?'x'+e.goals:''}</span></div>`;
+    if(e.teamId===hId) homeEv+=line; else awayEv+=line;
+  });
+  (m.yellow||[]).forEach(e=>{
+    const line=`<div class="ev-line"><span class="ev-icon">🟨</span><span class="ev-name">${e.player}</span></div>`;
+    if(e.teamId===hId) homeEv+=line; else awayEv+=line;
+  });
+  (m.red||[]).forEach(e=>{
+    const line=`<div class="ev-line"><span class="ev-icon">🟥</span><span class="ev-name">${e.player}</span></div>`;
+    if(e.teamId===hId) homeEv+=line; else awayEv+=line;
+  });
+  const evHtml = (homeEv||awayEv) ? `
+    <div style="display:flex;gap:4px;padding:4px 8px 6px;font-size:0.72rem;border-top:1px solid rgba(255,255,255,0.06);">
+      <div style="flex:1;text-align:right;">${homeEv}</div>
+      <div style="width:10px;"></div>
+      <div style="flex:1;">${awayEv}</div>
+    </div>` : '';
+
   const _adm = document.body.classList.contains('admin-mode');
   return `<div class="nba-match ${extraCls||''}">
     <div class="nba-team ${hCls}">
@@ -5812,6 +5836,7 @@ function nbaMatchHtml(m, extraCls, seedPrefix='') {
       <span class="nba-name">${m.awayLabel}</span>
       <span class="nba-score">${sA}</span>
     </div>
+    ${evHtml}
     <div class="nba-foot">
       <span>${dateStr}</span>
       <div style="display:flex;gap:6px;align-items:center;">
