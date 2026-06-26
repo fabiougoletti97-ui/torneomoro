@@ -5720,7 +5720,8 @@ function autoUpdatePlayoff(torneo) {
     id: ef.id||newId('finale',0), round:'finale', slot:0,
     homeId:null, awayId:null,
     homeLabel:'Vin. Semi 1', awayLabel:'Vin. Semi 2',
-    scoreHome:ef.scoreHome, scoreAway:ef.scoreAway, date:ef.date, time:ef.time
+    scoreHome:ef.scoreHome, scoreAway:ef.scoreAway, date:ef.date, time:ef.time, field:ef.field,
+    goals:ef.goals, yellow:ef.yellow, red:ef.red
   });
 
   db.playoff[torneo] = { matches };
